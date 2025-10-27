@@ -60,12 +60,12 @@ defaults:
       toc: true
       toc_sticky: true
 
-# Plugins utiles (facultatifs pour GitHub Pages)
-# Si la build GitHub Pages échoue à cause d'un plugin, supprime-le ici
 plugins:
+  - jekyll-include-cache
   - jekyll-feed
   - jekyll-sitemap
   - jekyll-seo-tag
+
 
 # Navigation principale (point vers _data/navigation.yml)
 navigation:
