@@ -1,9 +1,11 @@
 main:
-  - title: "Projets"
+  - title: "Accueil"
+    url: /
+  - title: "Portfolio"
     url: /projets/
-  - title: "Articles"
-    url: /blog/
   - title: "À propos"
     url: /a-propos/
   - title: "CV"
-    url: /assets/files/CV_Julien_RABAULT.pdf
+    url: /cv/
+  - title: "Contact"
+    url: /contact/
