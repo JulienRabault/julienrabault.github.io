@@ -1,0 +1,72 @@
+title: "Julien Rabault — Ingénieur IA"
+name: "Julien Rabault"
+description: "Ingénieur en intelligence artificielle — Deep Learning, MLOps, LLMs, Vision — Portofolio et projets."
+locale: "fr-FR"
+
+# Si tu utilises un site utilisateur (julienrabault.github.io), laisse baseurl vide.
+url: ""   # à remplir si domaine custom (https://julienrabault.dev)
+baseurl: ""
+
+remote_theme: "mmistakes/minimal-mistakes"
+
+# Active quelques options utiles du thème
+minimal_mistakes_skin: "default"
+search: true
+breadcrumbs: true
+
+# Réseaux sociaux et liens
+author:
+  name: "Julien Rabault"
+  avatar: "/assets/images/avatar.jpg"   # remplace par une vraie image si tu veux
+  bio: "Ingénieur IA | PyTorch, MLOps, LLM, Vision | Projets recherche & industriel"
+  location: "Toulouse, France"
+  links:
+    - label: "Email"
+      icon: "fas fa-fw fa-envelope"
+      url: "mailto:julienrabault@icloud.com"
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/JulienRabault"
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/julienrabault/"
+
+# Collections personnalisées
+collections:
+  projects:
+    output: true
+    permalink: /projets/:path/
+
+# Valeurs par défaut par type de contenu
+defaults:
+  - scope:
+      path: ""
+      type: "projects"
+    values:
+      layout: "single"
+      author_profile: true
+      read_time: false
+      toc: true
+      toc_sticky: true
+      classes: wide
+
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "single"
+      author_profile: true
+      read_time: true
+      toc: true
+      toc_sticky: true
+
+# Plugins utiles (facultatifs pour GitHub Pages)
+# Si la build GitHub Pages échoue à cause d'un plugin, supprime-le ici
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Navigation principale (point vers _data/navigation.yml)
+navigation:
+  main: true

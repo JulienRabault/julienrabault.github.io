@@ -1,0 +1,9 @@
+main:
+  - title: "Projets"
+    url: /projets/
+  - title: "Articles"
+    url: /blog/
+  - title: "À propos"
+    url: /a-propos/
+  - title: "CV"
+    url: /assets/files/CV_Julien_RABAULT.pdf
