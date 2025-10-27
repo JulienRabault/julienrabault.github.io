@@ -1,6 +1,6 @@
 title: "Julien Rabault — Ingénieur Machine Learning"
 name: "Julien Rabault"
-description: "Ingénieur en intelligence artificielle — Deep Learning, MLOps, LLMs, Vision — Portofolio et projets."
+description: "Ingénieur IA spécialisé en Deep Learning, MLOps, LLMs et Vision. Portfolio : projets, publications et démonstrations."
 locale: "fr-FR"
 
 # Si tu utilises un site utilisateur (julienrabault.github.io), laisse baseurl vide.
@@ -33,6 +33,9 @@ author:
 
 # Collections personnalisées
 collections:
+  pages:
+    output: true
+    permalink: /:path/
   projects:
     output: true
     permalink: /projets/:path/
