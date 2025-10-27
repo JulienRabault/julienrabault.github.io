@@ -33,6 +33,9 @@ author:
 
 # Collections personnalisées
 collections:
+  pages:
+    output: true
+    permalink: /:path/
   projects:
     output: true
     permalink: /projets/:path/
