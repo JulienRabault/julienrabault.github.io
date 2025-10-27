@@ -12,7 +12,25 @@ header:
       url: "/projets/"
     - label: "Télécharger le CV"
       url: "/cv/"
+feature_row:
+  - title: "Projets IA"
+    excerpt: "Vision, diffusion, LLM/RAG, pipelines MLOps prêts pour la production."
+    url: "/projets/"
+    btn_class: "btn--primary"
+    btn_label: "Explorer"
+  - title: "Accompagnement"
+    excerpt: "Architecture logicielle, CI/CD ML et coaching technique pour vos équipes."
+    url: "/contact/"
+    btn_class: "btn--primary"
+    btn_label: "Discuter"
+  - title: "Ressources"
+    excerpt: "CV, formations LLM et publications mises à disposition."
+    url: "/cv/"
+    btn_class: "btn--primary"
+    btn_label: "Télécharger"
 ---
+
+{% include feature_row %}
 
 ## À propos
 
@@ -20,20 +38,20 @@ Basé à Toulouse, je conçois des **solutions d’intelligence artificielle rob
 
 <div class="grid__wrapper">
   <div class="grid__item">
+    <h3>Expertises clés</h3>
+    <ul>
+      <li>Vision par ordinateur, diffusion, génératifs, LLM & RAG.</li>
+      <li>Industrialisation : MLflow, CI/CD, packaging, déploiement multi-GPU.</li>
+      <li>Encadrement, formations LLM et cadrage produit.</li>
+    </ul>
+  </div>
+  <div class="grid__item">
     <h3>Contact rapide</h3>
     <ul>
       <li><strong>Email</strong> : <a href="mailto:julienrabault@icloud.com">julienrabault@icloud.com</a></li>
       <li><strong>Téléphone</strong> : +33&nbsp;7&nbsp;81&nbsp;16&nbsp;46&nbsp;29</li>
       <li><strong>LinkedIn</strong> : <a href="https://www.linkedin.com/in/julienrabault/">linkedin.com/in/julienrabault</a></li>
       <li><strong>Basé à</strong> : Toulouse, France</li>
-    </ul>
-  </div>
-  <div class="grid__item">
-    <h3>Expertises clés</h3>
-    <ul>
-      <li>Vision par ordinateur, diffusion, génératifs, LLM & RAG.</li>
-      <li>Industrialisation : MLflow, CI/CD, packaging, déploiement multi-GPU.</li>
-      <li>Encadrement, formations LLM et cadrage produit.</li>
     </ul>
   </div>
 </div>
