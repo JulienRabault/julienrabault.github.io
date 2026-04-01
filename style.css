@@ -47,8 +47,8 @@ body::before {
   position: fixed;
   inset: 0;
   background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
-  background-size: 28px 28px;
-  opacity: 0.4;
+  background-size: 32px 32px;
+  opacity: 0.2;
   pointer-events: none;
   z-index: 0;
 }
