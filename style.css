@@ -5,9 +5,9 @@
   --bg-card:        #1e1e1e;
   --border:         #2e2e2e;
   --border-hover:   #444;
-  --text-primary:   #f0ebe0;
-  --text-secondary: #b5b5b5;
-  --text-muted:     #888;
+  --text-primary:   #e7dece;
+  --text-secondary: #c5bcad;
+  --text-muted:     #978f84;
   --accent:         #d4a853;
   --accent-hover:   #e0b965;
   --accent-glow:    rgba(212, 168, 83, 0.12);
@@ -35,6 +35,7 @@ body {
   -webkit-font-smoothing: antialiased;
   background-color: var(--bg);
   color: var(--text-primary);
+  line-height: 1.55;
 }
 
 h1, h2, h3, .font-display {
@@ -48,7 +49,7 @@ body::before {
   inset: 0;
   background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
   background-size: 32px 32px;
-  opacity: 0.2;
+  opacity: 0.14;
   pointer-events: none;
   z-index: 0;
 }
@@ -56,7 +57,7 @@ body::before {
 @media (max-width: 768px) {
   body::before {
     background-size: 36px 36px;
-    opacity: 0.3;
+    opacity: 0.2;
   }
 }
 
@@ -108,27 +109,11 @@ nav, section, footer { position: relative; z-index: 1; }
   color: var(--text-primary);
 }
 
-[data-theme="dark"] .hero-name {
-  background: linear-gradient(120deg, #f0ebe0 0%, #f0ebe0 35%, #d4a853 50%, #f0ebe0 65%, #f0ebe0 100%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: fadeUp 0.6s ease both, shimmer 6s ease-in-out 1.2s infinite;
-}
-
+[data-theme="dark"] .hero-name,
 [data-theme="light"] .hero-name {
-  background: linear-gradient(120deg, #1a1a1a 0%, #1a1a1a 35%, #c49540 50%, #1a1a1a 65%, #1a1a1a 100%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: fadeUp 0.6s ease both, shimmer 6s ease-in-out 1.2s infinite;
-}
-
-@keyframes shimmer {
-  0%, 100% { background-position: 100% 0; }
-  50%      { background-position: -100% 0; }
+  color: var(--text-primary);
+  -webkit-text-fill-color: currentColor;
+  animation: fadeUp 0.6s ease both;
 }
 
 /* ─── Role separator line ─── */
@@ -194,6 +179,41 @@ nav, section, footer { position: relative; z-index: 1; }
 }
 .border-l-2:hover {
   background-color: var(--accent-glow);
+}
+
+/* Reading rhythm */
+#about p,
+#experience p {
+  max-width: 72ch;
+  line-height: 1.75;
+}
+
+#experience p.text-sm {
+  font-size: 0.98rem;
+}
+
+#experience p.text-xs {
+  font-size: 0.84rem;
+}
+
+#experience .border-l-2 {
+  border-left-width: 1.5px;
+  background-color: color-mix(in srgb, var(--bg-subtle) 55%, transparent);
+  padding: 10px 14px 10px 16px;
+}
+
+#experience .border-l-2:hover {
+  background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-subtle));
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
+#experience .border-l-2 p:first-child {
+  margin-bottom: 0.35rem;
+}
+
+#experience p .text-\[var\(--text-primary\)\] {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* ─── Navbar shrink on scroll ─── */
