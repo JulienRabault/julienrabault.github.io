@@ -33,11 +33,38 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// ─── Scroll reveal ───
+// ─── Navbar shrink on scroll ───
+const navbar = document.querySelector('.navbar-glass');
+const navbarInner = navbar ? navbar.querySelector('div') : null;
+if (navbarInner) navbarInner.classList.add('navbar-inner');
+
+let lastScroll = 0;
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  if (navbar) {
+    if (y > 60) navbar.classList.add('scrolled');
+    else navbar.classList.remove('scrolled');
+  }
+  lastScroll = y;
+}, { passive: true });
+
+// ─── Scroll reveal with stagger cascade ───
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) {
       e.target.classList.add('visible');
+      // Stagger children (sub-project cards)
+      const children = e.target.querySelectorAll('.border-l-2');
+      children.forEach((child, j) => {
+        child.style.opacity = '0';
+        child.style.transform = 'translateY(12px)';
+        child.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        child.style.transitionDelay = `${0.1 + j * 0.08}s`;
+        requestAnimationFrame(() => {
+          child.style.opacity = '1';
+          child.style.transform = 'translateY(0)';
+        });
+      });
       revealObserver.unobserve(e.target);
     }
   });
