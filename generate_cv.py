@@ -171,9 +171,8 @@ def build_cv():
     story.append(Paragraph(
         "Conception et developpement d'<b>Athena</b>, plateforme agentique de Berger-Levrault : "
         "multi-agents, routage intelligent, connexion aux documents et APIs metier pour tous les clients "
-        "(collectivites, industrie, maintenance). Deploiement en cours, ~30 utilisateurs pilotes. "
-        "Collaboration avec designer et dev front, architecture produit (UML), ateliers clients. "
-        "Observabilite Langfuse, travaux sur la reduction des hallucinations.",
+        "(collectivites, industrie, maintenance). ~30 utilisateurs pilotes. "
+        "Equipe cross-fonctionnelle (designer, dev front, DevOps), ateliers clients, observabilite Langfuse.",
         s["body"]
     ))
     proofs_bl = [

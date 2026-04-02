@@ -171,8 +171,7 @@ def build_cv():
         "multi-agent orchestration, intelligent routing, integrated with documents and business APIs "
         "across verticals including local government, industry, and maintenance. "
         "Currently in pilot with ~30 users. "
-        "Cross-functional collaboration (designer, frontend dev, DevOps), product architecture (UML), client workshops. "
-        "Langfuse observability, ongoing work on hallucination reduction.",
+        "Cross-functional team (designer, frontend dev, DevOps), client workshops, Langfuse observability.",
         s["body"]
     ))
     proofs_bl = [
