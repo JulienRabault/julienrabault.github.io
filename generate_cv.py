@@ -101,7 +101,7 @@ def build_cv():
 
     header = [[
         [Paragraph("JULIEN RABAULT", s["name"]),
-         Paragraph("AI Engineer&nbsp;&nbsp;|&nbsp;&nbsp;ML Engineer", s["role"])],
+         Paragraph("Applied AI / ML Engineer", s["role"])],
         contact_table
     ]]
     ht = Table(header, colWidths=[W - 62 * mm, 62 * mm])
@@ -165,13 +165,15 @@ def build_cv():
         return t
 
     # --- BL ---
-    story.append(job_header("AI ENGINEER", "Janv. 2026 - present"))
+    story.append(job_header("APPLIED AI / ML ENGINEER", "Janv. 2026 - present"))
     story.append(Paragraph(
         "Berger-Levrault  |  Toulouse  |  Equipe R&amp;D IA, 12 personnes", s["company"]))
     story.append(Paragraph(
         "Conception et developpement d'<b>Athena</b>, plateforme agentique de Berger-Levrault : "
         "multi-agents, routage intelligent, connexion aux documents et APIs metier pour tous les clients "
-        "(collectivites, industrie, maintenance). Deploiement en cours, ~30 utilisateurs pilotes.",
+        "(collectivites, industrie, maintenance). Deploiement en cours, ~30 utilisateurs pilotes. "
+        "Collaboration avec designer et dev front, architecture produit (UML), ateliers clients. "
+        "Observabilite Langfuse, travaux sur la reduction des hallucinations.",
         s["body"]
     ))
     proofs_bl = [
