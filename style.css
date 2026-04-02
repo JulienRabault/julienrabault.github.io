@@ -139,7 +139,7 @@ nav, section, footer { position: relative; z-index: 1; }
 /* ─── Animated underline for inline links ─── */
 #about a,
 #experience a,
-#publication a {
+#publication a:not(.block) {
   text-decoration: none;
   background-image: linear-gradient(var(--accent), var(--accent));
   background-size: 0% 1px;
@@ -149,7 +149,7 @@ nav, section, footer { position: relative; z-index: 1; }
 }
 #about a:hover,
 #experience a:hover,
-#publication a:hover {
+#publication a:not(.block):hover {
   background-size: 100% 1px;
 }
 
