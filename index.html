@@ -159,17 +159,17 @@
           </div>
         </div>
         <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
-          <span class="text-[var(--accent)] font-semibold">Athena</span> est une plateforme agentique interne, modulable: les utilisateurs peuvent interroger des agents, en créer, et connecter leurs documents et APIs métier.<br/>
-          Déploiement récent, ~30 utilisateurs pilotes avec retours terrain. Au sein d'un lab IA R&amp;D de 12 personnes.
+          <span class="text-[var(--accent)] font-semibold">Athena</span> est la plateforme agentique de Berger-Levrault : multi-agents, routage, connexion aux documents et APIs métier pour tous les clients (collectivités, industrie, maintenance).<br/>
+          Déploiement en cours, ~30 utilisateurs pilotes. Au sein d'un lab IA R&amp;D de 12 personnes.
         </p>
         <p class="text-[var(--text-muted)] text-xs mb-4">4 réalisations :</p>
         <div class="flex flex-col gap-3 mt-2">
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
-            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Athena · cas d'usage maintenance</p>
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Athena · architecture multi-agents</p>
             <p class="text-[var(--text-muted)] text-sm">
-              <span class="text-[var(--text-secondary)]">Contexte:</span> plateforme agentique pour techniciens usine : questions mêlant procédures de maintenance et disponibilité de pièces.<br/>
-              <span class="text-[var(--text-secondary)]">Rôle:</span> conception et développement de l'architecture multi-agents (LangGraph), orchestration d'agents RAG et d'agents sur APIs MCP (work orders, KPI, stock) avec routage selon la question.<br/>
-              <span class="text-[var(--text-secondary)]">Résultat:</span> une réponse unique, sourcée et actionnable (ex. étapes de réparation + pièces restantes).
+              <span class="text-[var(--text-secondary)]">Contexte:</span> construire le socle agentique pour tous les clients BL (collectivités, industrie, maintenance).<br/>
+              <span class="text-[var(--text-secondary)]">Rôle:</span> conception de l'architecture multi-agents (LangGraph), routage par type de question, orchestration agents RAG + agents MCP, intégration du sourcing des réponses.<br/>
+              <span class="text-[var(--text-secondary)]">Résultat:</span> plateforme en production, réponses sourcées et actionnables sur plusieurs domaines métier.
             </p>
             <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">RAG</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">MCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">LangGraph</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Agent Routing</span></div>
           </div>
@@ -194,8 +194,8 @@
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">MCP Builder</p>
             <p class="text-[var(--text-muted)] text-sm">
-              <span class="text-[var(--text-secondary)]">Contexte:</span> connecter rapidement des APIs internes aux agents.<br/>
-              <span class="text-[var(--text-secondary)]">Rôle:</span> génération d'une base de serveur MCP depuis des specs OpenAPI, puis revue human-in-the-loop pour valider routes, doc et connaissance métier.<br/>
+              <span class="text-[var(--text-secondary)]">Contexte:</span> connecter rapidement les APIs internes de BL aux agents.<br/>
+              <span class="text-[var(--text-secondary)]">Rôle:</span> un LLM analyse les specs OpenAPI pour pré-traiter les endpoints (regroupement, masquage, génération de descriptions), puis revue human-in-the-loop pour valider routes et connaissance métier.<br/>
               <span class="text-[var(--text-secondary)]">Résultat:</span> <span class="text-[var(--accent)] font-semibold">120+ APIs internes</span> cartographiées, intégration progressive au runtime.
             </p>
             <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">OpenAPI</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">MCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Human-in-the-loop</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">API Integration</span></div>

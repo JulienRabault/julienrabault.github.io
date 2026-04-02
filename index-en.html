@@ -159,17 +159,17 @@
           </div>
         </div>
         <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
-          <span class="text-[var(--accent)] font-semibold">Athena</span> is a modular internal agentic platform: users can query agents, create new ones, and connect their own documents and business APIs.<br/>
-          Recently deployed, with ~30 pilot users providing product feedback. Part of a 12-person AI R&amp;D lab.
+          <span class="text-[var(--accent)] font-semibold">Athena</span> is Berger-Levrault's agentic platform: multi-agent, routing, connected to documents and business APIs for all clients (local government, industry, maintenance).<br/>
+          Deployment in progress, ~30 pilot users. Part of a 12-person AI R&amp;D lab.
         </p>
         <p class="text-[var(--text-muted)] text-xs mb-4">4 key contributions:</p>
         <div class="flex flex-col gap-3 mt-2">
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
-            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Athena · maintenance use case</p>
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Athena · multi-agent architecture</p>
             <p class="text-[var(--text-muted)] text-sm">
-              <span class="text-[var(--text-secondary)]">Context:</span> agentic platform for factory technicians: questions mixing maintenance procedures and spare-parts availability.<br/>
-              <span class="text-[var(--text-secondary)]">Role:</span> design and development of the multi-agent architecture (LangGraph), orchestration of RAG agents and MCP API agents (work orders, KPI, stock) with routing by question type.<br/>
-              <span class="text-[var(--text-secondary)]">Result:</span> a single source-grounded, actionable answer (repair steps + remaining parts).
+              <span class="text-[var(--text-secondary)]">Context:</span> build the agentic foundation for all BL clients (local government, industry, maintenance).<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> multi-agent architecture design (LangGraph), question-type routing, RAG + MCP agent orchestration, response sourcing integration.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> platform in production, source-grounded and actionable answers across multiple business domains.
             </p>
             <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">RAG</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">MCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">LangGraph</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Agent Routing</span></div>
           </div>
@@ -194,8 +194,8 @@
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">MCP Builder</p>
             <p class="text-[var(--text-muted)] text-sm">
-              <span class="text-[var(--text-secondary)]">Context:</span> rapidly connect internal APIs to agent workflows.<br/>
-              <span class="text-[var(--text-secondary)]">Role:</span> MCP server scaffold generation from OpenAPI specs, then human-in-the-loop review to validate routes, docs and business context.<br/>
+              <span class="text-[var(--text-secondary)]">Context:</span> rapidly connect BL's internal APIs to agents.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> an LLM analyzes OpenAPI specs to pre-process endpoints (grouping, masking, description generation), then human-in-the-loop review to validate routes and business context.<br/>
               <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">120+ internal APIs</span> mapped, with progressive runtime integration.
             </p>
             <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">OpenAPI</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">MCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Human-in-the-loop</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">API Integration</span></div>
