@@ -11,8 +11,7 @@ function applyTheme(theme, persist) {
 
 function initTheme() {
   var saved = localStorage.getItem('theme');
-  var system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  applyTheme(saved || system, false); // no persist on init
+  applyTheme(saved || 'dark', false); // default to dark
 }
 
 document.addEventListener('DOMContentLoaded', function () {
