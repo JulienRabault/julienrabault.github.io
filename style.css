@@ -136,20 +136,6 @@ nav, section, footer { position: relative; z-index: 1; }
   background: linear-gradient(to bottom, var(--accent), var(--border) 30%, var(--border));
 }
 
-/* Dot at each experience node */
-.reveal.mb-14::before,
-.reveal:last-child::before {
-  content: '';
-  position: absolute;
-  left: -3.5px;
-  top: 6px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent-glow);
-  z-index: 2;
-}
 
 /* ─── Project row hover with lift ─── */
 .project-row {
@@ -170,16 +156,13 @@ nav, section, footer { position: relative; z-index: 1; }
 .project-row:hover .project-arrow { color: var(--accent); transform: translate(2px, -2px); }
 .project-arrow { transition: all 0.2s ease; }
 
-/* ─── Sub-project cards hover ─── */
+/* ─── Sub-project cards ─── */
 .border-l-2 {
-  transition: background-color 0.2s ease, border-color 0.2s ease;
   border-radius: 0 6px 6px 0;
   padding-top: 8px;
   padding-bottom: 8px;
 }
-.border-l-2:hover {
-  background-color: var(--accent-glow);
-}
+
 
 /* Reading rhythm */
 #about p,
@@ -202,10 +185,6 @@ nav, section, footer { position: relative; z-index: 1; }
   padding: 10px 14px 10px 16px;
 }
 
-#experience .border-l-2:hover {
-  background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-subtle));
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
-}
 
 #experience .border-l-2 p:first-child {
   margin-bottom: 0.35rem;
@@ -301,6 +280,8 @@ a:focus-visible, button:focus-visible {
 }
 
 /* ─── Reduced motion ─── */
+
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
   html { scroll-behavior: auto; }

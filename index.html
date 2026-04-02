@@ -158,42 +158,46 @@
           </div>
         </div>
         <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
-          <span class="text-[var(--accent)] font-semibold">Athena</span> (LangGraph) : un utilisateur pose une question sur une notice machine ou un work order, des agents RAG et MCP vont chercher la réponse dans ~100k documents et citent leurs sources.<br/>
-          En pilote avec ~30 utilisateurs. Observabilité Langfuse.<br/>
-          Équipe de 6 en appliqué, 4-5 en recherche.
+          <span class="text-[var(--accent)] font-semibold">Athena</span> est une plateforme agentique interne, modulable: les utilisateurs peuvent interroger des agents, en créer, et connecter leurs documents et APIs métier.<br/>
+          Déploiement récent, ~30 utilisateurs pilotes avec retours terrain. Lab IA R&D de 12 personnes.
         </p>
+        <p class="text-[var(--text-muted)] text-xs mb-4">4 preuves majeures :</p>
         <div class="flex flex-col gap-3 mt-2">
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
-            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Content-extractor</p>
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Athena · cas d'usage maintenance</p>
             <p class="text-[var(--text-muted)] text-sm">
-              J'ai refait le service d'extraction de zéro : OCR, images, PDF, DOCX.<br/>
-              Batch async avec <span class="text-[var(--text-secondary)]">Celery + API batch Mistral</span>. Résultat : <span class="text-[var(--text-primary)] font-medium">-50% sur les coûts</span> d'extraction.<br/>
-              Patterns factory/registry, donc on ajoute un nouveau format sans toucher au reste.
+              Contexte: techniciens usine qui combinent questions procédures + disponibilité de pièces.<br/>
+              Rôle: orchestration d'agents RAG et d'agents sur APIs MCP (work orders, KPI, stock) avec routage selon la question.<br/>
+              Résultat: une réponse unique, sourcée et actionnable (ex. étapes de réparation + pièces restantes).
             </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">RAG</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">MCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Agent Routing</span></div>
           </div>
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
-            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">RAG · ~100k documents</p>
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Content-extractor · OCR/PDF/DOCX</p>
             <p class="text-[var(--text-muted)] text-sm">
-              PDFs, notices techniques, work orders, KPIs. Tout est indexé.<br/>
-              Plusieurs agents RAG selon le type de question, orchestrés via <span class="text-[var(--text-secondary)]">MCP</span>. Le routage LLM choisit le bon agent automatiquement.<br/>
-              Chaque réponse <span class="text-[var(--text-primary)] font-medium">cite ses sources</span> dans le texte, traçable jusqu'au document d'origine.
+              Contexte: service initial simple (image-extractor), peu modulable.<br/>
+              Rôle: refonte complète OCR/images/PDF/DOCX, batch async (Celery + API batch Mistral), architecture factory/registry pour ajouter facilement de nouveaux extracteurs/chunkers.<br/>
+              Résultat: <span class="text-[var(--accent)] font-semibold">-50% sur les coûts d'extraction</span>.
             </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">OCR</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Celery</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Mistral Batch</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Factory/Registry</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Python</span></div>
+          </div>
+          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Pipelines Airflow</p>
+            <p class="text-[var(--text-muted)] text-sm">
+              Contexte: ingestion documentaire par client.<br/>
+              Rôle: reprise de l'existant et évolution en équipe sur les pipelines d'ingestion (PDF, notices, work orders, docs machine).<br/>
+              Résultat: <span class="text-[var(--accent)] font-semibold">5 DAGs opérationnels</span> (1 par client).
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Airflow</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">DAG</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">PDF/DOCX</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Ingestion</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Chunking</span></div>
           </div>
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">MCP Builder</p>
             <p class="text-[var(--text-muted)] text-sm">
-              On donne une spec OpenAPI, l'outil génère un serveur MCP.<br/>
-              Un agent regroupe les endpoints par domaine, génère la doc et filtre les routes inutiles.<br/>
-              <span class="text-[var(--text-primary)] font-medium">120+ APIs internes</span> déjà connectées. C'est ce qui fait la transition SaaS → AaaS.
+              Contexte: connecter rapidement des APIs internes aux agents.<br/>
+              Rôle: génération d'une base de serveur MCP depuis des specs OpenAPI, puis revue human-in-the-loop pour valider routes, doc et connaissance métier.<br/>
+              Résultat: <span class="text-[var(--accent)] font-semibold">120+ APIs internes</span> cartographiées, intégration progressive au runtime.
             </p>
-          </div>
-          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
-            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Pipelines Airflow</p>
-            <p class="text-[var(--text-muted)] text-sm">5 DAGs d'ingestion, un par client. Segmentation, chunking et indexation à grande échelle.</p>
-          </div>
-          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
-            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Infra</p>
-            <p class="text-[var(--text-muted)] text-sm">Dockerfile, docker-compose, configuration Celery. Un seul DevOps dans l'équipe, forte autonomie sur l'infra.</p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">OpenAPI</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">MCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Human-in-the-loop</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">API Integration</span></div>
           </div>
         </div>
       </div>
@@ -217,50 +221,33 @@
           Toujours 2 projets en parallèle (6-12 mois chacun), livrés à <span class="text-[var(--accent)] font-semibold">Météo France, le CNES, le CEA, l'INEE</span>.<br/>
           Entraînement et fine-tuning sur <span class="text-[var(--accent)] font-semibold">Jean Zay</span> (multi-GPU DDP, jusqu'à 8 GPUs, Slurm). Profilage PyTorch.
         </p>
-        <p class="text-[var(--text-muted)] text-xs mb-4">Sélection de projets :</p>
+        <p class="text-[var(--text-muted)] text-xs mb-4">Sélection de preuves :</p>
         <div class="flex flex-col gap-3 mt-2 mb-4">
-          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
-            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">DeepFaune · CNRS/INEE</p>
-            <p class="text-[var(--text-muted)] text-sm">
-              Reconnaissance d'animaux sur images de pièges photos. Partenariat avec des assos environnementales dans toute la France. Équipe de 3.<br/>
-              YOLO multi-GPU, rééquilibrage de classes, choix du meilleur compromis précision/vitesse CPU, FP16.<br/>
-              <span class="text-[var(--text-primary)] font-medium">93% sur 24 espèces, 3× plus rapide</span>. 1,5M d'images en entraînement.<br/>
-              <a href="https://scholar.google.fr/citations?view_op=view_citation&hl=fr&user=iUFJqVMAAAAJ&citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" target="_blank" rel="noopener" class="text-[var(--accent)] hover:opacity-80 transition-opacity">Publication peer-reviewed ↗</a>
-            </p>
-          </div>
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">GENS / MetScore · Météo France</p>
             <p class="text-[var(--text-muted)] text-sm">
-              J'étais dans les locaux de Météo France, avec les équipes de Laure Raynaud et Clément Brochet.<br/>
-              J'ai conçu <span class="text-[var(--text-secondary)]">MetScore</span>, une lib Python de métriques météo. L'idée : les chercheurs configurent leurs métriques en YAML au lieu de coder. <span class="text-[var(--text-primary)] font-medium">Toujours en prod</span> chez Météo France.<br/>
-              À côté, POC avec des modèles de diffusion (DDPM) pour générer des prévisions météo. <span class="text-[var(--text-primary)] font-medium">-20% de calcul</span> à qualité égale. Entraîné sur Jean Zay avec les données AROME.<br/>
+              Contexte: évaluer des modèles météo en production.<br/>
+              Rôle: conception de MetScore (configuration YAML, librairie Python), et entraînement de modèles de diffusion pour la génération d'images météorologiques sur Jean Zay.<br/>
+              Résultat: <span class="text-[var(--accent)] font-semibold">librairie toujours en prod</span> + POC diffusion à <span class="text-[var(--accent)] font-semibold">-20% de calcul</span> à qualité équivalente.<br/>
               <a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" target="_blank" rel="noopener" class="text-[var(--accent)] hover:opacity-80 transition-opacity">Co-auteur du papier AMS 2025 ↗</a>
             </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Python</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">modele de diffusion</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">HPC</span></div>
           </div>
-          <div class="border-l-2 border-[var(--border)] pl-4">
-            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">AUTOFILL · CEA <span class="text-[var(--text-muted)] font-normal text-xs">(PEPR)</span></p>
+          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">DeepFaune · CNRS/INEE</p>
             <p class="text-[var(--text-muted)] text-sm">
-              PairVAE pour générer et compléter des données de nanomatériaux. <span class="text-[var(--text-primary)] font-medium">MAE 0,98</span>.<br/>
-              J'ai livré une lib que le CEA peut réutiliser sur d'autres matériaux sans repartir de zéro.<br/>
-              Python, PyTorch, Lightning, MLFlow, Docker.
+              Contexte: reconnaissance d'animaux sur pièges photos (1,5M images).<br/>
+              Rôle: pipeline YOLO multi-GPU, gestion du déséquilibre de classes, optimisation précision/vitesse CPU.<br/>
+              Résultat: <span class="text-[var(--accent)] font-semibold">93% sur 24 espèces, 3× plus rapide</span> + publication peer-reviewed.<br/>
+              <a href="https://scholar.google.fr/citations?view_op=view_citation&hl=fr&user=iUFJqVMAAAAJ&citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" target="_blank" rel="noopener" class="text-[var(--accent)] hover:opacity-80 transition-opacity">Publication peer-reviewed ↗</a>
             </p>
-          </div>
-          <div class="border-l-2 border-[var(--border)] pl-4">
-            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">BIGSF · CNES</p>
-            <p class="text-[var(--text-muted)] text-sm">
-              2 repos de thèse à transformer en une seule librairie propre pour analyser des images de filaments galactiques. Point chaque semaine avec le CNES.<br/>
-              J'ai posé l'architecture : système de config unifié, refactoring POO, factory/abstract class.<br/>
-              Python, PyTorch, U-Net.
-            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">YOLO</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Multi-GPU</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">dataset Imbalance</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Computer Vision</span></div>
           </div>
         </div>
         <div class="border-l-2 border-[var(--border)] pl-4">
-          <p class="text-[var(--text-muted)] text-sm mb-1">Formation dispensée : <em>Introduction aux LLMs</em> (3h, ~25 doctorants et chercheurs CNRS)</p>
-          <p class="text-[var(--text-muted)] text-xs">Historique du NLP, mécanisme d'attention, modèles encoders/décoders, GPT-4, Llama, modèles multimodaux.</p>
+          <p class="text-[var(--text-muted)] text-sm">Autres contributions: AUTOFILL (CEA, PairVAE, MAE 0,98), BIGSF (CNES, tech lead et refacto d'architecture), formation <em>Introduction aux LLMs</em> (3h, ~25 doctorants/chercheurs CNRS).</p>
         </div>
-        <div class="border-l-2 border-[var(--border)] pl-4 mt-3">
-          <p class="text-[var(--text-muted)] text-sm">Formations suivies : Python Avancé (5j) · ANF Multimodale (5j, intervenants Nvidia & CNRS)</p>
-        </div>
+
       </div>
 
       <!-- Agileo -->
