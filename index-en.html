@@ -17,6 +17,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://julienrabault.github.io/index-en.html" />
   <meta name="twitter:card" content="summary" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -30,7 +31,7 @@
   <script src="https://unpkg.com/lucide@0.475.0/dist/umd/lucide.js"></script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
 
@@ -504,12 +505,12 @@
     </div>
 
     <p class="text-[var(--text-muted)] text-xs">
-      Julien Rabault · Toulouse, France · 2026
+      Julien Rabault · Toulouse, France · <span id="year"></span>
     </p>
   </div>
 </section>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=2"></script>
   <script>lucide.createIcons();</script>
 </body>
 </html>
