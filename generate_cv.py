@@ -165,7 +165,7 @@ def build_cv():
         return t
 
     # --- BL ---
-    story.append(job_header("APPLIED AI / ML ENGINEER", "Janv. 2026 - present"))
+    story.append(job_header("AI ENGINEER", "Janv. 2026 - present"))
     story.append(Paragraph(
         "Berger-Levrault  |  Toulouse  |  Equipe R&amp;D IA, 12 personnes", s["company"]))
     story.append(Paragraph(
@@ -186,7 +186,7 @@ def build_cv():
          "<b>-50% sur les couts d'extraction.</b>"),
         ("Pipelines Airflow",
          "Reprise et evolution en equipe des pipelines d'ingestion documentaire "
-         "(PDF, notices, work orders, docs machine). <b>5 DAGs operationnels</b> (1 par client)."),
+         "(PDF, notices, work orders, docs machine). <b>5 DAGs operationnels.</b>"),
         ("MCP Builder",
          "Un LLM analyse les specs OpenAPI pour pre-traiter les endpoints (regroupement, masquage, "
          "generation de descriptions), puis revue human-in-the-loop pour valider routes, doc et "
