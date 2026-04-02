@@ -113,9 +113,9 @@ def build_cv():
 
     # Summary
     story.append(Paragraph(
-        "4 years at CNRS training and fine-tuning deep learning models in production (PyTorch, multi-GPU, "
-        "Jean Zay supercomputer), 2 peer-reviewed publications. Currently at Berger-Levrault: designing Athena, "
-        "a multi-agent agentic platform (LangGraph, RAG, MCP).",
+        "Four years at CNRS, training and fine-tuning deep learning models in production (PyTorch, multi-GPU, "
+        "Jean Zay supercomputer), with two peer-reviewed publications. Currently at Berger-Levrault designing "
+        "Athena, an agentic AI platform powered by LangGraph, RAG, and MCP.",
         s["body"]
     ))
     story.append(Spacer(1, 0.5 * mm))
@@ -168,9 +168,9 @@ def build_cv():
         "Berger-Levrault  |  Toulouse  |  AI R&amp;D team, 12 people", s["company"]))
     story.append(Paragraph(
         "Designing and building <b>Athena</b>, Berger-Levrault's agentic platform: "
-        "multi-agent orchestration, intelligent routing, connected to documents and business APIs "
-        "across all client verticals (local government, industry, maintenance). "
-        "Currently deployed to ~30 pilot users.",
+        "multi-agent orchestration, intelligent routing, integrated with documents and business APIs "
+        "across verticals including local government, industry, and maintenance. "
+        "Currently in pilot with ~30 users.",
         s["body"]
     ))
     proofs_bl = [
@@ -179,15 +179,15 @@ def build_cv():
          "orchestrated RAG agents and MCP API agents, integrated source attribution into responses. "
          "<b>Platform in production</b>, delivering grounded and actionable answers across business domains."),
         ("Content extractor - OCR/PDF/DOCX",
-         "Rebuilt the extraction service from scratch: OCR, images, PDF, DOCX. Async batch processing "
-         "(Celery + Mistral batch API), factory/registry pattern for easy format extension. "
-         "<b>Halved extraction costs.</b>"),
+         "Redesigned and rebuilt the extraction service: OCR, images, PDF, DOCX. Async batch processing "
+         "(Celery + Mistral batch API), factory/registry patterns for extensibility. "
+         "<b>Cut extraction costs by 50%.</b>"),
         ("Airflow pipelines",
-         "Took over and improved document ingestion pipelines "
-         "(PDF, technical manuals, work orders, machine docs). <b>5 operational DAGs</b> (one per client)."),
+         "Inherited and improved document ingestion pipelines "
+         "(PDF, technical manuals, work orders, equipment documentation). <b>5 operational DAGs</b> (one per client)."),
         ("MCP Builder",
-         "An LLM pre-processes OpenAPI specs (endpoint grouping, masking, description generation), "
-         "followed by human-in-the-loop review to validate routes, docs and domain knowledge. "
+         "Developed an LLM-powered pipeline that pre-processes OpenAPI specs (endpoint grouping, masking, "
+         "description generation), with human-in-the-loop review for route validation and domain knowledge. "
          "<b>120+ internal APIs mapped</b>, progressively integrated at runtime."),
     ]
     for title, desc in proofs_bl:
@@ -201,23 +201,23 @@ def build_cv():
     story.append(Paragraph(
         "CNRS - National AI Research Programme (PNRIA)  |  Toulouse", s["company"]))
     story.append(Paragraph(
-        "Worked with research teams across France on applied AI challenges. "
-        "Ran 2 projects in parallel (6-12 months each), delivered to Meteo France, CNES, CEA, INEE. "
-        "Training and fine-tuning on Jean Zay (multi-GPU DDP, up to 8 GPUs, Slurm). PyTorch profiling.",
+        "Collaborated with research teams across France on applied AI projects. "
+        "Led two projects in parallel (6-12 months each), delivering to major French research institutions "
+        "(Meteo France, CNES, CEA, INEE). Training and fine-tuning on Jean Zay (multi-GPU DDP, up to 8 GPUs, Slurm).",
         s["body"]
     ))
     story.append(Paragraph("GENS / MetScore - Meteo France", s["bullet"]))
     story.append(Paragraph(
-        "Evaluated weather models in production, multi-GPU optimisation and fine-tuning of a diffusion model "
-        "(DDPM) in PyTorch on Jean Zay. Built MetScore (YAML config, Python library). "
-        "<b>Library still in production</b> + diffusion POC achieving <b>20% compute savings</b> at equal quality. "
-        "Co-author, AMS 2025 paper.",
+        "Evaluated production weather models; performed multi-GPU optimization and fine-tuning of a diffusion "
+        "model (DDPM) in PyTorch on Jean Zay. Built MetScore (YAML config, Python library). "
+        "<b>Library still in production</b>; diffusion POC achieved <b>20% compute savings</b> with no loss in quality. "
+        "Co-authored AMS 2025 paper.",
         s["bullet_body"]
     ))
     story.append(Paragraph("DeepFaune - CNRS/INEE", s["bullet"]))
     story.append(Paragraph(
         "Fine-tuned YOLOv5 on a custom dataset (1.5M images, 24 classes), multi-GPU training, "
-        "class imbalance handling, precision/speed optimisation for CPU deployment. "
+        "addressed class imbalance, optimized for inference speed on CPU. "
         "<b>93% accuracy across 24 species, 3x faster.</b> Peer-reviewed publication.",
         s["bullet_body"]
     ))
@@ -226,7 +226,7 @@ def build_cv():
         "AUTOFILL (CEA, PairVAE, nanomaterial data generation, MAE 0.98), "
         "BIGSF (CNES, tech lead and architecture refactor, galactic filament image analysis library), "
         "MORPHOGAN (Univ. Lorraine, StyleGAN2 code overhaul, automated pipeline).<br/>"
-        "Course delivered: <i>Introduction to LLMs</i> (3 hrs, ~25 PhD students and CNRS researchers).",
+        "Taught: <i>Introduction to LLMs</i> (3-hour course, ~25 PhD students and CNRS researchers).",
         s["bullet_body"]
     ))
 
@@ -236,7 +236,7 @@ def build_cv():
     story.append(job_header("SOFTWARE ENGINEER (apprenticeship)", "Aug. 2020 - Sept. 2021"))
     story.append(Paragraph("Agileo Automation  |  Montauban", s["company"]))
     story.append(Paragraph(
-        "Supervision and control framework for robotic machinery in semiconductor manufacturing. "
+        "Built a supervision and control framework for robotic machinery in semiconductor manufacturing. "
         "C#, object-oriented architecture, HMI, CI/CD. Team of 5 engineers, Agile/Scrum.",
         s["body"]
     ))
@@ -264,7 +264,7 @@ def build_cv():
                               ("BOTTOMPADDING", (0, 0), (-1, -1), 1)]))
     story.append(t_l)
     story.append(Paragraph(
-        "<b>Languages:</b> French (native)  |  English (professional working proficiency, scientific writing)", sm))
+        "<b>Languages:</b> French (native)  |  English (full professional proficiency, scientific writing)", sm))
 
     story.append(Spacer(1, 0.3 * mm))
     story.append(HRFlowable(width="100%", thickness=0.8, color=BORDER))
@@ -300,7 +300,7 @@ def build_cv():
     story.append(Spacer(1, 0.3 * mm))
     story.append(Paragraph(
         '<a href="https://github.com/JulienRabault/DDPM-weather" color="#1155CC"><b>DDPM-weather</b></a> - '
-        "Probabilistic diffusion model for weather image denoising, 20% resource savings. PyTorch, Meteo France.", ps))
+        "Probabilistic diffusion model for weather image denoising, 20% compute cost savings. PyTorch, Meteo France.", ps))
     story.append(Spacer(1, 0.3 * mm))
     story.append(Paragraph(
         '<a href="https://github.com/JulienRabault/DaysToBananaDeath" color="#1155CC"><b>BananaML</b></a> - '
