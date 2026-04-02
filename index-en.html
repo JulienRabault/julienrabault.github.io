@@ -135,13 +135,13 @@
   </div>
 </section>
   <section id="experience" class="max-w-[860px] mx-auto px-6 py-24">
-  <div class="reveal grid md:grid-cols-[140px_1fr] gap-12">
+  <div class="reveal grid md:grid-cols-[120px_1fr] gap-6">
 
     <div>
       <span class="text-[11px] text-[var(--text-muted)] uppercase tracking-widest">Experience</span>
     </div>
 
-    <div class="relative pl-8">
+    <div class="relative pl-5">
       <div class="timeline-line"></div>
 
       <!-- Berger-Levrault -->
@@ -167,36 +167,36 @@
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Athena · maintenance use case</p>
             <p class="text-[var(--text-muted)] text-sm">
-              Context: factory technicians combine procedure questions and spare-parts availability.<br/>
-              Role: design and development of the multi-agent architecture (LangGraph), orchestration of RAG agents and MCP API agents (work orders, KPI, stock) with routing by question type.<br/>
-              Result: a single source-grounded, actionable answer (repair steps + remaining parts).
+              <span class="text-[var(--text-secondary)]">Context:</span> agentic platform for factory technicians: questions mixing maintenance procedures and spare-parts availability.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> design and development of the multi-agent architecture (LangGraph), orchestration of RAG agents and MCP API agents (work orders, KPI, stock) with routing by question type.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> a single source-grounded, actionable answer (repair steps + remaining parts).
             </p>
             <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">RAG</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">MCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">LangGraph</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Agent Routing</span></div>
           </div>
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Content-extractor · OCR/PDF/DOCX</p>
             <p class="text-[var(--text-muted)] text-sm">
-              Context: initial service was a basic image extractor and hard to extend.<br/>
-              Role: full OCR/images/PDF/DOCX rebuild, async batching (Celery + Mistral batch API), factory/registry architecture to add extractors/chunkers quickly.<br/>
-              Result: <span class="text-[var(--accent)] font-semibold">-50% extraction costs</span>.
+              <span class="text-[var(--text-secondary)]">Context:</span> initial service was a basic image extractor and hard to extend.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> full OCR/images/PDF/DOCX rebuild, async batching (Celery + Mistral batch API), factory/registry architecture to add extractors/chunkers quickly.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">-50% extraction costs</span>.
             </p>
             <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">OCR</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Celery</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Mistral Batch</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Factory/Registry</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Python</span></div>
           </div>
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Airflow pipelines</p>
             <p class="text-[var(--text-muted)] text-sm">
-              Context: document ingestion per client account.<br/>
-              Role: took over existing setup and evolved it with the team for ingestion flows (PDFs, manuals, work orders, machine docs).<br/>
-              Result: <span class="text-[var(--accent)] font-semibold">5 operational DAGs</span> (1 per client).
+              <span class="text-[var(--text-secondary)]">Context:</span> document ingestion per client account.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> took over existing setup and evolved it with the team for ingestion flows (PDFs, manuals, work orders, machine docs).<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">5 operational DAGs</span> (1 per client).
             </p>
             <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Airflow</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">DAG</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">PDF/DOCX</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Ingestion</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Chunking</span></div>
           </div>
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">MCP Builder</p>
             <p class="text-[var(--text-muted)] text-sm">
-              Context: rapidly connect internal APIs to agent workflows.<br/>
-              Role: MCP server scaffold generation from OpenAPI specs, then human-in-the-loop review to validate routes, docs and business context.<br/>
-              Result: <span class="text-[var(--accent)] font-semibold">120+ internal APIs</span> mapped, with progressive runtime integration.
+              <span class="text-[var(--text-secondary)]">Context:</span> rapidly connect internal APIs to agent workflows.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> MCP server scaffold generation from OpenAPI specs, then human-in-the-loop review to validate routes, docs and business context.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">120+ internal APIs</span> mapped, with progressive runtime integration.
             </p>
             <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">OpenAPI</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">MCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Human-in-the-loop</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">API Integration</span></div>
           </div>
@@ -227,22 +227,22 @@
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">GENS / MetScore · Météo France</p>
             <p class="text-[var(--text-muted)] text-sm">
-              Context: evaluate weather models in production.<br/>
-              Role: designed MetScore (YAML configuration + Python library) and trained diffusion models for weather-image generation on Jean Zay.<br/>
-              Result: <span class="text-[var(--accent)] font-semibold">library still in production</span> + diffusion POC at <span class="text-[var(--accent)] font-semibold">-20% compute</span> with equivalent quality.<br/>
+              <span class="text-[var(--text-secondary)]">Context:</span> evaluate weather models in production, multi-GPU optimization and fine-tuning of a diffusion model.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> designed MetScore (YAML configuration + Python library) and trained a diffusion model (DDPM) in PyTorch for weather-image generation on Jean Zay.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">library still in production</span> + diffusion POC at <span class="text-[var(--accent)] font-semibold">-20% compute</span> with equivalent quality.<br/>
               <a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" target="_blank" rel="noopener" class="text-[var(--accent)] hover:opacity-80 transition-opacity">Co-author on AMS 2025 paper ↗</a>
             </p>
-            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Python</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">diffusion model</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">HPC</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Weather Models</span></div>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">PyTorch</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">DDPM</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">HPC</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Python</span></div>
           </div>
           <div class="border-l-2 border-[var(--accent)]/40 pl-4">
             <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">DeepFaune · CNRS/INEE</p>
             <p class="text-[var(--text-muted)] text-sm">
-              Context: wildlife recognition on camera traps (1.5M images).<br/>
-              Role: multi-GPU YOLO pipeline, class-imbalance handling, precision/speed optimization for CPU deployment.<br/>
-              Result: <span class="text-[var(--accent)] font-semibold">93% on 24 species, 3× faster</span> + peer-reviewed publication.<br/>
+              <span class="text-[var(--text-secondary)]">Context:</span> wildlife recognition on camera traps (1.5M images).<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> fine-tuning YOLOv5 on custom dataset (1.5M images, 24 classes), multi-GPU training, class-imbalance handling, precision/speed optimization for CPU deployment.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">93% on 24 species, 3× faster</span> + peer-reviewed publication.<br/>
               <a href="https://scholar.google.fr/citations?view_op=view_citation&hl=fr&user=iUFJqVMAAAAJ&citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" target="_blank" rel="noopener" class="text-[var(--accent)] hover:opacity-80 transition-opacity">Peer-reviewed publication ↗</a>
             </p>
-            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">YOLO</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Multi-GPU</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">dataset Imbalance</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Computer Vision</span></div>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Fine-tuning</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">YOLOv5</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">PyTorch</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Multi-GPU</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Computer Vision</span></div>
           </div>
         </div>
         <div class="border-l-2 border-[var(--border)] pl-4">

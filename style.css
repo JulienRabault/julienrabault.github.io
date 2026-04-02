@@ -153,6 +153,12 @@ nav, section, footer { position: relative; z-index: 1; }
   background-size: 100% 1px;
 }
 
+/* ─── Experience separator ─── */
+#experience .reveal.mb-14 + .reveal {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
 /* ─── Project row hover with lift ─── */
 .project-row {
   transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
