@@ -30,7 +30,7 @@ ICON_LINKEDIN = os.path.join(BASE, "cv_icons", "icon_linkedin_dark.png")
 
 
 def S(name, **kw):
-    defaults = {"fontName": FONT, "fontSize": 8.5, "leading": 11, "textColor": GRAY}
+    defaults = {"fontName": FONT, "fontSize": 8.8, "leading": 11.5, "textColor": GRAY}
     defaults.update(kw)
     return ParagraphStyle(name, **defaults)
 
@@ -44,7 +44,7 @@ def build_cv():
     doc = SimpleDocTemplate(
         output, pagesize=A4,
         leftMargin=5 * mm, rightMargin=5 * mm,
-        topMargin=3 * mm, bottomMargin=3 * mm
+        topMargin=2 * mm, bottomMargin=3 * mm
     )
 
     s = {
@@ -52,20 +52,20 @@ def build_cv():
         "role": S("role", fontName=FONT_BOLD, fontSize=13, leading=16, textColor=BLACK),
         "contact_text": S("ct", fontSize=8, leading=10, textColor=GRAY),
         "contact_link": S("cl", fontSize=8, leading=10, textColor=GRAY),
-        "section": S("section", fontName=FONT_BOLD, fontSize=10, leading=13, textColor=SECTION,
-                      spaceBefore=4, spaceAfter=2),
-        "job": S("job", fontName=FONT_BOLD, fontSize=9.5, leading=12, textColor=BLACK),
-        "company": S("company", fontName=FONT_BOLD, fontSize=8.5, leading=11, textColor=SECTION,
-                      spaceAfter=1),
-        "body": S("body", fontSize=8.5, leading=11, textColor=GRAY, spaceAfter=1),
-        "bullet": S("bullet", fontName=FONT_BOLD, fontSize=8, leading=10.5, textColor=DARK,
+        "section": S("section", fontName=FONT_BOLD, fontSize=10.5, leading=13.5, textColor=SECTION,
+                      spaceBefore=5, spaceAfter=3),
+        "job": S("job", fontName=FONT_BOLD, fontSize=10, leading=12.5, textColor=BLACK),
+        "company": S("company", fontName=FONT_BOLD, fontSize=8.8, leading=11.5, textColor=SECTION,
+                      spaceAfter=1.5),
+        "body": S("body", fontSize=8.8, leading=11.5, textColor=GRAY, spaceAfter=1.5),
+        "bullet": S("bullet", fontName=FONT_BOLD, fontSize=8.2, leading=10.8, textColor=DARK,
                      leftIndent=8, spaceAfter=0.5),
-        "bullet_body": S("bullet_body", fontSize=8, leading=10.5, textColor=GRAY,
-                          leftIndent=8, spaceAfter=1),
-        "small": S("small", fontSize=8.5, leading=11, textColor=GRAY),
-        "date": S("date", fontSize=8.5, leading=11, textColor=GRAY, alignment=TA_RIGHT),
-        "skill_cat": S("skill_cat", fontName=FONT_BOLD, fontSize=8, leading=10.5, textColor=DARK),
-        "skill_val": S("skill_val", fontSize=8, leading=10.5, textColor=GRAY),
+        "bullet_body": S("bullet_body", fontSize=8.2, leading=10.8, textColor=GRAY,
+                          leftIndent=8, spaceAfter=1.5),
+        "small": S("small", fontSize=8.8, leading=11.5, textColor=GRAY),
+        "date": S("date", fontSize=8.8, leading=11.5, textColor=GRAY, alignment=TA_RIGHT),
+        "skill_cat": S("skill_cat", fontName=FONT_BOLD, fontSize=8.2, leading=10.8, textColor=DARK),
+        "skill_val": S("skill_val", fontSize=8.2, leading=10.8, textColor=GRAY),
     }
 
     W = 200 * mm
@@ -115,11 +115,9 @@ def build_cv():
 
     # Summary
     story.append(Paragraph(
-        "Conception et deploiement de systemes IA en production : plateformes agentiques (LangGraph, RAG, MCP), "
-        "modeles deep learning (PyTorch, multi-GPU, supercalculateur Jean Zay), et pipelines MLOps. "
-        "4 ans au CNRS avec librairies en prod chez Meteo France et 2 publications peer-reviewed. "
-        "Aujourd'hui chez Berger-Levrault : Athena, plateforme agentique multi-agents deployee "
-        "pour tous les clients du groupe. Base a Toulouse, mobile Paris / Montreal.",
+        "4 ans au CNRS a entrainer des modeles deep learning en production (PyTorch, multi-GPU, Jean Zay), "
+        "2 publications peer-reviewed. Aujourd'hui chez Berger-Levrault : conception d'Athena, "
+        "plateforme agentique multi-agents (LangGraph, RAG, MCP).",
         s["body"]
     ))
     story.append(Spacer(1, 0.5 * mm))
@@ -228,8 +226,8 @@ def build_cv():
     story.append(Paragraph(
         "AUTOFILL (CEA, PairVAE, generation de donnees nanomateriaux, MAE 0,98), "
         "BIGSF (CNES, tech lead et refacto d'architecture, librairie d'analyse d'images de filaments galactiques), "
-        "MORPHOGAN (Univ. Lorraine, refonte code StyleGAN2, pipeline automatisee). "
-        "Formation <i>Introduction aux LLMs</i> (3h, ~25 doctorants/chercheurs CNRS).",
+        "MORPHOGAN (Univ. Lorraine, refonte code StyleGAN2, pipeline automatisee).<br/>"
+        "Formation dispensee : <i>Introduction aux LLMs</i> (3h, ~25 doctorants/chercheurs CNRS).",
         s["bullet_body"]
     ))
 
@@ -248,36 +246,47 @@ def build_cv():
     story.append(HRFlowable(width="100%", thickness=0.8, color=BORDER))
 
     # ─── FORMATION ───
+    sm = S("sm_formation", fontSize=7.5, leading=9.5, textColor=GRAY)
+    sm_date = S("sm_date", fontSize=7.5, leading=9.5, textColor=GRAY, alignment=TA_RIGHT)
     story.append(Paragraph("FORMATIONS", s["section"]))
-    story.append(job_header("MASTER - IA ET RECONNAISSANCE DES FORMES (IARF)", "2019 - 2021"))
+    row_m = [[Paragraph("<b>MASTER - IA ET RECONNAISSANCE DES FORMES (IARF)</b>  |  "
+              "Universite Paul Sabatier Toulouse III - IRIT  |  Deep Learning, Vision, NLP", sm),
+              Paragraph("2019 - 2021", sm_date)]]
+    t_m = Table(row_m, colWidths=[W * 0.8, W * 0.2])
+    t_m.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"),
+                              ("TOPPADDING", (0, 0), (-1, -1), 0),
+                              ("BOTTOMPADDING", (0, 0), (-1, -1), 1)]))
+    story.append(t_m)
+    row_l = [[Paragraph("<b>LICENCE INFORMATIQUE</b>  |  Universite Paul Sabatier Toulouse III", sm),
+              Paragraph("2016 - 2019", sm_date)]]
+    t_l = Table(row_l, colWidths=[W * 0.8, W * 0.2])
+    t_l.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"),
+                              ("TOPPADDING", (0, 0), (-1, -1), 0),
+                              ("BOTTOMPADDING", (0, 0), (-1, -1), 1)]))
+    story.append(t_l)
     story.append(Paragraph(
-        "Universite Paul Sabatier Toulouse III - IRIT  |  Deep Learning, Vision, NLP", s["small"]))
-    story.append(Spacer(1, 1 * mm))
-    story.append(job_header("LICENCE INFORMATIQUE", "2016 - 2019"))
-    story.append(Paragraph("Universite Paul Sabatier Toulouse III", s["small"]))
-    story.append(Spacer(1, 1 * mm))
-    story.append(Paragraph(
-        "<b>Langues :</b> Francais (natif)  |  Anglais courant (B2)", s["small"]))
+        "<b>Langues :</b> Francais (natif)  |  Anglais professionnel (redaction scientifique, documentation technique)", sm))
 
     story.append(Spacer(1, 0.3 * mm))
     story.append(HRFlowable(width="100%", thickness=0.8, color=BORDER))
 
     # ─── PUBLICATIONS ───
+    ps = S("pub", fontSize=7.8, leading=10, textColor=GRAY)
     story.append(Paragraph("PUBLICATIONS", s["section"]))
     story.append(Paragraph(
         '<a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" '
         'color="#1155CC">'
         '"Enriching Operational High-Resolution Ensemble Forecasts with StyleGAN-2"</a>'
         " - AIES, 2025. <b>3e auteur</b>, peer-reviewed.",
-        s["small"]
+        ps
     ))
-    story.append(Spacer(1, 0.5 * mm))
+    story.append(Spacer(1, 0.3 * mm))
     story.append(Paragraph(
         '<a href="https://scholar.google.fr/citations?view_op=view_citation&amp;hl=fr&amp;'
         'user=iUFJqVMAAAAJ&amp;citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" color="#1155CC">'
         '"The DeepFaune initiative: automatic identification of European fauna"</a>'
         " - <b>Julien Rabault</b> et al. <b>Co-auteur</b>, peer-reviewed.",
-        s["small"]
+        ps
     ))
 
     story.append(Spacer(1, 0.3 * mm))
@@ -287,30 +296,15 @@ def build_cv():
     story.append(Paragraph("PROJETS OPEN SOURCE", s["section"]))
     story.append(Paragraph(
         '<a href="https://github.com/JulienRabault/LLMock" color="#1155CC"><b>LLMock</b></a> (PyPI) - '
-        "Mock server LLM, retries/fallbacks, 10+ providers, OpenAI-compatible. Python, FastAPI.",
-        s["small"]
-    ))
-    story.append(Spacer(1, 0.5 * mm))
+        "Mock server LLM, retries/fallbacks, 10+ providers, OpenAI-compatible. Python, FastAPI.", ps))
+    story.append(Spacer(1, 0.3 * mm))
     story.append(Paragraph(
-        '<a href="https://github.com/JulienRabault/DDPM-weather" color="#1155CC">'
-        '<b>DDPM-weather</b></a> - '
-        "Modele de diffusion pour debruitage d'images meteo, -20% ressources. PyTorch, Meteo France.",
-        s["small"]
-    ))
-    story.append(Spacer(1, 0.5 * mm))
+        '<a href="https://github.com/JulienRabault/DDPM-weather" color="#1155CC"><b>DDPM-weather</b></a> - '
+        "Modele de diffusion pour debruitage d'images meteo, -20% ressources. PyTorch, Meteo France.", ps))
+    story.append(Spacer(1, 0.3 * mm))
     story.append(Paragraph(
-        '<a href="https://github.com/JulienRabault/uniqpath" color="#1155CC">'
-        '<b>uniqpath</b></a> (PyPI) - '
-        "Generateur de chemins uniques : suffixes incrementaux, UUID, timestamps.",
-        s["small"]
-    ))
-    story.append(Spacer(1, 0.5 * mm))
-    story.append(Paragraph(
-        '<a href="https://github.com/JulienRabault/DaysToBananaDeath" color="#1155CC">'
-        '<b>BananaML</b></a> - '
-        "Pipeline ML end-to-end sur AWS. Computer Vision + API REST. FastAPI, Docker, CI/CD.",
-        s["small"]
-    ))
+        '<a href="https://github.com/JulienRabault/DaysToBananaDeath" color="#1155CC"><b>BananaML</b></a> - '
+        "Pipeline ML end-to-end sur AWS. Computer Vision + API REST. FastAPI, Docker, CI/CD.", ps))
 
     doc.build(story)
     print(f"CV generated: {output}")
