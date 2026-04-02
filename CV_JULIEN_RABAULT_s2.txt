@@ -1,0 +1,78 @@
+ 
+ 
+ 
+Ingénieur en intelligence artificielle, je conçois des systèmes IA robustes, testés et prêts pour la production. Spécialisé en deep 
+learning et en ingénierie logicielle. Mon approche combine rigueur scientifique, bonnes pratiques de développement (CI/CD, MLOps, 
+qualité logicielle) et compréhension métier. Je poursuis une auto-formation continue en MLOps, LLM et AWS, mise en pratique à 
+travers des projets personnels comme daystobananadeath.com. 
+ 
+COMPÉTENCES TECHNIQUES ET SCIENTIFIQUES 
+Frameworks et librairies: Pytorch, HuggingFace, Scikit-Learn/Image, Numpy, Pandas, Conda, MLFlow, MLflow server, Git, 
+Gitlab-CI/CD,Docker, Kubernetes, Langchain, Pytorch Lightning, AWS, FastAPI 
+Deep  Learning: Transformers, VAE, RNN, CNN, Computer Vision (ResNet, U-Net, Yolo), NLP/LLM (BERT, Llama), Multimodal (CLIP), 
+RAG, Génératif (GAN, diffusion), apprentissage supervisé, non supervisé, multi-GPU 
+Scientifiques: Encadrement et gestion de projet, état de l’art, encadrement stagiaire, management 
+Générales: Supercalculateurs, Linux, Agile, SOLID, CI-DevOps, architecture, Azure DevOps         Langages: Python, Java, C#, SQL 
+ 
+EXPERIENCES PROFESSIONNELLES 
+INGÉNIEUR D'ÉTUDE EN INTELLIGENCE ARTIFICIELLE 
+ Centre National de la Recherche Scientifique (CNRS-PNRIA) 
+dec 2021 - aujourd’hui (4 ans) 
+Toulouse
+J’interviens au PNRIA en tant qu’expert IA, sur l’ensemble de la chaîne Data et Machine Learning, au sein de projets de recherche 
+en médecine, sciences des matériaux, astrophysique, éthologie et biologie. 
+ Projets principaux:  
+➔ Projet GENS (Météo-France): Conception et développement de la librairie MetScore: utilisée par les équipes IA de Météo 
+France pour évaluer les modèles de prévision. Intégration d’un modèle de diffusion permettant de générer des prévisions 
+moins coûteuses (≈20%) en ressource et d’améliorer la compréhension des incertitudes météorologiques.  
+Rôle: Concept et réalisation de la librairie, entraînement des modèles sur cluster  
+Stack : Python, PyTorch, Docker, CI/CD, tests unitaires, POO 
+➔ Projet BIGSF (CNES): Lead technique sur la conception et la refonte d’une librairie d’analyse d’images de filaments galactiques 
+initialement développée par un doctorant, avec mise en place d’une architecture modulaire, propre et documentée. 
+Projet accompagné d’un papier scientifique soumis à JMLR et d’une mise à disposition publique de la toolbox       
+Stack : Python, PyTorch, MLFlow, Configurable-cl, U-Net, POO 
+➔ Projet DeepFaune (INEE): Développement d’un système de reconnaissance d’animaux sur images, atteignant une précision de 
+93 % sur 24 espèces et un traitement 3x plus rapide sur CPU. Pipeline d'entraînement sur plus de 1.5 millions d’images.                      
+Liens: Site du projet, Publication scientifique, Git 
+Stack : Python, PyTorch, MLFlow, YOLOV10, supercalculateur Jean Zay 
+➔ Projet MORPHOGAN (Univ. Lorraine): Refonte complète du code StyleGAN2 pour étudier la variabilité morphologique des 
+ailes de papillons, avec mise en place d’une pipeline automatisée de traitement et d’analyse. Réduction significative de la 
+dette technique : ajout de tests unitaires, conteneurisation et compatibilité multiplateforme pour garantir l’exécution 
+Stack : Python, PyTorch, Slurm, Modèle génératif (StyleGAN2) 
+➔ Projet AUTOFILL (CEA): Implémentation du modèle PairVAE pour la génération et la complétion de données de 
+nanomatériaux, avec une erreur moyenne absolue de 0,98. Conception d’une librairie flexible, permettant d’adapter le 
+modèle à d’autres matériaux et d’étendre les travaux du CEA. 
+Stack : Python, PyTorch, VAE, pairVAE, MLFlow, Docker, Lightning 
+INGÉNIEUR LOGICIEL (alternance) 
+ Agileo Automation 
+sept 2020 - sept 2021 (1 an)
+Montauban
+Développement d’un framework de supervision et de contrôle de machines de production robotisées, environnement agile avec 
+une équipe de 5 ingénieurs (Scrum). Contribution à l’architecture logicielle orientée objets, déploiement de pipelines CI/CD et 
+au développement IHM en C#.   Stack : C#, Azure DevOps, .NET, Agile 
+ 
+FORMATIONS  
+MASTER INTELLIGENCE ARTIFICIELLE 
+ET RECONNAISSANCE DES FORMES 
+Université de Toulouse 
+2019 - 2021
+Toulouse
+ 
+LICENCE INFORMATIQUE 
+Université de Toulouse 
+2016 - 2019
+Toulouse 
+ Formations créées et dispensées: Introduction aux LLM (4h, slides) 
+Mécanisme d’attention, Modèles encoders (BERT, …) et décoders (GPT, …),  
+Modèles actuels (GPT, Llama, …), Modèles multimodaux 
+ Projets personnels:  
+● github.com/JulienRabault/uniqpath 
+● github.com/JulienRabault/Configurable-cl 
+● www.daystobananadeath.com/ - pipeline complet d’IA + AWS + FastAPI. 
+ 
+JULIEN RABAULT 
+Ingénieur en Machine Learning 
++33 7 81 16 46 29 
+julienrabault@icloud.com 
+Toulouse, France 
+www.linkedin.com/in/julienrabault 

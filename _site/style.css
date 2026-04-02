@@ -1,0 +1,203 @@
+/* ── Theme tokens ─────────────────────────────────── */
+:root[data-theme="dark"] {
+  --bg:             #1a1a1a;
+  --bg-subtle:      #111111;
+  --border:         #2a2a2a;
+  --text-primary:   #f0ebe0;
+  --text-secondary: #9a9a9a;
+  --text-muted:     #7a7a7a;
+  --accent:         #d4a853;
+  --accent-hover:   #c49540;
+}
+
+:root[data-theme="light"] {
+  --bg:             #faf7f2;
+  --bg-subtle:      #f0ebe0;
+  --border:         #e0d8cc;
+  --text-primary:   #1a1a1a;
+  --text-secondary: #595959;
+  --text-muted:     #767676;
+  --accent:         #c49540;
+  --accent-hover:   #b38530;
+}
+
+/* ─── Base ─── */
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--bg);
+  color: var(--text-primary);
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Inter', sans-serif;
+}
+
+/* ─── Dot grid texture ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (max-width: 768px) {
+  body::before {
+    background-size: 36px 36px;
+    opacity: 0.3;
+  }
+}
+
+/* ─── All sections above grid ─── */
+nav, section, footer { position: relative; z-index: 1; }
+
+/* ─── Glassmorphism navbar ─── */
+.navbar-glass {
+  background-color: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+@supports not (backdrop-filter: blur(12px)) {
+  .navbar-glass {
+    background-color: color-mix(in srgb, var(--bg) 97%, transparent);
+  }
+}
+
+/* ─── Hero entrance ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-role    { animation: fadeUp 0.6s ease both; animation-delay: 0.05s; }
+.hero-name    { animation: fadeUp 0.6s ease both; animation-delay: 0.18s; }
+.hero-tagline { animation: fadeUp 0.6s ease both; animation-delay: 0.32s; }
+.hero-cta     { animation: fadeUp 0.6s ease both; animation-delay: 0.46s; }
+
+/* ─── Scroll reveal ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Hero name ─── */
+.hero-name {
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+/* ─── Role separator line ─── */
+.role-line::before,
+.role-line::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  max-width: 60px;
+}
+
+/* ─── Timeline ─── */
+.timeline-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--border);
+}
+
+/* ─── Project row hover ─── */
+.project-row {
+  transition: border-color 0.15s ease;
+  border-bottom: 1px solid var(--border);
+}
+.project-row:hover .project-name { color: var(--accent); }
+.project-row:hover .project-arrow { color: var(--accent); transform: translate(2px, -2px); }
+.project-arrow { transition: all 0.15s ease; }
+
+/* ─── Skill badge ─── */
+.skill-badge {
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.skill-badge:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ─── Skill badge primary (core skills) ─── */
+.skill-badge-primary {
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--text-primary);
+}
+.skill-badge-primary:hover {
+  background-color: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ─── Mobile menu ─── */
+.mobile-menu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.mobile-menu.open {
+  max-height: 400px;
+}
+
+/* ─── Mobile touch targets ─── */
+.mobile-nav-link {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+#hamburger {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Scroll margin for fixed navbar ─── */
+section[id] {
+  scroll-margin-top: 80px;
+}
+
+/* ─── Section dividers ─── */
+section + section {
+  border-top: 1px solid var(--border);
+}
+
+/* ─── Pulse animation for "Open to work" ─── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
