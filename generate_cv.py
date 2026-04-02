@@ -30,7 +30,7 @@ ICON_LINKEDIN = os.path.join(BASE, "cv_icons", "icon_linkedin_dark.png")
 
 
 def S(name, **kw):
-    defaults = {"fontName": FONT, "fontSize": 8, "leading": 10.5, "textColor": GRAY}
+    defaults = {"fontName": FONT, "fontSize": 8.5, "leading": 11, "textColor": GRAY}
     defaults.update(kw)
     return ParagraphStyle(name, **defaults)
 
@@ -43,8 +43,8 @@ def build_cv():
     output = os.path.join(BASE, "CV_JULIEN_RABAULT.pdf")
     doc = SimpleDocTemplate(
         output, pagesize=A4,
-        leftMargin=14 * mm, rightMargin=14 * mm,
-        topMargin=10 * mm, bottomMargin=10 * mm
+        leftMargin=5 * mm, rightMargin=5 * mm,
+        topMargin=3 * mm, bottomMargin=3 * mm
     )
 
     s = {
@@ -54,21 +54,21 @@ def build_cv():
         "contact_link": S("cl", fontSize=8, leading=10, textColor=GRAY),
         "section": S("section", fontName=FONT_BOLD, fontSize=10, leading=13, textColor=SECTION,
                       spaceBefore=4, spaceAfter=2),
-        "job": S("job", fontName=FONT_BOLD, fontSize=9, leading=11.5, textColor=BLACK),
-        "company": S("company", fontName=FONT_BOLD, fontSize=8, leading=10.5, textColor=SECTION,
+        "job": S("job", fontName=FONT_BOLD, fontSize=9.5, leading=12, textColor=BLACK),
+        "company": S("company", fontName=FONT_BOLD, fontSize=8.5, leading=11, textColor=SECTION,
                       spaceAfter=1),
-        "body": S("body", fontSize=8, leading=10.5, textColor=GRAY, spaceAfter=1),
-        "bullet": S("bullet", fontName=FONT_BOLD, fontSize=7.5, leading=9.8, textColor=DARK,
+        "body": S("body", fontSize=8.5, leading=11, textColor=GRAY, spaceAfter=1),
+        "bullet": S("bullet", fontName=FONT_BOLD, fontSize=8, leading=10.5, textColor=DARK,
                      leftIndent=8, spaceAfter=0.5),
-        "bullet_body": S("bullet_body", fontSize=7.5, leading=9.8, textColor=GRAY,
+        "bullet_body": S("bullet_body", fontSize=8, leading=10.5, textColor=GRAY,
                           leftIndent=8, spaceAfter=1),
-        "small": S("small", fontSize=8, leading=10.5, textColor=GRAY),
-        "date": S("date", fontSize=8, leading=10.5, textColor=GRAY, alignment=TA_RIGHT),
-        "skill_cat": S("skill_cat", fontName=FONT_BOLD, fontSize=7.5, leading=10, textColor=DARK),
-        "skill_val": S("skill_val", fontSize=7.5, leading=10, textColor=GRAY),
+        "small": S("small", fontSize=8.5, leading=11, textColor=GRAY),
+        "date": S("date", fontSize=8.5, leading=11, textColor=GRAY, alignment=TA_RIGHT),
+        "skill_cat": S("skill_cat", fontName=FONT_BOLD, fontSize=8, leading=10.5, textColor=DARK),
+        "skill_val": S("skill_val", fontSize=8, leading=10.5, textColor=GRAY),
     }
 
-    W = 182 * mm
+    W = 200 * mm
     ICO = 2.8 * mm
     story = []
 
@@ -164,7 +164,7 @@ def build_cv():
         return t
 
     # --- BL ---
-    story.append(job_header("AI ENGINEER", "Fevr. 2026 - present"))
+    story.append(job_header("AI ENGINEER", "Janv. 2026 - present"))
     story.append(Paragraph(
         "Berger-Levrault  |  Toulouse  |  Equipe R&amp;D IA, 12 personnes", s["company"]))
     story.append(Paragraph(
@@ -175,17 +175,20 @@ def build_cv():
     ))
     proofs_bl = [
         ("Architecture multi-agents",
-         "Conception de l'architecture LangGraph, routage par type de question, orchestration agents RAG + "
-         "agents MCP, integration du sourcing des reponses. <b>Plateforme en production.</b>"),
+         "Conception de l'architecture multi-agents (LangGraph), routage par type de question, "
+         "orchestration d'agents RAG et d'agents sur APIs MCP, integration du sourcing des reponses. "
+         "<b>Plateforme en production</b>, reponses sourcees et actionnables sur plusieurs domaines metier."),
         ("Content-extractor - OCR/PDF/DOCX",
          "Refonte complete du service d'extraction : OCR, images, PDF, DOCX. Batch async (Celery + API batch "
-         "Mistral), architecture factory/registry. <b>-50% sur les couts d'extraction.</b>"),
+         "Mistral), architecture factory/registry pour ajouter facilement de nouveaux formats. "
+         "<b>-50% sur les couts d'extraction.</b>"),
         ("Pipelines Airflow",
-         "Reprise et evolution des pipelines d'ingestion documentaire (PDF, notices, work orders). "
-         "<b>5 DAGs operationnels</b> (1 par client)."),
+         "Reprise et evolution en equipe des pipelines d'ingestion documentaire "
+         "(PDF, notices, work orders, docs machine). <b>5 DAGs operationnels</b> (1 par client)."),
         ("MCP Builder",
-         "Un LLM analyse les specs OpenAPI (regroupement, masquage, descriptions), "
-         "revue human-in-the-loop. <b>120+ APIs internes cartographiees.</b>"),
+         "Un LLM analyse les specs OpenAPI pour pre-traiter les endpoints (regroupement, masquage, "
+         "generation de descriptions), puis revue human-in-the-loop pour valider routes, doc et "
+         "connaissance metier. <b>120+ APIs internes cartographiees</b>, integration progressive au runtime."),
     ]
     for title, desc in proofs_bl:
         story.append(Paragraph(title, s["bullet"]))
@@ -205,15 +208,17 @@ def build_cv():
     ))
     story.append(Paragraph("GENS / MetScore - Meteo France", s["bullet"]))
     story.append(Paragraph(
-        "Fine-tuning DDPM en PyTorch, optimisation multi-GPU. Conception de MetScore (config YAML, "
-        "librairie Python). "
-        "<b>Librairie en prod</b> + POC diffusion <b>-20% calcul</b>. Co-auteur papier AMS 2025.",
+        "Evaluation de modeles meteo en production, optimisation multi-GPU et fine-tuning d'un modele de "
+        "diffusion (DDPM) en PyTorch sur Jean Zay. Conception de MetScore (configuration YAML, librairie Python). "
+        "<b>Librairie toujours en prod</b> + POC diffusion a <b>-20% de calcul</b> a qualite equivalente. "
+        "Co-auteur du papier AMS 2025.",
         s["bullet_body"]
     ))
     story.append(Paragraph("DeepFaune - CNRS/INEE", s["bullet"]))
     story.append(Paragraph(
-        "Fine-tuning YOLOv5 sur 1,5M images (24 classes), multi-GPU, desequilibre de classes. "
-        "<b>93% accuracy, 3x plus rapide.</b> Publication peer-reviewed.",
+        "Fine-tuning YOLOv5 sur dataset custom (1,5M images, 24 classes), entrainement multi-GPU, "
+        "gestion du desequilibre de classes, optimisation precision/vitesse CPU. "
+        "<b>93% sur 24 especes, 3x plus rapide.</b> Publication peer-reviewed.",
         s["bullet_body"]
     ))
     story.append(Paragraph("Autres contributions", s["bullet"]))
