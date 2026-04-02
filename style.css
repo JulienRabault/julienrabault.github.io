@@ -202,7 +202,6 @@ nav, section, footer { position: relative; z-index: 1; }
 
 #experience .border-l-2 {
   border-left-width: 1.5px;
-  background-color: color-mix(in srgb, var(--bg-subtle) 55%, transparent);
   padding: 10px 14px 10px 16px;
 }
 
