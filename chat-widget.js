@@ -57,8 +57,11 @@
     // Add intro message
     addMessage('assistant', t.intro);
 
-    // Nudge tooltip (first visit only)
-    if (!localStorage.getItem('chat-nudge-seen')) {
+    // Nudge tooltip (first visit, then every 7 days if chat never opened)
+    var nudgeTs = localStorage.getItem('chat-nudge-ts');
+    var chatUsed = localStorage.getItem('chat-used');
+    var showNudge = !chatUsed && (!nudgeTs || Date.now() - parseInt(nudgeTs) > 2 * 24 * 60 * 60 * 1000);
+    if (showNudge) {
       setTimeout(function () {
         if (!panel.classList.contains('open')) {
           var nudge = document.createElement('div');
@@ -70,7 +73,7 @@
             nudge.classList.remove('visible');
             setTimeout(function () { if (nudge.parentNode) nudge.remove(); }, 300);
           }, 5000);
-          localStorage.setItem('chat-nudge-seen', '1');
+          localStorage.setItem('chat-nudge-ts', String(Date.now()));
         }
       }, 3000);
     }
@@ -82,6 +85,7 @@
       var nudgeEl = document.getElementById('chat-nudge');
       if (nudgeEl) nudgeEl.remove();
       if (panel.classList.contains('open')) {
+        localStorage.setItem('chat-used', '1');
         document.getElementById('chat-input').focus();
       }
     });
