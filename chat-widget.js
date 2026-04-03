@@ -14,8 +14,8 @@
 
   var t = {
     intro: isEN
-      ? "Hey! Ask me anything about Julien — background, skills, availability."
-      : "Posez-moi une question sur Julien — parcours, compétences, disponibilité.",
+      ? "I know everything about Julien's career. Go ahead, try me."
+      : "Je connais le parcours de Julien sur le bout des doigts. Allez-y, testez-moi.",
     nudge: isEN
       ? "Ask me about Julien!"
       : "Une question sur Julien ?",
