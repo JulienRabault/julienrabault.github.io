@@ -14,13 +14,13 @@
 
   var t = {
     intro: isEN
-      ? "Hi! I'm Julien's AI assistant. Ask me anything about his background, skills or availability."
-      : "Bonjour ! Je suis l'assistant IA de Julien. Posez-moi une question sur son parcours, ses compétences ou sa disponibilité.",
+      ? "Hey! Ask me anything about Julien — background, skills, availability."
+      : "Posez-moi une question sur Julien — parcours, compétences, disponibilité.",
     nudge: isEN
-      ? "Ask me anything about Julien!"
+      ? "Ask me about Julien!"
       : "Une question sur Julien ?",
     placeholder: isEN ? "Ask about Julien's profile..." : "Posez une question sur le profil...",
-    title: isEN ? "Chat with Julien's AI" : "Discuter avec l'IA de Julien",
+    title: "Ask JR.",
     limit: isEN ? "Message limit reached. Contact Julien directly!" : "Limite de messages atteinte. Contactez Julien directement !",
     error: isEN ? "Sorry, an error occurred. Try again." : "Désolé, une erreur est survenue. Réessayez.",
     sending: isEN ? "Thinking..." : "Réflexion...",
