@@ -16,6 +16,9 @@
     intro: isEN
       ? "Hi! I'm Julien's AI assistant. Ask me anything about his background, skills or availability."
       : "Bonjour ! Je suis l'assistant IA de Julien. Posez-moi une question sur son parcours, ses compétences ou sa disponibilité.",
+    nudge: isEN
+      ? "Ask me anything about Julien!"
+      : "Une question sur Julien ?",
     placeholder: isEN ? "Ask about Julien's profile..." : "Posez une question sur le profil...",
     title: isEN ? "Chat with Julien's AI" : "Discuter avec l'IA de Julien",
     limit: isEN ? "Message limit reached. Contact Julien directly!" : "Limite de messages atteinte. Contactez Julien directement !",
@@ -54,10 +57,30 @@
     // Add intro message
     addMessage('assistant', t.intro);
 
+    // Nudge tooltip (first visit only)
+    if (!localStorage.getItem('chat-nudge-seen')) {
+      setTimeout(function () {
+        if (!panel.classList.contains('open')) {
+          var nudge = document.createElement('div');
+          nudge.id = 'chat-nudge';
+          nudge.textContent = t.nudge;
+          document.body.appendChild(nudge);
+          setTimeout(function () { nudge.classList.add('visible'); }, 50);
+          setTimeout(function () {
+            nudge.classList.remove('visible');
+            setTimeout(function () { if (nudge.parentNode) nudge.remove(); }, 300);
+          }, 5000);
+          localStorage.setItem('chat-nudge-seen', '1');
+        }
+      }, 3000);
+    }
+
     // Events
     bubble.addEventListener('click', function () {
       panel.classList.toggle('open');
       bubble.classList.toggle('hidden');
+      var nudgeEl = document.getElementById('chat-nudge');
+      if (nudgeEl) nudgeEl.remove();
       if (panel.classList.contains('open')) {
         document.getElementById('chat-input').focus();
       }
@@ -184,6 +207,17 @@
       '  transition: opacity 0.15s ease;',
       '}',
       '#chat-send:hover { opacity: 0.85; }',
+      '',
+      '#chat-nudge {',
+      '  position: fixed; bottom: 82px; right: 24px; z-index: 999;',
+      '  background: var(--bg-card, #1e1e1e); color: var(--text-secondary, #c5bcad);',
+      '  border: 1px solid var(--border, #2e2e2e); border-radius: 8px;',
+      '  padding: 8px 14px; font-size: 12px; white-space: nowrap;',
+      '  opacity: 0; transform: translateY(4px);',
+      '  transition: opacity 0.3s ease, transform 0.3s ease;',
+      '  pointer-events: none;',
+      '}',
+      '#chat-nudge.visible { opacity: 1; transform: translateY(0); }',
       '',
       '@media (max-width: 480px) {',
       '  #chat-panel { width: calc(100vw - 16px); right: 8px; bottom: 8px; height: 60vh; }',
