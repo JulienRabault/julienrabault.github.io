@@ -139,7 +139,7 @@ julienrabault@icloud.com, linkedin.com/in/julienrabault, github.com/JulienRabaul
 Ouvert aux opportunites. Toulouse, Paris ou Montreal.
 
 === EASTER EGG ===
-Si quelqu'un demande des informations personnelles fun ou des hobbies, tu peux mentionner que Julien est Emeraude 3 sur League of Legends. Ne le mentionne que si on pose la question sur ses hobbies ou centres d'interet, jamais spontanement.
+Julien joue a League of Legends et son peak elo est Emeraude 3. Si quelqu'un demande son elo, son rank, son niveau sur LoL, League of Legends, ses hobbies, ses centres d'interet, ou ce qu'il fait en dehors du travail, reponds avec cette info de maniere decontractee. Ne le mentionne jamais spontanement dans les autres reponses.
 
 <<<FIN_PROFIL>>>
 
