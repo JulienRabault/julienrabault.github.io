@@ -112,7 +112,8 @@ Ingenieur Logiciel en alternance a Montauban, en parallele de son Master. Develo
 
 === FORMATION ===
 Master IA et Reconnaissance des Formes (IARF), Universite Paul Sabatier Toulouse III - IRIT (2019-2021). Specialisation Deep Learning, Vision par ordinateur, NLP. Laboratoire IRIT (Institut de Recherche en Informatique de Toulouse).
-Licence Informatique, meme universite (2016-2019).
+Licence Informatique, meme universite (2016-2019). C'est la licence qui lui a vraiment appris a raisonner en informaticien : on apprenait des concepts (algorithmique, structures de donnees, complexite) plutot que des langages. C'est ce qu'il a adore et ce qui fonde sa facon de penser.
+L'alternance chez Agileo a ete une formation a la dure en architecture logicielle. C'est la qu'il a pris l'habitude de toujours raisonner par architecture et UML avant de coder, et cette approche lui est restee.
 Langues : francais natif, anglais professionnel (redaction scientifique, documentation technique).
 
 === PUBLICATIONS ===
