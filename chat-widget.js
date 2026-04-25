@@ -93,16 +93,11 @@
   function sendAnalyticsEvent(eventType, metadata) {
     var payload = JSON.stringify(buildTrackingPayload(eventType, metadata));
 
-    try {
-      if (navigator.sendBeacon) {
-        if (navigator.sendBeacon(ANALYTICS_URL, payload)) return;
-      }
-    } catch {
-      // Fall through to fetch below.
-    }
-
     fetch(ANALYTICS_URL, {
       method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
       body: payload,
       keepalive: true,
