@@ -9,6 +9,8 @@
   // ─── Config ───
   // TODO: replace with actual Cloudflare Worker URL after deployment
   var API_URL = 'https://jr-portfolio-chat.julienrabault.workers.dev';
+  var CHAT_URL = API_URL + '/chat';
+  var ANALYTICS_URL = API_URL + '/analytics';
   var MAX_MESSAGES = 8;
   var isEN = document.documentElement.lang === 'en';
 
@@ -24,9 +26,88 @@
     limit: isEN ? "Message limit reached. Contact Julien directly!" : "Limite de messages atteinte. Contactez Julien directement !",
     error: isEN ? "Sorry, an error occurred. Try again." : "Désolé, une erreur est survenue. Réessayez.",
     sending: isEN ? "Thinking..." : "Réflexion...",
+    privacy: isEN
+      ? "Questions may be saved anonymously to improve the assistant."
+      : "Les questions peuvent être enregistrées anonymement pour améliorer l'assistant.",
   };
 
   var messageCount = 0;
+  var visitorId = getPersistentId('jr-visitor-id', 'v');
+  var sessionId = getSessionId();
+
+  // Analytics helpers
+  function createId(prefix) {
+    var bytes = new Uint8Array(12);
+    if (window.crypto && window.crypto.getRandomValues) {
+      window.crypto.getRandomValues(bytes);
+    } else {
+      for (var i = 0; i < bytes.length; i++) {
+        bytes[i] = Math.floor(Math.random() * 256);
+      }
+    }
+
+    return prefix + '_' + Array.prototype.map.call(bytes, function (byte) {
+      return byte.toString(16).padStart(2, '0');
+    }).join('');
+  }
+
+  function getPersistentId(key, prefix) {
+    try {
+      var existing = localStorage.getItem(key);
+      if (existing) return existing;
+
+      var next = createId(prefix);
+      localStorage.setItem(key, next);
+      return next;
+    } catch {
+      return createId(prefix);
+    }
+  }
+
+  function getSessionId() {
+    try {
+      var existing = sessionStorage.getItem('jr-session-id');
+      if (existing) return existing;
+
+      var next = createId('s');
+      sessionStorage.setItem('jr-session-id', next);
+      return next;
+    } catch {
+      return createId('s');
+    }
+  }
+
+  function buildTrackingPayload(eventType, metadata) {
+    return {
+      eventType: eventType,
+      visitorId: visitorId,
+      sessionId: sessionId,
+      pagePath: window.location.pathname + window.location.search,
+      pageUrl: window.location.href.split('#')[0],
+      referrer: document.referrer || '',
+      language: isEN ? 'en' : 'fr',
+      metadata: metadata || {},
+    };
+  }
+
+  function sendAnalyticsEvent(eventType, metadata) {
+    var payload = JSON.stringify(buildTrackingPayload(eventType, metadata));
+
+    try {
+      if (navigator.sendBeacon) {
+        if (navigator.sendBeacon(ANALYTICS_URL, payload)) return;
+      }
+    } catch {
+      // Fall through to fetch below.
+    }
+
+    fetch(ANALYTICS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+    }).catch(function () {});
+  }
 
   // ─── Create DOM ───
   function createWidget() {
@@ -46,6 +127,7 @@
         '<button id="chat-close" aria-label="Close">&times;</button>' +
       '</div>' +
       '<div id="chat-messages"></div>' +
+      '<div id="chat-privacy">' + t.privacy + '</div>' +
       '<form id="chat-form">' +
         '<input id="chat-input" type="text" placeholder="' + t.placeholder + '" maxlength="500" autocomplete="off" />' +
         '<button type="submit" id="chat-send" aria-label="Send">' +
@@ -56,6 +138,10 @@
 
     // Add intro message
     addMessage('assistant', t.intro);
+    sendAnalyticsEvent('page_view', {
+      title: document.title,
+      viewport: window.innerWidth + 'x' + window.innerHeight,
+    });
 
     // Nudge tooltip (first visit, then every 7 days if chat never opened)
     var nudgeTs = localStorage.getItem('chat-nudge-ts');
@@ -79,11 +165,13 @@
 
     // Events
     bubble.addEventListener('click', function () {
+      var wasOpen = panel.classList.contains('open');
       panel.classList.toggle('open');
       bubble.classList.toggle('hidden');
       var nudgeEl = document.getElementById('chat-nudge');
       if (nudgeEl) nudgeEl.remove();
-      if (panel.classList.contains('open')) {
+      if (!wasOpen && panel.classList.contains('open')) {
+        sendAnalyticsEvent('chat_open', {});
         localStorage.setItem('chat-nudge-ts', String(Date.now()));
         document.getElementById('chat-input').focus();
       }
@@ -127,10 +215,18 @@
 
     var thinkingDiv = addMessage('assistant', t.sending);
 
-    fetch(API_URL, {
+    fetch(CHAT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg }),
+      body: JSON.stringify({
+        message: msg,
+        visitorId: visitorId,
+        sessionId: sessionId,
+        pagePath: window.location.pathname + window.location.search,
+        pageUrl: window.location.href.split('#')[0],
+        referrer: document.referrer || '',
+        language: isEN ? 'en' : 'fr',
+      }),
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
@@ -191,6 +287,11 @@
       '.chat-assistant {',
       '  align-self: flex-start; background: var(--bg-subtle, #1c1c1c);',
       '  color: var(--text-secondary, #c5bcad); border-bottom-left-radius: 4px;',
+      '}',
+      '',
+      '#chat-privacy {',
+      '  padding: 8px 12px 0; color: var(--text-muted, #978f84);',
+      '  font-size: 10px; line-height: 1.4;',
       '}',
       '',
       '#chat-form {',

@@ -158,17 +158,69 @@ Ne donne JAMAIS d'avis, de jugement ou de recommandation sur la carriere de Juli
 
 // ─── Rate limiting (in-memory, resets per worker instance) ───
 const rateLimitMap = new Map();
+const DEFAULT_ALLOWED_ORIGIN = "https://julienrabault.github.io";
+const ALLOWED_ANALYTICS_EVENTS = new Set(["page_view", "chat_open"]);
 
-function isRateLimited(ip, maxPerMinute) {
+function jsonResponse(payload, status = 200, corsOrigin = null) {
+  const headers = {
+    "Content-Type": "application/json",
+  };
+
+  if (corsOrigin) {
+    headers["Access-Control-Allow-Origin"] = corsOrigin;
+  }
+
+  return new Response(JSON.stringify(payload), { status, headers });
+}
+
+function getAllowedOrigins(env) {
+  return (env.ALLOWED_ORIGIN || DEFAULT_ALLOWED_ORIGIN)
+    .split(",")
+    .map(origin => origin.trim())
+    .filter(Boolean);
+}
+
+function isLocalhostOrigin(origin) {
+  try {
+    const hostname = new URL(origin).hostname;
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  } catch {
+    return false;
+  }
+}
+
+function isAllowedOrigin(origin, env) {
+  if (!origin) return false;
+  if (isLocalhostOrigin(origin)) return true;
+  return getAllowedOrigins(env).includes(origin);
+}
+
+function getCorsOrigin(request, env) {
+  const origin = request.headers.get("Origin") || "";
+  return isAllowedOrigin(origin, env) ? origin : getAllowedOrigins(env)[0];
+}
+
+function createPreflightResponse(corsOrigin) {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": corsOrigin,
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Authorization, Content-Type",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
+}
+
+function isRateLimited(key, maxPerMinute) {
   const now = Date.now();
   const windowMs = 60_000;
 
-  if (!rateLimitMap.has(ip)) {
-    rateLimitMap.set(ip, []);
+  if (!rateLimitMap.has(key)) {
+    rateLimitMap.set(key, []);
   }
 
-  const timestamps = rateLimitMap.get(ip).filter(t => now - t < windowMs);
-  rateLimitMap.set(ip, timestamps);
+  const timestamps = rateLimitMap.get(key).filter(t => now - t < windowMs);
+  rateLimitMap.set(key, timestamps);
 
   if (timestamps.length >= maxPerMinute) {
     return true;
@@ -178,130 +230,346 @@ function isRateLimited(ip, maxPerMinute) {
   return false;
 }
 
-// ─── Main handler ───
+function truncateText(value, maxLength) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return trimmed.slice(0, maxLength);
+}
+
+async function readJson(request) {
+  const rawBody = await request.text();
+  if (!rawBody) return {};
+  return JSON.parse(rawBody);
+}
+
+function serializeMetadata(metadata) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return null;
+  }
+
+  return JSON.stringify(metadata).slice(0, 2000);
+}
+
+function buildEvent(request, body, overrides = {}) {
+  const cf = request.cf || {};
+
+  return {
+    created_at: new Date().toISOString(),
+    event_type: overrides.event_type,
+    visitor_id: truncateText(body.visitorId, 80),
+    session_id: truncateText(body.sessionId, 80),
+    page_path: truncateText(body.pagePath, 500),
+    page_url: truncateText(body.pageUrl, 1000),
+    referrer: truncateText(body.referrer, 1000),
+    language: truncateText(body.language, 16),
+    country: truncateText(cf.country, 8),
+    user_agent: truncateText(request.headers.get("User-Agent"), 500),
+    question: overrides.question || null,
+    answer: overrides.answer || null,
+    status: overrides.status || null,
+    metadata: overrides.metadata || serializeMetadata(body.metadata),
+  };
+}
+
+async function insertAnalyticsEvent(env, event) {
+  if (!env.ANALYTICS_DB) {
+    return;
+  }
+
+  try {
+    await env.ANALYTICS_DB.prepare(`
+      INSERT INTO analytics_events (
+        created_at,
+        event_type,
+        visitor_id,
+        session_id,
+        page_path,
+        page_url,
+        referrer,
+        language,
+        country,
+        user_agent,
+        question,
+        answer,
+        status,
+        metadata
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `)
+      .bind(
+        event.created_at,
+        event.event_type,
+        event.visitor_id,
+        event.session_id,
+        event.page_path,
+        event.page_url,
+        event.referrer,
+        event.language,
+        event.country,
+        event.user_agent,
+        event.question,
+        event.answer,
+        event.status,
+        event.metadata,
+      )
+      .run();
+  } catch (err) {
+    console.error("Analytics insert failed:", err);
+  }
+}
+
+function getClientIP(request) {
+  return request.headers.get("CF-Connecting-IP") || "unknown";
+}
+
+async function handleAnalytics(request, env, corsOrigin) {
+  const maxAnalyticsEventsPerMinute = parseInt(env.MAX_ANALYTICS_EVENTS_PER_MINUTE || "60");
+  const rateLimitKey = `analytics:${getClientIP(request)}`;
+
+  if (isRateLimited(rateLimitKey, maxAnalyticsEventsPerMinute)) {
+    return jsonResponse({ error: "Too many analytics events." }, 429, corsOrigin);
+  }
+
+  let body;
+  try {
+    body = await readJson(request);
+  } catch {
+    return jsonResponse({ error: "Invalid JSON" }, 400, corsOrigin);
+  }
+
+  const eventType = truncateText(body.eventType, 64);
+  if (!ALLOWED_ANALYTICS_EVENTS.has(eventType)) {
+    return jsonResponse({ error: "Invalid analytics event." }, 400, corsOrigin);
+  }
+
+  await insertAnalyticsEvent(env, buildEvent(request, body, {
+    event_type: eventType,
+    status: "ok",
+  }));
+
+  return jsonResponse({ ok: true }, 202, corsOrigin);
+}
+
+async function handleChat(request, env, corsOrigin) {
+  const maxReqPerMin = parseInt(env.MAX_REQUESTS_PER_MINUTE || "10");
+  const maxTokens = parseInt(env.MAX_TOKENS || "300");
+  const rateLimitKey = `chat:${getClientIP(request)}`;
+
+  if (isRateLimited(rateLimitKey, maxReqPerMin)) {
+    return jsonResponse({ error: "Too many requests. Please wait a moment." }, 429, corsOrigin);
+  }
+
+  let body;
+  try {
+    body = await readJson(request);
+  } catch {
+    return jsonResponse({ error: "Invalid JSON" }, 400, corsOrigin);
+  }
+
+  const userMessage = typeof body.message === "string" ? body.message.trim() : "";
+  if (!userMessage || userMessage.length > 500) {
+    return jsonResponse({ error: "Message too long or empty" }, 400, corsOrigin);
+  }
+
+  if (!env.ANTHROPIC_API_KEY) {
+    await insertAnalyticsEvent(env, buildEvent(request, body, {
+      event_type: "chat_message",
+      question: userMessage,
+      status: "missing_api_key",
+    }));
+
+    return jsonResponse({ error: "AI service unavailable" }, 502, corsOrigin);
+  }
+
+  try {
+    const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: maxTokens,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userMessage }],
+      }),
+    });
+
+    if (!anthropicResponse.ok) {
+      const errText = await anthropicResponse.text();
+      console.error("Anthropic API error:", anthropicResponse.status, errText);
+
+      await insertAnalyticsEvent(env, buildEvent(request, body, {
+        event_type: "chat_message",
+        question: userMessage,
+        status: `anthropic_${anthropicResponse.status}`,
+      }));
+
+      return jsonResponse({ error: "AI service unavailable" }, 502, corsOrigin);
+    }
+
+    const data = await anthropicResponse.json();
+    const reply = data.content?.[0]?.text || "Desole, je n'ai pas pu generer de reponse.";
+
+    await insertAnalyticsEvent(env, buildEvent(request, body, {
+      event_type: "chat_message",
+      question: userMessage,
+      answer: reply,
+      status: "ok",
+    }));
+
+    return jsonResponse({ reply }, 200, corsOrigin);
+  } catch (err) {
+    console.error("Worker error:", err);
+
+    await insertAnalyticsEvent(env, buildEvent(request, body, {
+      event_type: "chat_message",
+      question: userMessage,
+      status: "internal_error",
+    }));
+
+    return jsonResponse({ error: "Internal error" }, 500, corsOrigin);
+  }
+}
+
+function getAdminTokenFromRequest(request) {
+  const authHeader = request.headers.get("Authorization") || "";
+  if (authHeader.startsWith("Bearer ")) {
+    return authHeader.slice("Bearer ".length).trim();
+  }
+
+  return new URL(request.url).searchParams.get("token") || "";
+}
+
+function normalizeStatsRow(row) {
+  return Object.fromEntries(
+    Object.entries(row || {}).map(([key, value]) => [key, value || 0]),
+  );
+}
+
+async function handleAdminStats(request, env) {
+  if (!env.ADMIN_TOKEN) {
+    return jsonResponse({ error: "ADMIN_TOKEN is not configured" }, 503);
+  }
+
+  if (getAdminTokenFromRequest(request) !== env.ADMIN_TOKEN) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  if (!env.ANALYTICS_DB) {
+    return jsonResponse({ error: "ANALYTICS_DB is not configured" }, 503);
+  }
+
+  const url = new URL(request.url);
+  const requestedDays = parseInt(url.searchParams.get("days") || "30", 10);
+  const periodDays = Number.isFinite(requestedDays)
+    ? Math.min(Math.max(requestedDays, 1), 365)
+    : 30;
+  const since = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000).toISOString();
+
+  const summary = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      COUNT(*) AS total_events,
+      SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
+      COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
+      SUM(CASE WHEN event_type = 'chat_open' THEN 1 ELSE 0 END) AS chat_opens,
+      SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
+      COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
+    FROM analytics_events
+    WHERE created_at >= ?
+  `).bind(since).first();
+
+  const daily = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      substr(created_at, 1, 10) AS day,
+      SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
+      COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
+      SUM(CASE WHEN event_type = 'chat_open' THEN 1 ELSE 0 END) AS chat_opens,
+      SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
+      COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
+    FROM analytics_events
+    WHERE created_at >= ?
+    GROUP BY day
+    ORDER BY day DESC
+  `).bind(since).all();
+
+  const topPages = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(NULLIF(page_path, ''), 'unknown') AS page_path,
+      COUNT(*) AS page_views,
+      COUNT(DISTINCT visitor_id) AS unique_visitors
+    FROM analytics_events
+    WHERE event_type = 'page_view' AND created_at >= ?
+    GROUP BY page_path
+    ORDER BY page_views DESC
+    LIMIT 10
+  `).bind(since).all();
+
+  const topReferrers = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(NULLIF(referrer, ''), 'direct') AS referrer,
+      COUNT(*) AS page_views
+    FROM analytics_events
+    WHERE event_type = 'page_view' AND created_at >= ?
+    GROUP BY referrer
+    ORDER BY page_views DESC
+    LIMIT 10
+  `).bind(since).all();
+
+  const recentQuestions = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      created_at,
+      language,
+      page_path,
+      country,
+      question,
+      answer,
+      status
+    FROM analytics_events
+    WHERE event_type = 'chat_message' AND created_at >= ?
+    ORDER BY created_at DESC
+    LIMIT 50
+  `).bind(since).all();
+
+  return jsonResponse({
+    generatedAt: new Date().toISOString(),
+    periodDays,
+    summary: normalizeStatsRow(summary),
+    daily: daily.results || [],
+    topPages: topPages.results || [],
+    topReferrers: topReferrers.results || [],
+    recentQuestions: recentQuestions.results || [],
+  });
+}
+
+// Main handler
 export default {
   async fetch(request, env) {
-    const allowedOrigin = env.ALLOWED_ORIGIN || "https://julienrabault.github.io";
-    const maxReqPerMin = parseInt(env.MAX_REQUESTS_PER_MINUTE || "10");
-    const maxTokens = parseInt(env.MAX_TOKENS || "300");
+    const url = new URL(request.url);
+    const corsOrigin = getCorsOrigin(request, env);
 
-    // Determine CORS origin (allow localhost for testing)
-    const requestOrigin = request.headers.get("Origin") || "";
-    const corsOrigin = requestOrigin.includes("localhost") ? requestOrigin : allowedOrigin;
-
-    // CORS preflight
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": corsOrigin,
-          "Access-Control-Allow-Methods": "POST",
-          "Access-Control-Allow-Headers": "Content-Type",
-          "Access-Control-Max-Age": "86400",
-        },
-      });
+      return createPreflightResponse(corsOrigin);
     }
 
-    // Only POST
-    if (request.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method not allowed" }), {
-        status: 405,
-        headers: { "Content-Type": "application/json" },
-      });
+    if (url.pathname === "/admin/stats" && request.method === "GET") {
+      return handleAdminStats(request, env);
     }
 
-    // CORS check
-    const origin = request.headers.get("Origin") || "";
-    if (!origin.includes("julienrabault.github.io") && !origin.includes("localhost")) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      });
+    if (!isAllowedOrigin(request.headers.get("Origin") || "", env)) {
+      return jsonResponse({ error: "Forbidden" }, 403, corsOrigin);
     }
 
-    // Rate limit
-    const clientIP = request.headers.get("CF-Connecting-IP") || "unknown";
-    if (isRateLimited(clientIP, maxReqPerMin)) {
-      return new Response(JSON.stringify({ error: "Too many requests. Please wait a moment." }), {
-        status: 429,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": corsOrigin,
-        },
-      });
+    if (url.pathname === "/analytics" && request.method === "POST") {
+      return handleAnalytics(request, env, corsOrigin);
     }
 
-    // Parse body
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-        status: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": corsOrigin,
-        },
-      });
+    if ((url.pathname === "/" || url.pathname === "/chat") && request.method === "POST") {
+      return handleChat(request, env, corsOrigin);
     }
 
-    let userMessage = (body.message || "").trim();
-    if (!userMessage || userMessage.length > 500) {
-      return new Response(JSON.stringify({ error: "Message too long or empty" }), {
-        status: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": corsOrigin,
-        },
-      });
-    }
-
-    // Call Anthropic API
-    try {
-      const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": env.ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: maxTokens,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: userMessage }],
-        }),
-      });
-
-      if (!anthropicResponse.ok) {
-        const errText = await anthropicResponse.text();
-        console.error("Anthropic API error:", anthropicResponse.status, errText);
-        return new Response(JSON.stringify({ error: "AI service unavailable" }), {
-          status: 502,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": corsOrigin,
-          },
-        });
-      }
-
-      const data = await anthropicResponse.json();
-      const reply = data.content?.[0]?.text || "Desole, je n'ai pas pu generer de reponse.";
-
-      return new Response(JSON.stringify({ reply }), {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": corsOrigin,
-        },
-      });
-    } catch (err) {
-      console.error("Worker error:", err);
-      return new Response(JSON.stringify({ error: "Internal error" }), {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": corsOrigin,
-        },
-      });
-    }
+    return jsonResponse({ error: "Method not allowed" }, 405, corsOrigin);
   },
 };

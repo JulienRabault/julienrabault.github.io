@@ -5,4 +5,10 @@ compatibility_date = "2024-01-01"
 [vars]
 ALLOWED_ORIGIN = "https://julienrabault.github.io"
 MAX_REQUESTS_PER_MINUTE = "10"
+MAX_ANALYTICS_EVENTS_PER_MINUTE = "60"
 MAX_TOKENS = "250"
+
+[[d1_databases]]
+binding = "ANALYTICS_DB"
+database_name = "jr_portfolio_analytics"
+database_id = "b733b7be-3909-4053-a50e-af751460e359"
