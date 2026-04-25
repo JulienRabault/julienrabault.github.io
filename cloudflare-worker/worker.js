@@ -274,6 +274,7 @@ function buildEvent(request, body, overrides = {}) {
     referrer: truncateText(body.referrer, 1000),
     language: truncateText(body.language, 16),
     country: truncateText(cf.country, 8),
+    as_organization: truncateText(cf.asOrganization, 200),
     user_agent: truncateText(request.headers.get("User-Agent"), 500),
     question: overrides.question || null,
     answer: overrides.answer || null,
@@ -299,12 +300,13 @@ async function insertAnalyticsEvent(env, event) {
         referrer,
         language,
         country,
+        as_organization,
         user_agent,
         question,
         answer,
         status,
         metadata
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
       .bind(
         event.created_at,
@@ -316,6 +318,7 @@ async function insertAnalyticsEvent(env, event) {
         event.referrer,
         event.language,
         event.country,
+        event.as_organization,
         event.user_agent,
         event.question,
         event.answer,
@@ -459,6 +462,23 @@ function normalizeStatsRow(row) {
   );
 }
 
+async function loadSummary(env, start, end) {
+  const row = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      COUNT(*) AS total_events,
+      SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
+      COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
+      COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN session_id END) AS sessions,
+      SUM(CASE WHEN event_type = 'chat_open' THEN 1 ELSE 0 END) AS chat_opens,
+      SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
+      COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
+    FROM analytics_events
+    WHERE created_at >= ? AND created_at < ?
+  `).bind(start, end).first();
+
+  return normalizeStatsRow(row);
+}
+
 async function handleAdminStats(request, env) {
   if (!env.ADMIN_TOKEN) {
     return jsonResponse({ error: "ADMIN_TOKEN is not configured" }, 503);
@@ -477,19 +497,14 @@ async function handleAdminStats(request, env) {
   const periodDays = Number.isFinite(requestedDays)
     ? Math.min(Math.max(requestedDays, 1), 365)
     : 30;
-  const since = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000).toISOString();
+  const periodMs = periodDays * 24 * 60 * 60 * 1000;
+  const now = new Date();
+  const since = new Date(now.getTime() - periodMs).toISOString();
+  const previousSince = new Date(now.getTime() - periodMs * 2).toISOString();
+  const nowIso = now.toISOString();
 
-  const summary = await env.ANALYTICS_DB.prepare(`
-    SELECT
-      COUNT(*) AS total_events,
-      SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
-      COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
-      SUM(CASE WHEN event_type = 'chat_open' THEN 1 ELSE 0 END) AS chat_opens,
-      SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
-      COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
-    FROM analytics_events
-    WHERE created_at >= ?
-  `).bind(since).first();
+  const summary = await loadSummary(env, since, nowIso);
+  const previousSummary = await loadSummary(env, previousSince, since);
 
   const daily = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -500,10 +515,25 @@ async function handleAdminStats(request, env) {
       SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
       COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
     FROM analytics_events
-    WHERE created_at >= ?
+    WHERE created_at >= ? AND created_at < ?
     GROUP BY day
-    ORDER BY day DESC
-  `).bind(since).all();
+    ORDER BY day ASC
+  `).bind(since, nowIso).all();
+
+  const weekly = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      strftime('%Y-W%W', created_at) AS week,
+      MIN(substr(created_at, 1, 10)) AS start_day,
+      SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
+      COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
+      SUM(CASE WHEN event_type = 'chat_open' THEN 1 ELSE 0 END) AS chat_opens,
+      SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
+      COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
+    FROM analytics_events
+    WHERE created_at >= ? AND created_at < ?
+    GROUP BY week
+    ORDER BY start_day ASC
+  `).bind(since, nowIso).all();
 
   const topPages = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -511,22 +541,93 @@ async function handleAdminStats(request, env) {
       COUNT(*) AS page_views,
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
-    WHERE event_type = 'page_view' AND created_at >= ?
+    WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
     GROUP BY page_path
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since).all();
+  `).bind(since, nowIso).all();
 
   const topReferrers = await env.ANALYTICS_DB.prepare(`
     SELECT
       COALESCE(NULLIF(referrer, ''), 'direct') AS referrer,
-      COUNT(*) AS page_views
+      COUNT(*) AS page_views,
+      COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
-    WHERE event_type = 'page_view' AND created_at >= ?
+    WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
     GROUP BY referrer
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since).all();
+  `).bind(since, nowIso).all();
+
+  const topCountries = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(NULLIF(country, ''), 'unknown') AS country,
+      COUNT(*) AS page_views,
+      COUNT(DISTINCT visitor_id) AS unique_visitors
+    FROM analytics_events
+    WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+    GROUP BY country
+    ORDER BY page_views DESC
+    LIMIT 10
+  `).bind(since, nowIso).all();
+
+  const topOrganizations = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(NULLIF(as_organization, ''), 'unknown') AS organization,
+      COUNT(*) AS page_views,
+      COUNT(DISTINCT visitor_id) AS unique_visitors
+    FROM analytics_events
+    WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+    GROUP BY organization
+    ORDER BY page_views DESC
+    LIMIT 10
+  `).bind(since, nowIso).all();
+
+  const devices = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      CASE
+        WHEN lower(user_agent) LIKE '%ipad%' OR lower(user_agent) LIKE '%tablet%' THEN 'Tablet'
+        WHEN lower(user_agent) LIKE '%mobi%' OR lower(user_agent) LIKE '%iphone%' OR lower(user_agent) LIKE '%android%' THEN 'Mobile'
+        WHEN user_agent IS NULL OR user_agent = '' THEN 'Unknown'
+        ELSE 'Desktop'
+      END AS device,
+      COUNT(*) AS page_views,
+      COUNT(DISTINCT visitor_id) AS unique_visitors
+    FROM analytics_events
+    WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+    GROUP BY device
+    ORDER BY page_views DESC
+  `).bind(since, nowIso).all();
+
+  const browsers = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      CASE
+        WHEN lower(user_agent) LIKE '%edg/%' THEN 'Edge'
+        WHEN lower(user_agent) LIKE '%opr/%' OR lower(user_agent) LIKE '%opera%' THEN 'Opera'
+        WHEN lower(user_agent) LIKE '%firefox%' THEN 'Firefox'
+        WHEN lower(user_agent) LIKE '%chrome%' OR lower(user_agent) LIKE '%crios%' THEN 'Chrome'
+        WHEN lower(user_agent) LIKE '%safari%' THEN 'Safari'
+        WHEN user_agent IS NULL OR user_agent = '' THEN 'Unknown'
+        ELSE 'Other'
+      END AS browser,
+      COUNT(*) AS page_views,
+      COUNT(DISTINCT visitor_id) AS unique_visitors
+    FROM analytics_events
+    WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+    GROUP BY browser
+    ORDER BY page_views DESC
+  `).bind(since, nowIso).all();
+
+  const languages = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(NULLIF(language, ''), 'unknown') AS language,
+      COUNT(*) AS page_views,
+      COUNT(DISTINCT visitor_id) AS unique_visitors
+    FROM analytics_events
+    WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+    GROUP BY language
+    ORDER BY page_views DESC
+  `).bind(since, nowIso).all();
 
   const recentQuestions = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -538,18 +639,25 @@ async function handleAdminStats(request, env) {
       answer,
       status
     FROM analytics_events
-    WHERE event_type = 'chat_message' AND created_at >= ?
+    WHERE event_type = 'chat_message' AND created_at >= ? AND created_at < ?
     ORDER BY created_at DESC
     LIMIT 50
-  `).bind(since).all();
+  `).bind(since, nowIso).all();
 
   return jsonResponse({
     generatedAt: new Date().toISOString(),
     periodDays,
-    summary: normalizeStatsRow(summary),
+    summary,
+    previousSummary,
     daily: daily.results || [],
+    weekly: weekly.results || [],
     topPages: topPages.results || [],
     topReferrers: topReferrers.results || [],
+    topCountries: topCountries.results || [],
+    topOrganizations: topOrganizations.results || [],
+    devices: devices.results || [],
+    browsers: browsers.results || [],
+    languages: languages.results || [],
     recentQuestions: recentQuestions.results || [],
   });
 }
@@ -564,15 +672,17 @@ function handleAdminDashboard() {
   <style>
     :root {
       color-scheme: dark;
-      --bg: #101010;
+      --bg: #0f0f0f;
       --panel: #191919;
       --panel-2: #202020;
       --border: #303030;
-      --text: #f0e8dc;
-      --muted: #9d9488;
+      --text: #f4ecdf;
+      --muted: #a89f92;
       --accent: #d4a853;
-      --bad: #ff6b6b;
-      --good: #7bd88f;
+      --blue: #78a6ff;
+      --green: #7bd88f;
+      --red: #ff6b6b;
+      --orange: #f0b36a;
     }
 
     * { box-sizing: border-box; }
@@ -585,9 +695,9 @@ function handleAdminDashboard() {
     }
 
     main {
-      width: min(1180px, calc(100vw - 32px));
+      width: min(1220px, calc(100vw - 32px));
       margin: 0 auto;
-      padding: 32px 0 48px;
+      padding: 28px 0 48px;
     }
 
     header {
@@ -595,12 +705,13 @@ function handleAdminDashboard() {
       align-items: flex-start;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
 
-    h1, h2, p { margin: 0; }
-    h1 { font-size: clamp(24px, 5vw, 42px); letter-spacing: 0; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(28px, 5vw, 48px); letter-spacing: 0; line-height: 1; }
     h2 { font-size: 16px; margin-bottom: 12px; }
+    h3 { font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
     .muted { color: var(--muted); font-size: 13px; }
 
     .toolbar {
@@ -623,37 +734,34 @@ function handleAdminDashboard() {
     }
 
     input { width: min(360px, 100%); }
-    button {
-      cursor: pointer;
-      font-weight: 700;
-    }
-
-    button.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #111;
-    }
-
-    button.secondary:hover, select:hover, input:focus {
-      border-color: var(--accent);
-      outline: none;
-    }
+    button { cursor: pointer; font-weight: 800; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #111; }
+    button.secondary:hover, select:hover, input:focus { border-color: var(--accent); outline: none; }
 
     .auth {
       display: grid;
       gap: 10px;
-      padding: 16px;
+      padding: 14px 16px;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: var(--panel);
-      margin-bottom: 20px;
+      margin-bottom: 14px;
     }
 
-    .grid {
+    .status {
+      min-height: 20px;
+      margin: 8px 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .error { color: var(--red); }
+    .ok { color: var(--green); }
+
+    .metrics {
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .card, section {
@@ -664,7 +772,7 @@ function handleAdminDashboard() {
 
     .card {
       padding: 14px;
-      min-height: 94px;
+      min-height: 112px;
     }
 
     .label {
@@ -672,83 +780,186 @@ function handleAdminDashboard() {
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: .08em;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .value {
-      font-size: 30px;
-      font-weight: 800;
+      font-size: 32px;
+      font-weight: 850;
       letter-spacing: 0;
+      line-height: 1.05;
     }
 
-    .status {
-      min-height: 20px;
-      margin: 10px 0 16px;
+    .delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 10px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
       color: var(--muted);
-      font-size: 13px;
+      font-size: 11px;
+      font-weight: 700;
     }
-
-    .error { color: var(--bad); }
-    .ok { color: var(--good); }
-
-    .columns {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 18px;
-      margin-bottom: 18px;
-    }
+    .delta.up { color: var(--green); border-color: rgba(123,216,143,.35); }
+    .delta.down { color: var(--red); border-color: rgba(255,107,107,.35); }
 
     section {
       padding: 16px;
       overflow: hidden;
+      margin-bottom: 16px;
     }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr);
+      gap: 16px;
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+    .chart-wrap {
+      min-height: 280px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #121212;
+      padding: 8px;
+    }
+    svg { display: block; width: 100%; height: auto; }
+    .axis { stroke: #343434; stroke-width: 1; }
+    .series { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .tick { fill: var(--muted); font-size: 11px; }
+
+    .insights {
+      display: grid;
+      gap: 10px;
+    }
+    .insight {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel-2);
+      color: var(--text);
+      font-size: 13px;
+    }
+    .insight strong { color: var(--accent); }
+
+    .bar-list {
+      display: grid;
+      gap: 11px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(110px, 1fr) 72px;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+    }
+    .bar-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .bar-track {
+      grid-column: 1 / -1;
+      height: 7px;
+      border-radius: 999px;
+      background: #2a2a2a;
+      overflow: hidden;
+      margin-top: -4px;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      min-width: 2px;
+    }
+
+    .funnel {
+      display: grid;
+      gap: 12px;
+    }
+    .funnel-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 64px;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .funnel-track {
+      height: 18px;
+      border-radius: 999px;
+      background: #2a2a2a;
+      overflow: hidden;
+    }
+    .funnel-fill { height: 100%; background: var(--accent); border-radius: inherit; }
 
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
     }
-
     th, td {
       padding: 10px 8px;
       border-bottom: 1px solid var(--border);
       text-align: left;
       vertical-align: top;
     }
-
     th {
       color: var(--muted);
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: .06em;
-      font-weight: 700;
+      font-weight: 800;
     }
-
     tr:last-child td { border-bottom: 0; }
-    .question { color: var(--text); }
-    .answer {
-      color: var(--muted);
-      max-width: 520px;
-    }
+    .question { color: var(--text); min-width: 180px; }
+    .answer { color: var(--muted); max-width: 560px; }
+    .empty { padding: 18px 0; color: var(--muted); font-size: 13px; }
 
-    .empty {
-      padding: 18px 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    @media (max-width: 900px) {
+    @media (max-width: 980px) {
       header { flex-direction: column; }
       .toolbar { justify-content: flex-start; }
-      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .columns { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .columns, .two, .three { grid-template-columns: 1fr; }
     }
-
     @media (max-width: 560px) {
-      main { width: min(100vw - 20px, 1180px); padding-top: 20px; }
-      .grid { grid-template-columns: 1fr; }
+      main { width: min(100vw - 20px, 1220px); padding-top: 20px; }
+      .metrics { grid-template-columns: 1fr; }
       .toolbar, .auth { align-items: stretch; }
       input, select, button { width: 100%; }
+      .funnel-row { grid-template-columns: 82px 1fr 52px; }
       th:nth-child(3), td:nth-child(3) { display: none; }
     }
   </style>
@@ -758,7 +969,7 @@ function handleAdminDashboard() {
     <header>
       <div>
         <h1>JR Analytics</h1>
-        <p class="muted">Visites, usage du chatbot et questions posees.</p>
+        <p class="muted">Trafic, audience, engagement chatbot et questions posees.</p>
       </div>
       <div class="toolbar">
         <select id="days" aria-label="Periode">
@@ -766,6 +977,10 @@ function handleAdminDashboard() {
           <option value="30" selected>30 jours</option>
           <option value="90">90 jours</option>
           <option value="365">365 jours</option>
+        </select>
+        <select id="granularity" aria-label="Granularite">
+          <option value="daily" selected>Jour</option>
+          <option value="weekly">Semaine</option>
         </select>
         <button id="refresh" class="primary" type="button">Actualiser</button>
         <button id="logout" class="secondary" type="button">Oublier token</button>
@@ -782,23 +997,67 @@ function handleAdminDashboard() {
 
     <div id="status" class="status"></div>
 
-    <div class="grid">
-      <div class="card"><div class="label">Vues</div><div id="pageViews" class="value">0</div></div>
-      <div class="card"><div class="label">Visiteurs</div><div id="uniqueVisitors" class="value">0</div></div>
-      <div class="card"><div class="label">Chat ouvert</div><div id="chatOpens" class="value">0</div></div>
-      <div class="card"><div class="label">Questions</div><div id="chatMessages" class="value">0</div></div>
-      <div class="card"><div class="label">Users chat</div><div id="chatUsers" class="value">0</div></div>
-      <div class="card"><div class="label">Taux chat</div><div id="chatRate" class="value">0%</div></div>
+    <div class="metrics">
+      <div class="card"><div class="label">Vues</div><div id="pageViews" class="value">0</div><div id="deltaPageViews" class="delta">0%</div></div>
+      <div class="card"><div class="label">Visiteurs</div><div id="uniqueVisitors" class="value">0</div><div id="deltaVisitors" class="delta">0%</div></div>
+      <div class="card"><div class="label">Sessions</div><div id="sessions" class="value">0</div><div id="deltaSessions" class="delta">0%</div></div>
+      <div class="card"><div class="label">Questions</div><div id="chatMessages" class="value">0</div><div id="deltaQuestions" class="delta">0%</div></div>
+      <div class="card"><div class="label">Taux chat</div><div id="chatRate" class="value">0%</div><div id="deltaChatRate" class="delta">0 pt</div></div>
+      <div class="card"><div class="label">Q / user chat</div><div id="questionsPerUser" class="value">0</div><div id="deltaQpu" class="delta">0</div></div>
     </div>
 
     <div class="columns">
+      <section>
+        <div class="panel-head">
+          <h2>Tendance</h2>
+          <div class="legend">
+            <span><i class="dot" style="background:var(--accent)"></i>Vues</span>
+            <span><i class="dot" style="background:var(--blue)"></i>Visiteurs</span>
+            <span><i class="dot" style="background:var(--green)"></i>Questions</span>
+          </div>
+        </div>
+        <div id="trendChart" class="chart-wrap"></div>
+      </section>
+      <section>
+        <h2>Insights</h2>
+        <div id="insights" class="insights"></div>
+      </section>
+    </div>
+
+    <div class="two">
+      <section>
+        <h2>Funnel chatbot</h2>
+        <div id="funnel" class="funnel"></div>
+      </section>
+      <section>
+        <h2>Audience rapide</h2>
+        <div class="three">
+          <div><h3>Pays</h3><div id="countries" class="bar-list"></div></div>
+          <div><h3>Device</h3><div id="devices" class="bar-list"></div></div>
+          <div><h3>Browser</h3><div id="browsers" class="bar-list"></div></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="two">
       <section>
         <h2>Pages</h2>
         <div id="topPages"></div>
       </section>
       <section>
-        <h2>Referrers</h2>
+        <h2>Acquisition</h2>
         <div id="topReferrers"></div>
+      </section>
+    </div>
+
+    <div class="two">
+      <section>
+        <h2>Reseaux / organisations</h2>
+        <div id="organizations"></div>
+      </section>
+      <section>
+        <h2>Langues</h2>
+        <div id="languages" class="bar-list"></div>
       </section>
     </div>
 
@@ -811,12 +1070,18 @@ function handleAdminDashboard() {
   <script>
     var tokenInput = document.getElementById('token');
     var daysInput = document.getElementById('days');
+    var granularityInput = document.getElementById('granularity');
     var statusEl = document.getElementById('status');
     var savedToken = localStorage.getItem('jr-admin-token') || '';
+    var latestData = null;
     tokenInput.value = savedToken;
 
     function number(value) {
       return Number(value || 0);
+    }
+
+    function pct(part, total) {
+      return total > 0 ? Math.round(part / total * 100) : 0;
     }
 
     function formatNumber(value) {
@@ -837,6 +1102,37 @@ function handleAdminDashboard() {
         .replace(/'/g, '&#039;');
     }
 
+    function periodDelta(current, previous, suffix) {
+      current = number(current);
+      previous = number(previous);
+      if (previous === 0 && current === 0) return { text: '0' + (suffix || '%'), className: '' };
+      if (previous === 0) return { text: '+new', className: 'up' };
+      var delta = Math.round((current - previous) / previous * 100);
+      return {
+        text: (delta > 0 ? '+' : '') + delta + (suffix || '%'),
+        className: delta > 0 ? 'up' : (delta < 0 ? 'down' : '')
+      };
+    }
+
+    function pointDelta(current, previous) {
+      var diff = Math.round((number(current) - number(previous)) * 10) / 10;
+      return {
+        text: (diff > 0 ? '+' : '') + diff + ' pt',
+        className: diff > 0 ? 'up' : (diff < 0 ? 'down' : '')
+      };
+    }
+
+    function setDelta(id, delta) {
+      var el = document.getElementById(id);
+      el.textContent = delta.text;
+      el.className = 'delta ' + delta.className;
+    }
+
+    function displayReferrer(value) {
+      if (!value || value === 'direct') return 'direct';
+      try { return new URL(value).hostname; } catch { return value; }
+    }
+
     function renderTable(targetId, rows, columns, emptyText) {
       var target = document.getElementById(targetId);
       if (!rows || rows.length === 0) {
@@ -845,11 +1141,8 @@ function handleAdminDashboard() {
       }
 
       var html = '<table><thead><tr>';
-      columns.forEach(function (column) {
-        html += '<th>' + escapeHtml(column.label) + '</th>';
-      });
+      columns.forEach(function (column) { html += '<th>' + escapeHtml(column.label) + '</th>'; });
       html += '</tr></thead><tbody>';
-
       rows.forEach(function (row) {
         html += '<tr>';
         columns.forEach(function (column) {
@@ -858,24 +1151,162 @@ function handleAdminDashboard() {
         });
         html += '</tr>';
       });
-
       html += '</tbody></table>';
       target.innerHTML = html;
     }
 
-    function render(data) {
+    function renderBars(targetId, rows, labelKey, valueKey, emptyText) {
+      var target = document.getElementById(targetId);
+      rows = rows || [];
+      if (rows.length === 0) {
+        target.innerHTML = '<div class="empty">' + emptyText + '</div>';
+        return;
+      }
+      var max = Math.max.apply(null, rows.map(function (row) { return number(row[valueKey]); })) || 1;
+      target.innerHTML = rows.map(function (row) {
+        var value = number(row[valueKey]);
+        var width = Math.max(2, Math.round(value / max * 100));
+        return '<div class="bar-row"><div class="bar-label" title="' + escapeHtml(row[labelKey]) + '">' + escapeHtml(row[labelKey]) + '</div><strong>' + formatNumber(value) + '</strong><div class="bar-track"><div class="bar-fill" style="width:' + width + '%"></div></div></div>';
+      }).join('');
+    }
+
+    function renderFunnel(summary) {
+      var visitors = number(summary.unique_visitors);
+      var opens = number(summary.chat_opens);
+      var messages = number(summary.chat_messages);
+      var rows = [
+        { label: 'Visiteurs', value: visitors, base: visitors },
+        { label: 'Chat open', value: opens, base: visitors },
+        { label: 'Questions', value: messages, base: visitors }
+      ];
+      document.getElementById('funnel').innerHTML = rows.map(function (row) {
+        var width = row.base > 0 ? Math.max(2, Math.min(100, Math.round(row.value / row.base * 100))) : 0;
+        return '<div class="funnel-row"><strong>' + row.label + '</strong><div class="funnel-track"><div class="funnel-fill" style="width:' + width + '%"></div></div><span>' + formatNumber(row.value) + '</span></div>';
+      }).join('');
+    }
+
+    function renderChart(data) {
+      var rows = granularityInput.value === 'weekly' ? (data.weekly || []) : (data.daily || []);
+      var target = document.getElementById('trendChart');
+      if (rows.length === 0) {
+        target.innerHTML = '<div class="empty">Pas encore assez de donnees pour afficher une courbe.</div>';
+        return;
+      }
+
+      var metrics = [
+        { key: 'page_views', color: 'var(--accent)' },
+        { key: 'unique_visitors', color: 'var(--blue)' },
+        { key: 'chat_messages', color: 'var(--green)' }
+      ];
+      var max = 1;
+      rows.forEach(function (row) {
+        metrics.forEach(function (metric) { max = Math.max(max, number(row[metric.key])); });
+      });
+
+      function points(key) {
+        return rows.map(function (row, i) {
+          var x = rows.length === 1 ? 400 : 42 + i * (716 / (rows.length - 1));
+          var y = 214 - (number(row[key]) / max) * 168;
+          return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
+        });
+      }
+
+      function path(key) {
+        var pts = points(key);
+        if (pts.length === 1) return '';
+        return pts.map(function (pt, i) { return (i === 0 ? 'M' : 'L') + pt[0] + ' ' + pt[1]; }).join(' ');
+      }
+
+      function circles(key, color) {
+        return points(key).map(function (pt) {
+          return '<circle cx="' + pt[0] + '" cy="' + pt[1] + '" r="3.5" fill="' + color + '"></circle>';
+        }).join('');
+      }
+
+      var first = rows[0];
+      var last = rows[rows.length - 1];
+      var firstLabel = granularityInput.value === 'weekly' ? first.week : first.day;
+      var lastLabel = granularityInput.value === 'weekly' ? last.week : last.day;
+      var svg = '<svg viewBox="0 0 800 260" role="img" aria-label="Tendance du trafic">';
+      [46, 88, 130, 172, 214].forEach(function (y) {
+        svg += '<line class="axis" x1="42" y1="' + y + '" x2="758" y2="' + y + '"></line>';
+      });
+      svg += '<text class="tick" x="42" y="238">' + escapeHtml(firstLabel) + '</text>';
+      svg += '<text class="tick" x="690" y="238">' + escapeHtml(lastLabel) + '</text>';
+      svg += '<text class="tick" x="42" y="34">' + formatNumber(max) + '</text>';
+      metrics.forEach(function (metric) {
+        if (rows.length > 1) svg += '<path class="series" d="' + path(metric.key) + '" stroke="' + metric.color + '"></path>';
+        svg += circles(metric.key, metric.color);
+      });
+      svg += '</svg>';
+      target.innerHTML = svg;
+    }
+
+    function buildInsights(data) {
       var summary = data.summary || {};
+      var previous = data.previousSummary || {};
+      var insights = [];
+      var visitors = number(summary.unique_visitors);
+      var prevVisitors = number(previous.unique_visitors);
+      var questions = number(summary.chat_messages);
+      var views = number(summary.page_views);
+      var topCountry = (data.topCountries || [])[0];
+      var topReferrer = (data.topReferrers || [])[0];
+
+      if (prevVisitors > 0) {
+        var visitorDelta = Math.round((visitors - prevVisitors) / prevVisitors * 100);
+        insights.push('<strong>Trafic</strong> : ' + (visitorDelta >= 0 ? '+' : '') + visitorDelta + '% de visiteurs vs periode precedente.');
+      } else if (visitors > 0) {
+        insights.push('<strong>Trafic</strong> : premiers visiteurs enregistres sur cette periode.');
+      } else {
+        insights.push('<strong>Trafic</strong> : aucune visite sur cette periode.');
+      }
+
+      insights.push('<strong>Engagement chat</strong> : ' + pct(number(summary.chat_users), visitors) + '% des visiteurs ont pose au moins une question.');
+      insights.push('<strong>Intensite</strong> : ' + (number(summary.chat_users) > 0 ? Math.round(questions / number(summary.chat_users) * 10) / 10 : 0) + ' question(s) par utilisateur chat.');
+      if (topCountry) insights.push('<strong>Audience</strong> : pays principal ' + escapeHtml(topCountry.country) + ' (' + formatNumber(topCountry.page_views) + ' vues).');
+      if (topReferrer) insights.push('<strong>Acquisition</strong> : source principale ' + escapeHtml(displayReferrer(topReferrer.referrer)) + '.');
+      if (views > 0 && number(summary.chat_opens) === 0) insights.push('<strong>Signal</strong> : le chat est vu mais pas ouvert, tester un wording ou une position differente.');
+
+      document.getElementById('insights').innerHTML = insights.map(function (item) {
+        return '<div class="insight">' + item + '</div>';
+      }).join('');
+    }
+
+    function render(data) {
+      latestData = data;
+      var summary = data.summary || {};
+      var previous = data.previousSummary || {};
       var pageViews = number(summary.page_views);
+      var visitors = number(summary.unique_visitors);
       var chatUsers = number(summary.chat_users);
-      var uniqueVisitors = number(summary.unique_visitors);
-      var chatRate = uniqueVisitors > 0 ? Math.round(chatUsers / uniqueVisitors * 100) : 0;
+      var prevChatRate = pct(number(previous.chat_users), number(previous.unique_visitors));
+      var chatRate = pct(chatUsers, visitors);
+      var qpu = chatUsers > 0 ? Math.round(number(summary.chat_messages) / chatUsers * 10) / 10 : 0;
+      var prevQpu = number(previous.chat_users) > 0 ? Math.round(number(previous.chat_messages) / number(previous.chat_users) * 10) / 10 : 0;
 
       document.getElementById('pageViews').textContent = formatNumber(pageViews);
-      document.getElementById('uniqueVisitors').textContent = formatNumber(uniqueVisitors);
-      document.getElementById('chatOpens').textContent = formatNumber(summary.chat_opens);
+      document.getElementById('uniqueVisitors').textContent = formatNumber(visitors);
+      document.getElementById('sessions').textContent = formatNumber(summary.sessions);
       document.getElementById('chatMessages').textContent = formatNumber(summary.chat_messages);
-      document.getElementById('chatUsers').textContent = formatNumber(chatUsers);
       document.getElementById('chatRate').textContent = chatRate + '%';
+      document.getElementById('questionsPerUser').textContent = String(qpu);
+
+      setDelta('deltaPageViews', periodDelta(summary.page_views, previous.page_views));
+      setDelta('deltaVisitors', periodDelta(summary.unique_visitors, previous.unique_visitors));
+      setDelta('deltaSessions', periodDelta(summary.sessions, previous.sessions));
+      setDelta('deltaQuestions', periodDelta(summary.chat_messages, previous.chat_messages));
+      setDelta('deltaChatRate', pointDelta(chatRate, prevChatRate));
+      setDelta('deltaQpu', { text: (qpu - prevQpu > 0 ? '+' : '') + Math.round((qpu - prevQpu) * 10) / 10, className: qpu > prevQpu ? 'up' : (qpu < prevQpu ? 'down' : '') });
+
+      renderChart(data);
+      renderFunnel(summary);
+      buildInsights(data);
+
+      renderBars('countries', data.topCountries || [], 'country', 'page_views', 'Aucun pays.');
+      renderBars('devices', data.devices || [], 'device', 'page_views', 'Aucun device.');
+      renderBars('browsers', data.browsers || [], 'browser', 'page_views', 'Aucun navigateur.');
+      renderBars('languages', data.languages || [], 'language', 'page_views', 'Aucune langue.');
 
       renderTable('topPages', data.topPages || [], [
         { label: 'Page', key: 'page_path' },
@@ -884,9 +1315,16 @@ function handleAdminDashboard() {
       ], 'Aucune page vue sur cette periode.');
 
       renderTable('topReferrers', data.topReferrers || [], [
-        { label: 'Source', key: 'referrer' },
-        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } }
+        { label: 'Source', value: function (row) { return displayReferrer(row.referrer); } },
+        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
+        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } }
       ], 'Aucun referrer sur cette periode.');
+
+      renderTable('organizations', data.topOrganizations || [], [
+        { label: 'Reseau', key: 'organization' },
+        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
+        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } }
+      ], 'Aucune organisation disponible.');
 
       renderTable('recentQuestions', data.recentQuestions || [], [
         { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
@@ -911,9 +1349,7 @@ function handleAdminDashboard() {
           headers: { Authorization: 'Bearer ' + token }
         });
         var data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || 'Erreur HTTP ' + response.status);
-        }
+        if (!response.ok) throw new Error(data.error || 'Erreur HTTP ' + response.status);
         render(data);
         setStatus('Derniere mise a jour : ' + new Date(data.generatedAt).toLocaleString('fr-FR'), 'ok');
       } catch (err) {
@@ -924,20 +1360,16 @@ function handleAdminDashboard() {
     document.getElementById('save').addEventListener('click', loadStats);
     document.getElementById('refresh').addEventListener('click', loadStats);
     daysInput.addEventListener('change', loadStats);
-    tokenInput.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter') loadStats();
-    });
+    granularityInput.addEventListener('change', function () { if (latestData) renderChart(latestData); });
+    tokenInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') loadStats(); });
     document.getElementById('logout').addEventListener('click', function () {
       localStorage.removeItem('jr-admin-token');
       tokenInput.value = '';
       setStatus('Token supprime de ce navigateur.', '');
     });
 
-    if (savedToken) {
-      loadStats();
-    } else {
-      setStatus('Entre le token admin pour charger les stats.', '');
-    }
+    if (savedToken) loadStats();
+    else setStatus('Entre le token admin pour charger les stats.', '');
   </script>
 </body>
 </html>`);

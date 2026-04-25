@@ -66,7 +66,10 @@ Le JSON contient:
 
 - `summary.page_views`: vues totales.
 - `summary.unique_visitors`: visiteurs uniques anonymes.
+- `previousSummary`: memes KPI sur la periode precedente pour calculer les evolutions.
+- `daily` / `weekly`: series temporelles pour les graphes jour/semaine.
 - `summary.chat_opens`: ouvertures du chatbot.
 - `summary.chat_messages`: questions posees.
 - `summary.chat_users`: visiteurs ayant utilise le chatbot.
+- `topCountries`, `devices`, `browsers`, `languages`, `topOrganizations`: audience anonyme.
 - `recentQuestions`: les 50 dernieres questions sur la periode.

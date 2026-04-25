@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS analytics_events (
   referrer TEXT,
   language TEXT,
   country TEXT,
+  as_organization TEXT,
   user_agent TEXT,
   question TEXT,
   answer TEXT,
