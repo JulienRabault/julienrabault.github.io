@@ -2,7 +2,7 @@
 
 Le Worker collecte maintenant trois types de donnees anonymes:
 
-- `page_view`: une visite de page.
+- `page_view`: une visite de page, envoyee sur `/events`.
 - `chat_open`: ouverture du widget.
 - `chat_message`: question posee au chatbot, enregistree cote Worker avec la reponse et le statut.
 

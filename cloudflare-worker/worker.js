@@ -965,7 +965,7 @@ export default {
       return jsonResponse({ error: "Forbidden" }, 403, corsOrigin);
     }
 
-    if (url.pathname === "/analytics" && request.method === "POST") {
+    if ((url.pathname === "/events" || url.pathname === "/analytics") && request.method === "POST") {
       return handleAnalytics(request, env, corsOrigin);
     }
 

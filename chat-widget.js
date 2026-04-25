@@ -10,7 +10,7 @@
   // TODO: replace with actual Cloudflare Worker URL after deployment
   var API_URL = 'https://jr-portfolio-chat.julienrabault.workers.dev';
   var CHAT_URL = API_URL + '/chat';
-  var ANALYTICS_URL = API_URL + '/analytics';
+  var ANALYTICS_URL = API_URL + '/events';
   var MAX_MESSAGES = 8;
   var isEN = document.documentElement.lang === 'en';
 
