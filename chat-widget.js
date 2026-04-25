@@ -98,9 +98,7 @@
       mode: 'cors',
       credentials: 'omit',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
       body: payload,
-      keepalive: true,
     }).catch(function () {});
   }
 
