@@ -45,6 +45,16 @@ wrangler deploy
 
 ## Voir les stats
 
+Dashboard web:
+
+```text
+https://jr-portfolio-chat.julienrabault.workers.dev/admin
+```
+
+Entrer le `ADMIN_TOKEN` dans la page. Il est conserve uniquement dans le `localStorage` du navigateur.
+
+API JSON:
+
 ```powershell
 $env:ADMIN_TOKEN = "ton-token"
 Invoke-RestMethod `

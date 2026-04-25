@@ -173,6 +173,16 @@ function jsonResponse(payload, status = 200, corsOrigin = null) {
   return new Response(JSON.stringify(payload), { status, headers });
 }
 
+function htmlResponse(html, status = 200) {
+  return new Response(html, {
+    status,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 function getAllowedOrigins(env) {
   return (env.ALLOWED_ORIGIN || DEFAULT_ALLOWED_ORIGIN)
     .split(",")
@@ -544,6 +554,395 @@ async function handleAdminStats(request, env) {
   });
 }
 
+function handleAdminDashboard() {
+  return htmlResponse(`<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JR Portfolio Analytics</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101010;
+      --panel: #191919;
+      --panel-2: #202020;
+      --border: #303030;
+      --text: #f0e8dc;
+      --muted: #9d9488;
+      --accent: #d4a853;
+      --bad: #ff6b6b;
+      --good: #7bd88f;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    h1, h2, p { margin: 0; }
+    h1 { font-size: clamp(24px, 5vw, 42px); letter-spacing: 0; }
+    h2 { font-size: 16px; margin-bottom: 12px; }
+    .muted { color: var(--muted); font-size: 13px; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    input, select, button {
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 0 12px;
+      font: inherit;
+      font-size: 13px;
+    }
+
+    input { width: min(360px, 100%); }
+    button {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #111;
+    }
+
+    button.secondary:hover, select:hover, input:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .auth {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .card, section {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+
+    .card {
+      padding: 14px;
+      min-height: 94px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 12px;
+    }
+
+    .value {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .status {
+      min-height: 20px;
+      margin: 10px 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .error { color: var(--bad); }
+    .ok { color: var(--good); }
+
+    .columns {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    section {
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-weight: 700;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    .question { color: var(--text); }
+    .answer {
+      color: var(--muted);
+      max-width: 520px;
+    }
+
+    .empty {
+      padding: 18px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      header { flex-direction: column; }
+      .toolbar { justify-content: flex-start; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .columns { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      main { width: min(100vw - 20px, 1180px); padding-top: 20px; }
+      .grid { grid-template-columns: 1fr; }
+      .toolbar, .auth { align-items: stretch; }
+      input, select, button { width: 100%; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>JR Analytics</h1>
+        <p class="muted">Visites, usage du chatbot et questions posees.</p>
+      </div>
+      <div class="toolbar">
+        <select id="days" aria-label="Periode">
+          <option value="7">7 jours</option>
+          <option value="30" selected>30 jours</option>
+          <option value="90">90 jours</option>
+          <option value="365">365 jours</option>
+        </select>
+        <button id="refresh" class="primary" type="button">Actualiser</button>
+        <button id="logout" class="secondary" type="button">Oublier token</button>
+      </div>
+    </header>
+
+    <div class="auth">
+      <label class="muted" for="token">Token admin</label>
+      <div class="toolbar" style="justify-content:flex-start">
+        <input id="token" type="password" autocomplete="current-password" placeholder="Bearer token" />
+        <button id="save" class="primary" type="button">Enregistrer</button>
+      </div>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="grid">
+      <div class="card"><div class="label">Vues</div><div id="pageViews" class="value">0</div></div>
+      <div class="card"><div class="label">Visiteurs</div><div id="uniqueVisitors" class="value">0</div></div>
+      <div class="card"><div class="label">Chat ouvert</div><div id="chatOpens" class="value">0</div></div>
+      <div class="card"><div class="label">Questions</div><div id="chatMessages" class="value">0</div></div>
+      <div class="card"><div class="label">Users chat</div><div id="chatUsers" class="value">0</div></div>
+      <div class="card"><div class="label">Taux chat</div><div id="chatRate" class="value">0%</div></div>
+    </div>
+
+    <div class="columns">
+      <section>
+        <h2>Pages</h2>
+        <div id="topPages"></div>
+      </section>
+      <section>
+        <h2>Referrers</h2>
+        <div id="topReferrers"></div>
+      </section>
+    </div>
+
+    <section>
+      <h2>Questions recentes</h2>
+      <div id="recentQuestions"></div>
+    </section>
+  </main>
+
+  <script>
+    var tokenInput = document.getElementById('token');
+    var daysInput = document.getElementById('days');
+    var statusEl = document.getElementById('status');
+    var savedToken = localStorage.getItem('jr-admin-token') || '';
+    tokenInput.value = savedToken;
+
+    function number(value) {
+      return Number(value || 0);
+    }
+
+    function formatNumber(value) {
+      return number(value).toLocaleString('fr-FR');
+    }
+
+    function setStatus(text, className) {
+      statusEl.textContent = text || '';
+      statusEl.className = 'status ' + (className || '');
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function renderTable(targetId, rows, columns, emptyText) {
+      var target = document.getElementById(targetId);
+      if (!rows || rows.length === 0) {
+        target.innerHTML = '<div class="empty">' + emptyText + '</div>';
+        return;
+      }
+
+      var html = '<table><thead><tr>';
+      columns.forEach(function (column) {
+        html += '<th>' + escapeHtml(column.label) + '</th>';
+      });
+      html += '</tr></thead><tbody>';
+
+      rows.forEach(function (row) {
+        html += '<tr>';
+        columns.forEach(function (column) {
+          var value = typeof column.value === 'function' ? column.value(row) : row[column.key];
+          html += '<td class="' + (column.className || '') + '">' + escapeHtml(value) + '</td>';
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      target.innerHTML = html;
+    }
+
+    function render(data) {
+      var summary = data.summary || {};
+      var pageViews = number(summary.page_views);
+      var chatUsers = number(summary.chat_users);
+      var uniqueVisitors = number(summary.unique_visitors);
+      var chatRate = uniqueVisitors > 0 ? Math.round(chatUsers / uniqueVisitors * 100) : 0;
+
+      document.getElementById('pageViews').textContent = formatNumber(pageViews);
+      document.getElementById('uniqueVisitors').textContent = formatNumber(uniqueVisitors);
+      document.getElementById('chatOpens').textContent = formatNumber(summary.chat_opens);
+      document.getElementById('chatMessages').textContent = formatNumber(summary.chat_messages);
+      document.getElementById('chatUsers').textContent = formatNumber(chatUsers);
+      document.getElementById('chatRate').textContent = chatRate + '%';
+
+      renderTable('topPages', data.topPages || [], [
+        { label: 'Page', key: 'page_path' },
+        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
+        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } }
+      ], 'Aucune page vue sur cette periode.');
+
+      renderTable('topReferrers', data.topReferrers || [], [
+        { label: 'Source', key: 'referrer' },
+        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } }
+      ], 'Aucun referrer sur cette periode.');
+
+      renderTable('recentQuestions', data.recentQuestions || [], [
+        { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
+        { label: 'Question', key: 'question', className: 'question' },
+        { label: 'Reponse', key: 'answer', className: 'answer' },
+        { label: 'Statut', key: 'status' }
+      ], 'Aucune question sur cette periode.');
+    }
+
+    async function loadStats() {
+      var token = tokenInput.value.trim();
+      if (!token) {
+        setStatus('Entre le token admin pour charger les stats.', 'error');
+        return;
+      }
+
+      localStorage.setItem('jr-admin-token', token);
+      setStatus('Chargement...', '');
+
+      try {
+        var response = await fetch('/admin/stats?days=' + encodeURIComponent(daysInput.value), {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+        var data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Erreur HTTP ' + response.status);
+        }
+        render(data);
+        setStatus('Derniere mise a jour : ' + new Date(data.generatedAt).toLocaleString('fr-FR'), 'ok');
+      } catch (err) {
+        setStatus(err.message || 'Impossible de charger les stats.', 'error');
+      }
+    }
+
+    document.getElementById('save').addEventListener('click', loadStats);
+    document.getElementById('refresh').addEventListener('click', loadStats);
+    daysInput.addEventListener('change', loadStats);
+    tokenInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') loadStats();
+    });
+    document.getElementById('logout').addEventListener('click', function () {
+      localStorage.removeItem('jr-admin-token');
+      tokenInput.value = '';
+      setStatus('Token supprime de ce navigateur.', '');
+    });
+
+    if (savedToken) {
+      loadStats();
+    } else {
+      setStatus('Entre le token admin pour charger les stats.', '');
+    }
+  </script>
+</body>
+</html>`);
+}
+
 // Main handler
 export default {
   async fetch(request, env) {
@@ -556,6 +955,10 @@ export default {
 
     if (url.pathname === "/admin/stats" && request.method === "GET") {
       return handleAdminStats(request, env);
+    }
+
+    if (url.pathname === "/admin" && request.method === "GET") {
+      return handleAdminDashboard();
     }
 
     if (!isAllowedOrigin(request.headers.get("Origin") || "", env)) {
