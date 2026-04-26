@@ -126,13 +126,124 @@
   function sendAnalyticsEvent(eventType, metadata) {
     var payload = JSON.stringify(buildTrackingPayload(eventType, metadata));
 
+    if (navigator.sendBeacon) {
+      var sent = navigator.sendBeacon(
+        ANALYTICS_URL,
+        new Blob([payload], { type: 'text/plain;charset=UTF-8' })
+      );
+      if (sent) return;
+    }
+
     fetch(ANALYTICS_URL, {
       method: 'POST',
       mode: 'cors',
       credentials: 'omit',
       cache: 'no-store',
+      keepalive: true,
       body: payload,
     }).catch(function () {});
+  }
+
+  function getLinkUrl(link) {
+    try {
+      return new URL(link.href, window.location.href);
+    } catch {
+      return null;
+    }
+  }
+
+  function getProjectName(link) {
+    var projectRow = link.closest('.project-row');
+    if (!projectRow) return '';
+    var name = projectRow.querySelector('.project-name');
+    return name ? name.textContent.trim() : link.textContent.trim().slice(0, 80);
+  }
+
+  function getLinkLabel(link) {
+    return (link.getAttribute('aria-label') || link.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120);
+  }
+
+  function buildLinkEvents(link) {
+    var href = link.getAttribute('href') || '';
+    var url = getLinkUrl(link);
+    var events = [];
+    var label = getLinkLabel(link);
+    var projectName = getProjectName(link);
+
+    if (link.hasAttribute('download') && /CV_JULIEN_RABAULT/i.test(href)) {
+      events.push({
+        type: 'cv_download',
+        metadata: {
+          file: href.split('/').pop(),
+          label: label || 'CV PDF',
+        },
+      });
+    }
+
+    if (href === '#contact') {
+      events.push({
+        type: 'contact_click',
+        metadata: {
+          channel: 'contact_section',
+          label: label || 'Contact',
+        },
+      });
+    }
+
+    if (/^mailto:/i.test(href)) {
+      events.push({
+        type: 'contact_click',
+        metadata: {
+          channel: 'email',
+          label: label || href.replace(/^mailto:/i, ''),
+        },
+      });
+    }
+
+    if (url && /(^|\.)linkedin\.com$/i.test(url.hostname)) {
+      events.push({
+        type: 'contact_click',
+        metadata: {
+          channel: 'linkedin',
+          label: label || 'LinkedIn',
+          href: url.href,
+        },
+      });
+    }
+
+    if (projectName) {
+      events.push({
+        type: 'project_open',
+        metadata: {
+          project: projectName,
+          href: url ? url.href : href,
+        },
+      });
+    }
+
+    if (url && /(^|\.)github\.com$/i.test(url.hostname)) {
+      events.push({
+        type: 'github_click',
+        metadata: {
+          project: projectName || '',
+          label: label || 'GitHub',
+          href: url.href,
+        },
+      });
+    }
+
+    return events;
+  }
+
+  function installInteractionTracking() {
+    document.addEventListener('click', function (event) {
+      var link = event.target.closest('a');
+      if (!link) return;
+
+      buildLinkEvents(link).forEach(function (item) {
+        sendAnalyticsEvent(item.type, item.metadata);
+      });
+    });
   }
 
   // ─── Create DOM ───
@@ -168,6 +279,7 @@
       title: document.title,
       viewport: window.innerWidth + 'x' + window.innerHeight,
     });
+    installInteractionTracking();
 
     // Nudge tooltip (first visit, then every 7 days if chat never opened)
     var nudgeTs = localStorage.getItem('chat-nudge-ts');

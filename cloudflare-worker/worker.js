@@ -159,7 +159,12 @@ Ne donne JAMAIS d'avis, de jugement ou de recommandation sur la carriere de Juli
 // ─── Rate limiting (in-memory, resets per worker instance) ───
 const rateLimitMap = new Map();
 const DEFAULT_ALLOWED_ORIGIN = "https://julienrabault.github.io";
-const ALLOWED_ANALYTICS_EVENTS = new Set(["page_view", "chat_open"]);
+const ACTION_EVENT_TYPES = ["cv_download", "contact_click", "project_open", "github_click"];
+const ALLOWED_ANALYTICS_EVENTS = new Set([
+  "page_view",
+  "chat_open",
+  ...ACTION_EVENT_TYPES,
+]);
 
 function jsonResponse(payload, status = 200, corsOrigin = null) {
   const headers = {
@@ -531,7 +536,12 @@ async function loadSummary(env, start, end, sourceFilters) {
       COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN session_id END) AS sessions,
       SUM(CASE WHEN event_type = 'chat_open' THEN 1 ELSE 0 END) AS chat_opens,
       SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
-      COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
+      COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users,
+      SUM(CASE WHEN event_type = 'cv_download' THEN 1 ELSE 0 END) AS cv_downloads,
+      SUM(CASE WHEN event_type = 'contact_click' THEN 1 ELSE 0 END) AS contact_clicks,
+      SUM(CASE WHEN event_type = 'project_open' THEN 1 ELSE 0 END) AS project_opens,
+      SUM(CASE WHEN event_type = 'github_click' THEN 1 ELSE 0 END) AS github_clicks,
+      COUNT(DISTINCT CASE WHEN event_type IN ('cv_download', 'contact_click', 'project_open', 'github_click') THEN visitor_id END) AS action_users
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
     ${SOURCE_FILTER_CONDITION}
@@ -763,6 +773,36 @@ async function handleAdminStats(request, env) {
     LIMIT 50
   `), [since, nowIso], sourceFilters).all();
 
+  const recruiterActions = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
+    SELECT
+      event_type,
+      COUNT(*) AS events,
+      COUNT(DISTINCT visitor_id) AS unique_visitors
+    FROM analytics_events
+    WHERE event_type IN ('cv_download', 'contact_click', 'project_open', 'github_click')
+      AND created_at >= ? AND created_at < ?
+    ${SOURCE_FILTER_CONDITION}
+    GROUP BY event_type
+    ORDER BY events DESC
+  `), [since, nowIso], sourceFilters).all();
+
+  const recentActions = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
+    SELECT
+      id,
+      created_at,
+      event_type,
+      page_path,
+      source,
+      country,
+      metadata
+    FROM analytics_events
+    WHERE event_type IN ('cv_download', 'contact_click', 'project_open', 'github_click')
+      AND created_at >= ? AND created_at < ?
+    ${SOURCE_FILTER_CONDITION}
+    ORDER BY created_at DESC
+    LIMIT 40
+  `), [since, nowIso], sourceFilters).all();
+
   return jsonResponse({
     generatedAt: new Date().toISOString(),
     periodDays,
@@ -785,6 +825,8 @@ async function handleAdminStats(request, env) {
     devices: devices.results || [],
     browsers: browsers.results || [],
     languages: languages.results || [],
+    recruiterActions: recruiterActions.results || [],
+    recentActions: recentActions.results || [],
     recentQuestions: recentQuestions.results || [],
   });
 }
@@ -1451,6 +1493,17 @@ function handleAdminDashboard() {
       </section>
     </div>
 
+    <div class="two">
+      <section>
+        <h2>Actions recruteur</h2>
+        <div id="recruiterActions"></div>
+      </section>
+      <section>
+        <h2>Dernieres actions</h2>
+        <div id="recentActions"></div>
+      </section>
+    </div>
+
     <section>
       <h2>Langues</h2>
       <div id="languages" class="bar-list"></div>
@@ -1536,6 +1589,25 @@ function handleAdminDashboard() {
     function displayReferrer(value) {
       if (!value || value === 'direct') return 'direct';
       try { return new URL(value).hostname; } catch { return value; }
+    }
+
+    function eventLabel(value) {
+      return {
+        cv_download: 'CV telecharge',
+        contact_click: 'Contact',
+        project_open: 'Projet ouvert',
+        github_click: 'GitHub'
+      }[value] || value;
+    }
+
+    function parseMetadata(value) {
+      if (!value) return {};
+      try { return JSON.parse(value); } catch { return {}; }
+    }
+
+    function actionDetail(row) {
+      var metadata = parseMetadata(row.metadata);
+      return metadata.project || metadata.channel || metadata.label || metadata.file || metadata.href || '-';
     }
 
     function slug(value) {
@@ -1775,6 +1847,19 @@ function handleAdminDashboard() {
         { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } },
         { label: 'Questions', value: function (row) { return formatNumber(row.chat_messages); } }
       ], 'Aucune source trackee. Genere des liens avec src=...');
+
+      renderTable('recruiterActions', data.recruiterActions || [], [
+        { label: 'Event', value: function (row) { return eventLabel(row.event_type); } },
+        { label: 'Total', value: function (row) { return formatNumber(row.events); } },
+        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } }
+      ], 'Aucune action recruteur sur cette periode.');
+
+      renderTable('recentActions', data.recentActions || [], [
+        { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
+        { label: 'Event', value: function (row) { return eventLabel(row.event_type); } },
+        { label: 'Detail', value: actionDetail, className: 'answer' },
+        { label: 'Source', value: function (row) { return row.source || 'direct'; } }
+      ], 'Aucune action recente.');
 
       renderTable('recentQuestions', data.recentQuestions || [], [
         { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
