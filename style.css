@@ -318,6 +318,41 @@ a:focus-visible, button:focus-visible {
   opacity: 0.8;
 }
 
+.admin-dashboard-link {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: transparent;
+  opacity: 0.22;
+  text-decoration: none;
+  transition:
+    opacity 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.admin-dashboard-link::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--text-muted);
+}
+
+.admin-dashboard-link:hover,
+.admin-dashboard-link:focus-visible {
+  background: var(--bg-card);
+  border-color: var(--border);
+  opacity: 0.9;
+}
+
 /* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
