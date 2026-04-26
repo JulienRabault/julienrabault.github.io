@@ -12,6 +12,7 @@
   var CHAT_URL = API_URL + '/chat';
   var ANALYTICS_URL = API_URL + '/events';
   var MAX_MESSAGES = 8;
+  var TRACKING_VERSION = 'v10';
   var isEN = document.documentElement.lang === 'en';
 
   var t = {
@@ -119,7 +120,7 @@
       campaign: attribution.campaign || '',
       content: attribution.content || '',
       language: isEN ? 'en' : 'fr',
-      metadata: metadata || {},
+      metadata: Object.assign({ trackingVersion: TRACKING_VERSION }, metadata || {}),
     };
   }
 
@@ -235,14 +236,44 @@
     return events;
   }
 
+  var recentInteractionKeys = new Map();
+
+  function trackLinkInteraction(link) {
+    var items = buildLinkEvents(link);
+    if (items.length === 0) return;
+
+    items.forEach(function (item) {
+      var key = item.type + ':' + (link.href || '') + ':' + JSON.stringify(item.metadata || {});
+      var now = Date.now();
+      var last = recentInteractionKeys.get(key) || 0;
+      if (now - last > 1200) {
+        recentInteractionKeys.set(key, now);
+        sendAnalyticsEvent(item.type, item.metadata);
+      }
+    });
+  }
+
   function installInteractionTracking() {
+    document.addEventListener('pointerdown', function (event) {
+      if (event.button != null && event.button > 1) return;
+      var link = event.target.closest('a');
+      if (link) trackLinkInteraction(link);
+    }, true);
+
+    document.addEventListener('auxclick', function (event) {
+      var link = event.target.closest('a');
+      if (link) trackLinkInteraction(link);
+    }, true);
+
     document.addEventListener('click', function (event) {
       var link = event.target.closest('a');
-      if (!link) return;
+      if (link) trackLinkInteraction(link);
+    }, true);
 
-      buildLinkEvents(link).forEach(function (item) {
-        sendAnalyticsEvent(item.type, item.metadata);
-      });
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      var link = event.target.closest('a');
+      if (link) trackLinkInteraction(link);
     });
   }
 
