@@ -894,28 +894,6 @@ function handleAdminDashboard() {
 
     .source-custom.hidden { display: none; }
 
-    .advanced-link {
-      margin-top: 10px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      background: #141414;
-    }
-
-    .advanced-link summary {
-      cursor: pointer;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .advanced-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-    }
-
     .generated {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -1134,7 +1112,7 @@ function handleAdminDashboard() {
       .toolbar { justify-content: flex-start; }
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .columns, .two, .three { grid-template-columns: 1fr; }
-      .generator-grid, .advanced-grid, .generated { grid-template-columns: 1fr; }
+      .generator-grid, .generated { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
       main { width: min(100vw - 20px, 1220px); padding-top: 20px; }
@@ -1203,22 +1181,9 @@ function handleAdminDashboard() {
           <input id="linkSourceCustom" class="source-custom hidden" type="text" placeholder="Nouvelle source ex: mistral, airbus" />
           <button id="generateLink" class="primary" type="button">Generer</button>
         </div>
-        <details class="advanced-link">
-          <summary>Options avancees</summary>
-          <div class="advanced-grid">
-            <select id="linkMedium" aria-label="Medium">
-              <option value="">Medium optionnel</option>
-              <option value="dm">LinkedIn DM</option>
-              <option value="post">LinkedIn post</option>
-              <option value="application">Candidature</option>
-              <option value="email">Email</option>
-              <option value="cv">CV PDF</option>
-              <option value="other">Autre</option>
-            </select>
-            <input id="linkCampaign" type="text" placeholder="Campagne optionnelle ex: 2026" />
-            <input id="linkContent" type="text" placeholder="Variante optionnelle ex: relance" />
-          </div>
-        </details>
+        <input id="linkMedium" type="hidden" value="" />
+        <input id="linkCampaign" type="hidden" value="" />
+        <input id="linkContent" type="hidden" value="" />
         <div class="generated">
           <input id="generatedLink" type="text" readonly value="https://julienrabault.github.io/?src=linkedin" />
           <button id="copyLink" class="secondary" type="button">Copier</button>
@@ -1279,27 +1244,10 @@ function handleAdminDashboard() {
       </section>
     </div>
 
-    <div class="two">
-      <section>
-        <h2>Campagnes</h2>
-        <div id="topCampaigns"></div>
-      </section>
-      <section>
-        <h2>Referrers navigateur</h2>
-        <div id="topReferrers"></div>
-      </section>
-    </div>
-
-    <div class="two">
-      <section>
-        <h2>Reseaux / organisations</h2>
-        <div id="organizations"></div>
-      </section>
-      <section>
-        <h2>Langues</h2>
-        <div id="languages" class="bar-list"></div>
-      </section>
-    </div>
+    <section>
+      <h2>Langues</h2>
+      <div id="languages" class="bar-list"></div>
+    </section>
 
     <section>
       <h2>Questions recentes</h2>
@@ -1622,26 +1570,6 @@ function handleAdminDashboard() {
         { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } },
         { label: 'Questions', value: function (row) { return formatNumber(row.chat_messages); } }
       ], 'Aucune source trackee. Genere des liens avec src=...');
-
-      renderTable('topCampaigns', data.topCampaigns || [], [
-        { label: 'Source', key: 'source' },
-        { label: 'Medium', key: 'medium' },
-        { label: 'Campagne', key: 'campaign' },
-        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
-        { label: 'Questions', value: function (row) { return formatNumber(row.chat_messages); } }
-      ], 'Aucune campagne trackee.');
-
-      renderTable('topReferrers', data.topReferrers || [], [
-        { label: 'Source', value: function (row) { return displayReferrer(row.referrer); } },
-        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
-        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } }
-      ], 'Aucun referrer sur cette periode.');
-
-      renderTable('organizations', data.topOrganizations || [], [
-        { label: 'Reseau', key: 'organization' },
-        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
-        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } }
-      ], 'Aucune organisation disponible.');
 
       renderTable('recentQuestions', data.recentQuestions || [], [
         { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
