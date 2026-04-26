@@ -12,7 +12,7 @@
   var CHAT_URL = API_URL + '/chat';
   var ANALYTICS_URL = API_URL + '/events';
   var MAX_MESSAGES = 8;
-  var TRACKING_VERSION = 'v11';
+  var TRACKING_VERSION = 'v12';
   var isEN = document.documentElement.lang === 'en';
 
   var t = {
@@ -121,25 +121,38 @@
     };
   }
 
+  function sendBeaconPayload(payload) {
+    if (navigator.sendBeacon) {
+      try {
+        return navigator.sendBeacon(
+          ANALYTICS_URL,
+          new Blob([payload], { type: 'text/plain;charset=UTF-8' })
+        );
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+
   function sendAnalyticsEvent(eventType, metadata) {
     var payload = JSON.stringify(buildTrackingPayload(eventType, metadata));
-
-    if (navigator.sendBeacon) {
-      var sent = navigator.sendBeacon(
-        ANALYTICS_URL,
-        new Blob([payload], { type: 'text/plain;charset=UTF-8' })
-      );
-      if (sent) return;
-    }
 
     fetch(ANALYTICS_URL, {
       method: 'POST',
       mode: 'cors',
       credentials: 'omit',
       cache: 'no-store',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       keepalive: true,
       body: payload,
-    }).catch(function () {});
+    })
+      .then(function (response) {
+        if (!response.ok) sendBeaconPayload(payload);
+      })
+      .catch(function () {
+        sendBeaconPayload(payload);
+      });
   }
 
   function getLinkUrl(link) {

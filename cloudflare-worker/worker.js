@@ -266,6 +266,12 @@ function serializeMetadata(metadata) {
   return JSON.stringify(metadata).slice(0, 2000);
 }
 
+function normalizeStoredSource(value) {
+  const source = truncateText(value, 120);
+  if (!source || source === "direct") return "inconnu";
+  return source;
+}
+
 function buildEvent(request, body, overrides = {}) {
   const cf = request.cf || {};
 
@@ -277,7 +283,7 @@ function buildEvent(request, body, overrides = {}) {
     page_path: truncateText(body.pagePath, 500),
     page_url: truncateText(body.pageUrl, 1000),
     referrer: truncateText(body.referrer, 1000),
-    source: truncateText(body.source, 120),
+    source: normalizeStoredSource(body.source),
     medium: truncateText(body.medium, 120),
     campaign: truncateText(body.campaign, 160),
     content: truncateText(body.content, 160),
@@ -489,7 +495,8 @@ const SOURCE_FILTER_CONDITION = `
 `;
 
 function normalizeSourceValue(value) {
-  return truncateText(value, 120)?.replace(/[|,]/g, "").trim() || "";
+  const source = truncateText(value, 120)?.replace(/[|,]/g, "").trim() || "";
+  return source === "direct" ? "inconnu" : source;
 }
 
 function normalizeSourceFilters(url) {
@@ -762,7 +769,7 @@ async function handleAdminStats(request, env) {
       language,
       page_path,
       country,
-      source,
+      ${SOURCE_EXPR} AS source,
       campaign,
       question,
       answer,
@@ -793,7 +800,7 @@ async function handleAdminStats(request, env) {
       created_at,
       event_type,
       page_path,
-      source,
+      ${SOURCE_EXPR} AS source,
       country,
       metadata
     FROM analytics_events
@@ -1533,6 +1540,7 @@ function handleAdminDashboard() {
     var generatedLinkInput = document.getElementById('generatedLink');
     var savedToken = localStorage.getItem('jr-admin-token') || '';
     var latestData = null;
+    var autoRefreshDelayMs = 20000;
     tokenInput.value = savedToken;
 
     function number(value) {
@@ -1891,7 +1899,8 @@ function handleAdminDashboard() {
       }
     }
 
-    async function loadStats() {
+    async function loadStats(options) {
+      var silent = options && options.silent === true;
       var token = tokenInput.value.trim();
       if (!token) {
         setStatus('Entre le token admin pour charger les stats.', 'error');
@@ -1899,7 +1908,7 @@ function handleAdminDashboard() {
       }
 
       localStorage.setItem('jr-admin-token', token);
-      setStatus('Chargement...', '');
+      if (!silent) setStatus('Chargement...', '');
 
       try {
         var params = new URLSearchParams({ days: daysInput.value });
@@ -1969,6 +1978,11 @@ function handleAdminDashboard() {
     });
 
     syncSourceInput();
+    setInterval(function () {
+      if (document.visibilityState === 'visible' && tokenInput.value.trim()) {
+        loadStats({ silent: true });
+      }
+    }, autoRefreshDelayMs);
     if (savedToken) loadStats();
     else setStatus('Entre le token admin pour charger les stats.', '');
   </script>
@@ -1998,12 +2012,12 @@ export default {
       return handleAdminDashboard();
     }
 
-    if (!isAllowedOrigin(request.headers.get("Origin") || "", env)) {
-      return jsonResponse({ error: "Forbidden" }, 403, corsOrigin);
-    }
-
     if ((url.pathname === "/events" || url.pathname === "/analytics") && request.method === "POST") {
       return handleAnalytics(request, env, corsOrigin);
+    }
+
+    if (!isAllowedOrigin(request.headers.get("Origin") || "", env)) {
+      return jsonResponse({ error: "Forbidden" }, 403, corsOrigin);
     }
 
     if ((url.pathname === "/" || url.pathname === "/chat") && request.method === "POST") {
