@@ -817,6 +817,10 @@ function handleAdminDashboard() {
       justify-content: flex-end;
     }
 
+    .header-actions {
+      align-items: center;
+    }
+
     input, select, button {
       height: 38px;
       border: 1px solid var(--border);
@@ -829,8 +833,17 @@ function handleAdminDashboard() {
     }
 
     input { width: min(360px, 100%); }
-    button { cursor: pointer; font-weight: 800; }
+    button {
+      cursor: pointer;
+      font-weight: 800;
+      transition: border-color .15s ease, background .15s ease, transform .15s ease;
+    }
     button.primary { background: var(--accent); border-color: var(--accent); color: #111; }
+    button.compact {
+      width: auto;
+      min-width: 104px;
+      padding: 0 16px;
+    }
     button.danger {
       height: 30px;
       border-color: rgba(255,107,107,.35);
@@ -866,11 +879,39 @@ function handleAdminDashboard() {
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 16px;
+      padding: 14px 16px;
       font-weight: 800;
     }
 
     details.generator > summary::-webkit-details-marker { display: none; }
+
+    .generator-title {
+      display: grid;
+      gap: 3px;
+    }
+
+    .collapse-indicator {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--accent);
+      font-size: 22px;
+      line-height: 1;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    details.generator > summary:hover .collapse-indicator {
+      border-color: rgba(212,168,83,.55);
+      background: rgba(212,168,83,.08);
+    }
+
+    details.generator[open] .collapse-indicator {
+      transform: rotate(90deg);
+    }
 
     .generator-body {
       padding: 0 16px 16px;
@@ -887,9 +928,15 @@ function handleAdminDashboard() {
 
     .generator-grid {
       display: grid;
-      grid-template-columns: minmax(180px, 260px) minmax(180px, 1fr) auto;
+      grid-template-columns: minmax(180px, 260px) auto;
+      justify-content: start;
       gap: 8px;
       align-items: end;
+    }
+
+    .generator-grid.custom-open {
+      grid-template-columns: minmax(180px, 240px) minmax(220px, 1fr) auto;
+      justify-content: stretch;
     }
 
     .source-custom.hidden { display: none; }
@@ -964,6 +1011,41 @@ function handleAdminDashboard() {
     .delta.up { color: var(--green); border-color: rgba(123,216,143,.35); }
     .delta.down { color: var(--red); border-color: rgba(255,107,107,.35); }
 
+    .filters-panel {
+      padding: 14px 16px;
+    }
+
+    .filter-title {
+      display: grid;
+      gap: 3px;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(160px, 1fr)) auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .filter-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .filter-field label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
     section {
       padding: 16px;
       overflow: hidden;
@@ -1017,20 +1099,6 @@ function handleAdminDashboard() {
     .axis { stroke: #343434; stroke-width: 1; }
     .series { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
     .tick { fill: var(--muted); font-size: 11px; }
-
-    .insights {
-      display: grid;
-      gap: 10px;
-    }
-    .insight {
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      background: var(--panel-2);
-      color: var(--text);
-      font-size: 13px;
-    }
-    .insight strong { color: var(--accent); }
 
     .bar-list {
       display: grid;
@@ -1112,7 +1180,9 @@ function handleAdminDashboard() {
       .toolbar { justify-content: flex-start; }
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .columns, .two, .three { grid-template-columns: 1fr; }
-      .generator-grid, .generated { grid-template-columns: 1fr; }
+      .generator-grid, .generator-grid.custom-open, .generated, .filters-grid { grid-template-columns: 1fr; }
+      .generator-grid { justify-content: stretch; }
+      .filter-actions { justify-content: flex-start; }
     }
     @media (max-width: 560px) {
       main { width: min(100vw - 20px, 1220px); padding-top: 20px; }
@@ -1131,20 +1201,7 @@ function handleAdminDashboard() {
         <h1>JR Analytics</h1>
         <p class="muted">Trafic, audience, engagement chatbot et questions posees.</p>
       </div>
-      <div class="toolbar">
-        <select id="days" aria-label="Periode">
-          <option value="7">7 jours</option>
-          <option value="30" selected>30 jours</option>
-          <option value="90">90 jours</option>
-          <option value="365">365 jours</option>
-        </select>
-        <select id="granularity" aria-label="Granularite">
-          <option value="daily" selected>Jour</option>
-          <option value="weekly">Semaine</option>
-        </select>
-        <select id="sourceFilter" aria-label="Filtrer par source">
-          <option value="all">Toutes sources</option>
-        </select>
+      <div class="toolbar header-actions">
         <button id="refresh" class="primary" type="button">Actualiser</button>
         <button id="logout" class="secondary" type="button">Oublier token</button>
       </div>
@@ -1162,15 +1219,18 @@ function handleAdminDashboard() {
 
     <details class="generator">
       <summary>
-        <span>Generateur de liens candidature</span>
-        <span class="muted">ouvrir / fermer</span>
+        <span class="generator-title">
+          <span>Generateur de liens candidature</span>
+          <span class="muted">Un lien court par source : LinkedIn, CV, Indeed, perso...</span>
+        </span>
+        <span class="collapse-indicator" aria-hidden="true">&gt;</span>
       </summary>
       <div class="generator-body">
         <div class="generator-help">
           <span><strong>Simple :</strong> mets juste le canal ou la boite dans "Source". Exemple : linkedin, mistral, airbus.</span>
           <span><strong>Resultat :</strong> le dashboard saura que cette visite vient de cette source.</span>
         </div>
-        <div class="generator-grid">
+        <div id="generatorGrid" class="generator-grid">
           <select id="linkSource" aria-label="Source">
             <option value="linkedin">LinkedIn</option>
             <option value="cv">CV</option>
@@ -1179,7 +1239,7 @@ function handleAdminDashboard() {
             <option value="__custom">+ Ajouter une source</option>
           </select>
           <input id="linkSourceCustom" class="source-custom hidden" type="text" placeholder="Nouvelle source ex: mistral, airbus" />
-          <button id="generateLink" class="primary" type="button">Generer</button>
+          <button id="generateLink" class="primary compact" type="button">Generer</button>
         </div>
         <input id="linkMedium" type="hidden" value="" />
         <input id="linkCampaign" type="hidden" value="" />
@@ -1200,23 +1260,54 @@ function handleAdminDashboard() {
       <div class="card"><div class="label">Q / user chat</div><div id="questionsPerUser" class="value">0</div><div id="deltaQpu" class="delta">0</div></div>
     </div>
 
-    <div class="columns">
-      <section>
-        <div class="panel-head">
-          <h2>Tendance</h2>
-          <div class="legend">
-            <span><i class="dot" style="background:var(--accent)"></i>Vues</span>
-            <span><i class="dot" style="background:var(--blue)"></i>Visiteurs</span>
-            <span><i class="dot" style="background:var(--green)"></i>Questions</span>
-          </div>
+    <section class="filters-panel">
+      <div class="panel-head">
+        <div class="filter-title">
+          <h2>Filtres</h2>
+          <p class="muted">Vue actuelle du dashboard : periode, granularite et source.</p>
         </div>
-        <div id="trendChart" class="chart-wrap"></div>
-      </section>
-      <section>
-        <h2>Insights</h2>
-        <div id="insights" class="insights"></div>
-      </section>
-    </div>
+        <button id="resetFilters" class="secondary compact" type="button">Reset</button>
+      </div>
+      <div class="filters-grid">
+        <div class="filter-field">
+          <label for="days">Periode</label>
+          <select id="days">
+            <option value="7">7 jours</option>
+            <option value="30" selected>30 jours</option>
+            <option value="90">90 jours</option>
+            <option value="365">365 jours</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label for="granularity">Courbe</label>
+          <select id="granularity">
+            <option value="daily" selected>Par jour</option>
+            <option value="weekly">Par semaine</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label for="sourceFilter">Source</label>
+          <select id="sourceFilter">
+            <option value="all">Toutes sources</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button id="applyFilters" class="primary compact" type="button">Appliquer</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="panel-head">
+        <h2>Tendance</h2>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--accent)"></i>Vues</span>
+          <span><i class="dot" style="background:var(--blue)"></i>Visiteurs</span>
+          <span><i class="dot" style="background:var(--green)"></i>Questions</span>
+        </div>
+      </div>
+      <div id="trendChart" class="chart-wrap"></div>
+    </section>
 
     <div class="two">
       <section>
@@ -1263,6 +1354,7 @@ function handleAdminDashboard() {
     var statusEl = document.getElementById('status');
     var linkSourceInput = document.getElementById('linkSource');
     var linkSourceCustomInput = document.getElementById('linkSourceCustom');
+    var generatorGrid = document.getElementById('generatorGrid');
     var linkMediumInput = document.getElementById('linkMedium');
     var linkCampaignInput = document.getElementById('linkCampaign');
     var linkContentInput = document.getElementById('linkContent');
@@ -1348,6 +1440,7 @@ function handleAdminDashboard() {
     function syncSourceInput() {
       var isCustom = linkSourceInput.value === '__custom';
       linkSourceCustomInput.classList.toggle('hidden', !isCustom);
+      generatorGrid.classList.toggle('custom-open', isCustom);
       if (isCustom) linkSourceCustomInput.focus();
       generateTrackedLink();
     }
@@ -1489,39 +1582,6 @@ function handleAdminDashboard() {
       target.innerHTML = svg;
     }
 
-    function buildInsights(data) {
-      var summary = data.summary || {};
-      var previous = data.previousSummary || {};
-      var insights = [];
-      var visitors = number(summary.unique_visitors);
-      var prevVisitors = number(previous.unique_visitors);
-      var questions = number(summary.chat_messages);
-      var views = number(summary.page_views);
-      var topCountry = (data.topCountries || [])[0];
-      var topReferrer = (data.topReferrers || [])[0];
-      var topSource = (data.topSources || [])[0];
-
-      if (prevVisitors > 0) {
-        var visitorDelta = Math.round((visitors - prevVisitors) / prevVisitors * 100);
-        insights.push('<strong>Trafic</strong> : ' + (visitorDelta >= 0 ? '+' : '') + visitorDelta + '% de visiteurs vs periode precedente.');
-      } else if (visitors > 0) {
-        insights.push('<strong>Trafic</strong> : premiers visiteurs enregistres sur cette periode.');
-      } else {
-        insights.push('<strong>Trafic</strong> : aucune visite sur cette periode.');
-      }
-
-      insights.push('<strong>Engagement chat</strong> : ' + pct(number(summary.chat_users), visitors) + '% des visiteurs ont pose au moins une question.');
-      insights.push('<strong>Intensite</strong> : ' + (number(summary.chat_users) > 0 ? Math.round(questions / number(summary.chat_users) * 10) / 10 : 0) + ' question(s) par utilisateur chat.');
-      if (topCountry) insights.push('<strong>Audience</strong> : pays principal ' + escapeHtml(topCountry.country) + ' (' + formatNumber(topCountry.page_views) + ' vues).');
-      if (topSource && topSource.source !== 'direct') insights.push('<strong>Campagne</strong> : source trackee principale ' + escapeHtml(topSource.source) + '.');
-      else if (topReferrer) insights.push('<strong>Acquisition</strong> : source navigateur principale ' + escapeHtml(displayReferrer(topReferrer.referrer)) + '.');
-      if (views > 0 && number(summary.chat_opens) === 0) insights.push('<strong>Signal</strong> : le chat est vu mais pas ouvert, tester un wording ou une position differente.');
-
-      document.getElementById('insights').innerHTML = insights.map(function (item) {
-        return '<div class="insight">' + item + '</div>';
-      }).join('');
-    }
-
     function render(data) {
       latestData = data;
       syncSourceFilterOptions(data.availableSources || [], data.sourceFilter || 'all');
@@ -1551,7 +1611,6 @@ function handleAdminDashboard() {
 
       renderChart(data);
       renderFunnel(summary);
-      buildInsights(data);
 
       renderBars('countries', data.topCountries || [], 'country', 'page_views', 'Aucun pays.');
       renderBars('devices', data.devices || [], 'device', 'page_views', 'Aucun device.');
@@ -1629,6 +1688,13 @@ function handleAdminDashboard() {
 
     document.getElementById('save').addEventListener('click', loadStats);
     document.getElementById('refresh').addEventListener('click', loadStats);
+    document.getElementById('applyFilters').addEventListener('click', loadStats);
+    document.getElementById('resetFilters').addEventListener('click', function () {
+      daysInput.value = '30';
+      granularityInput.value = 'daily';
+      sourceFilterInput.value = 'all';
+      loadStats();
+    });
     document.getElementById('generateLink').addEventListener('click', generateTrackedLink);
     document.getElementById('copyLink').addEventListener('click', async function () {
       var link = generateTrackedLink();
