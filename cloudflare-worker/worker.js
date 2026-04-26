@@ -272,6 +272,10 @@ function buildEvent(request, body, overrides = {}) {
     page_path: truncateText(body.pagePath, 500),
     page_url: truncateText(body.pageUrl, 1000),
     referrer: truncateText(body.referrer, 1000),
+    source: truncateText(body.source, 120),
+    medium: truncateText(body.medium, 120),
+    campaign: truncateText(body.campaign, 160),
+    content: truncateText(body.content, 160),
     language: truncateText(body.language, 16),
     country: truncateText(cf.country, 8),
     as_organization: truncateText(cf.asOrganization, 200),
@@ -298,6 +302,10 @@ async function insertAnalyticsEvent(env, event) {
         page_path,
         page_url,
         referrer,
+        source,
+        medium,
+        campaign,
+        content,
         language,
         country,
         as_organization,
@@ -306,7 +314,7 @@ async function insertAnalyticsEvent(env, event) {
         answer,
         status,
         metadata
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
       .bind(
         event.created_at,
@@ -316,6 +324,10 @@ async function insertAnalyticsEvent(env, event) {
         event.page_path,
         event.page_url,
         event.referrer,
+        event.source,
+        event.medium,
+        event.campaign,
+        event.content,
         event.language,
         event.country,
         event.as_organization,
@@ -559,6 +571,35 @@ async function handleAdminStats(request, env) {
     LIMIT 10
   `).bind(since, nowIso).all();
 
+  const topSources = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(NULLIF(source, ''), 'direct') AS source,
+      SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
+      COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
+      SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages
+    FROM analytics_events
+    WHERE created_at >= ? AND created_at < ?
+    GROUP BY source
+    ORDER BY page_views DESC
+    LIMIT 10
+  `).bind(since, nowIso).all();
+
+  const topCampaigns = await env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(NULLIF(source, ''), 'direct') AS source,
+      COALESCE(NULLIF(medium, ''), '-') AS medium,
+      COALESCE(NULLIF(campaign, ''), '-') AS campaign,
+      COUNT(*) AS events,
+      SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
+      COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
+      SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages
+    FROM analytics_events
+    WHERE created_at >= ? AND created_at < ?
+    GROUP BY source, medium, campaign
+    ORDER BY page_views DESC, chat_messages DESC
+    LIMIT 20
+  `).bind(since, nowIso).all();
+
   const topCountries = await env.ANALYTICS_DB.prepare(`
     SELECT
       COALESCE(NULLIF(country, ''), 'unknown') AS country,
@@ -635,6 +676,8 @@ async function handleAdminStats(request, env) {
       language,
       page_path,
       country,
+      source,
+      campaign,
       question,
       answer,
       status
@@ -653,6 +696,8 @@ async function handleAdminStats(request, env) {
     weekly: weekly.results || [],
     topPages: topPages.results || [],
     topReferrers: topReferrers.results || [],
+    topSources: topSources.results || [],
+    topCampaigns: topCampaigns.results || [],
     topCountries: topCountries.results || [],
     topOrganizations: topOrganizations.results || [],
     devices: devices.results || [],
@@ -746,6 +791,26 @@ function handleAdminDashboard() {
       border-radius: 10px;
       background: var(--panel);
       margin-bottom: 14px;
+    }
+
+    .generator-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .generated {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .generated input {
+      width: 100%;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
     }
 
     .status {
@@ -953,6 +1018,7 @@ function handleAdminDashboard() {
       .toolbar { justify-content: flex-start; }
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .columns, .two, .three { grid-template-columns: 1fr; }
+      .generator-grid, .generated { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
       main { width: min(100vw - 20px, 1220px); padding-top: 20px; }
@@ -996,6 +1062,31 @@ function handleAdminDashboard() {
     </div>
 
     <div id="status" class="status"></div>
+
+    <section>
+      <div class="panel-head">
+        <h2>Generateur de liens candidature</h2>
+        <p class="muted">Utilise un lien different par canal, entreprise ou message.</p>
+      </div>
+      <div class="generator-grid">
+        <input id="linkSource" type="text" placeholder="source: linkedin, mistral, airbus" />
+        <select id="linkMedium" aria-label="Medium">
+          <option value="dm">LinkedIn DM</option>
+          <option value="post">LinkedIn post</option>
+          <option value="application">Candidature</option>
+          <option value="email">Email</option>
+          <option value="cv">CV PDF</option>
+          <option value="other">Autre</option>
+        </select>
+        <input id="linkCampaign" type="text" placeholder="campagne: candidature-2026" />
+        <input id="linkContent" type="text" placeholder="contenu: message-a / relance" />
+        <button id="generateLink" class="primary" type="button">Generer</button>
+      </div>
+      <div class="generated">
+        <input id="generatedLink" type="text" readonly value="https://julienrabault.github.io/?src=linkedin" />
+        <button id="copyLink" class="secondary" type="button">Copier</button>
+      </div>
+    </section>
 
     <div class="metrics">
       <div class="card"><div class="label">Vues</div><div id="pageViews" class="value">0</div><div id="deltaPageViews" class="delta">0%</div></div>
@@ -1045,7 +1136,18 @@ function handleAdminDashboard() {
         <div id="topPages"></div>
       </section>
       <section>
-        <h2>Acquisition</h2>
+        <h2>Sources trackees</h2>
+        <div id="topSources"></div>
+      </section>
+    </div>
+
+    <div class="two">
+      <section>
+        <h2>Campagnes</h2>
+        <div id="topCampaigns"></div>
+      </section>
+      <section>
+        <h2>Referrers navigateur</h2>
         <div id="topReferrers"></div>
       </section>
     </div>
@@ -1072,6 +1174,11 @@ function handleAdminDashboard() {
     var daysInput = document.getElementById('days');
     var granularityInput = document.getElementById('granularity');
     var statusEl = document.getElementById('status');
+    var linkSourceInput = document.getElementById('linkSource');
+    var linkMediumInput = document.getElementById('linkMedium');
+    var linkCampaignInput = document.getElementById('linkCampaign');
+    var linkContentInput = document.getElementById('linkContent');
+    var generatedLinkInput = document.getElementById('generatedLink');
     var savedToken = localStorage.getItem('jr-admin-token') || '';
     var latestData = null;
     tokenInput.value = savedToken;
@@ -1131,6 +1238,31 @@ function handleAdminDashboard() {
     function displayReferrer(value) {
       if (!value || value === 'direct') return 'direct';
       try { return new URL(value).hostname; } catch { return value; }
+    }
+
+    function slug(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\\u0300-\\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+
+    function generateTrackedLink() {
+      var source = slug(linkSourceInput.value) || 'linkedin';
+      var medium = slug(linkMediumInput.value) || 'dm';
+      var campaign = slug(linkCampaignInput.value);
+      var content = slug(linkContentInput.value);
+      var url = new URL('https://julienrabault.github.io/');
+      url.searchParams.set('src', source);
+      url.searchParams.set('utm_source', source);
+      url.searchParams.set('utm_medium', medium);
+      if (campaign) url.searchParams.set('utm_campaign', campaign);
+      if (content) url.searchParams.set('utm_content', content);
+      generatedLinkInput.value = url.toString();
+      return generatedLinkInput.value;
     }
 
     function renderTable(targetId, rows, columns, emptyText) {
@@ -1252,6 +1384,7 @@ function handleAdminDashboard() {
       var views = number(summary.page_views);
       var topCountry = (data.topCountries || [])[0];
       var topReferrer = (data.topReferrers || [])[0];
+      var topSource = (data.topSources || [])[0];
 
       if (prevVisitors > 0) {
         var visitorDelta = Math.round((visitors - prevVisitors) / prevVisitors * 100);
@@ -1265,7 +1398,8 @@ function handleAdminDashboard() {
       insights.push('<strong>Engagement chat</strong> : ' + pct(number(summary.chat_users), visitors) + '% des visiteurs ont pose au moins une question.');
       insights.push('<strong>Intensite</strong> : ' + (number(summary.chat_users) > 0 ? Math.round(questions / number(summary.chat_users) * 10) / 10 : 0) + ' question(s) par utilisateur chat.');
       if (topCountry) insights.push('<strong>Audience</strong> : pays principal ' + escapeHtml(topCountry.country) + ' (' + formatNumber(topCountry.page_views) + ' vues).');
-      if (topReferrer) insights.push('<strong>Acquisition</strong> : source principale ' + escapeHtml(displayReferrer(topReferrer.referrer)) + '.');
+      if (topSource && topSource.source !== 'direct') insights.push('<strong>Campagne</strong> : source trackee principale ' + escapeHtml(topSource.source) + '.');
+      else if (topReferrer) insights.push('<strong>Acquisition</strong> : source navigateur principale ' + escapeHtml(displayReferrer(topReferrer.referrer)) + '.');
       if (views > 0 && number(summary.chat_opens) === 0) insights.push('<strong>Signal</strong> : le chat est vu mais pas ouvert, tester un wording ou une position differente.');
 
       document.getElementById('insights').innerHTML = insights.map(function (item) {
@@ -1314,6 +1448,21 @@ function handleAdminDashboard() {
         { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } }
       ], 'Aucune page vue sur cette periode.');
 
+      renderTable('topSources', data.topSources || [], [
+        { label: 'Source', key: 'source' },
+        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
+        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } },
+        { label: 'Questions', value: function (row) { return formatNumber(row.chat_messages); } }
+      ], 'Aucune source trackee. Genere des liens avec src=...');
+
+      renderTable('topCampaigns', data.topCampaigns || [], [
+        { label: 'Source', key: 'source' },
+        { label: 'Medium', key: 'medium' },
+        { label: 'Campagne', key: 'campaign' },
+        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
+        { label: 'Questions', value: function (row) { return formatNumber(row.chat_messages); } }
+      ], 'Aucune campagne trackee.');
+
       renderTable('topReferrers', data.topReferrers || [], [
         { label: 'Source', value: function (row) { return displayReferrer(row.referrer); } },
         { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
@@ -1328,6 +1477,7 @@ function handleAdminDashboard() {
 
       renderTable('recentQuestions', data.recentQuestions || [], [
         { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
+        { label: 'Source', value: function (row) { return row.source || 'direct'; } },
         { label: 'Question', key: 'question', className: 'question' },
         { label: 'Reponse', key: 'answer', className: 'answer' },
         { label: 'Statut', key: 'status' }
@@ -1359,6 +1509,21 @@ function handleAdminDashboard() {
 
     document.getElementById('save').addEventListener('click', loadStats);
     document.getElementById('refresh').addEventListener('click', loadStats);
+    document.getElementById('generateLink').addEventListener('click', generateTrackedLink);
+    document.getElementById('copyLink').addEventListener('click', async function () {
+      var link = generateTrackedLink();
+      try {
+        await navigator.clipboard.writeText(link);
+        setStatus('Lien copie.', 'ok');
+      } catch {
+        generatedLinkInput.select();
+        setStatus('Lien genere, copie manuelle possible.', '');
+      }
+    });
+    [linkSourceInput, linkMediumInput, linkCampaignInput, linkContentInput].forEach(function (input) {
+      input.addEventListener('input', generateTrackedLink);
+      input.addEventListener('change', generateTrackedLink);
+    });
     daysInput.addEventListener('change', loadStats);
     granularityInput.addEventListener('change', function () { if (latestData) renderChart(latestData); });
     tokenInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') loadStats(); });
@@ -1368,6 +1533,7 @@ function handleAdminDashboard() {
       setStatus('Token supprime de ce navigateur.', '');
     });
 
+    generateTrackedLink();
     if (savedToken) loadStats();
     else setStatus('Entre le token admin pour charger les stats.', '');
   </script>

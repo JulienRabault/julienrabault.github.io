@@ -72,4 +72,21 @@ Le JSON contient:
 - `summary.chat_messages`: questions posees.
 - `summary.chat_users`: visiteurs ayant utilise le chatbot.
 - `topCountries`, `devices`, `browsers`, `languages`, `topOrganizations`: audience anonyme.
+- `topSources`, `topCampaigns`: performance des liens trackes `src` / `utm_*`.
 - `recentQuestions`: les 50 dernieres questions sur la periode.
+
+## Liens trackes
+
+Le dashboard `/admin` contient un generateur de liens. Le site lit:
+
+- `src`
+- `utm_source`
+- `utm_medium`
+- `utm_campaign`
+- `utm_content`
+
+Exemple:
+
+```text
+https://julienrabault.github.io/?src=linkedin&utm_source=linkedin&utm_medium=dm&utm_campaign=mistral-2026
+```

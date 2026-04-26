@@ -34,6 +34,7 @@
   var messageCount = 0;
   var visitorId = getPersistentId('jr-visitor-id', 'v');
   var sessionId = getSessionId();
+  var attribution = getAttribution();
 
   // Analytics helpers
   function createId(prefix) {
@@ -77,6 +78,34 @@
     }
   }
 
+  function cleanParam(value) {
+    if (!value) return '';
+    return String(value).trim().slice(0, 160);
+  }
+
+  function getAttribution() {
+    var params = new URLSearchParams(window.location.search);
+    var current = {
+      source: cleanParam(params.get('src') || params.get('utm_source')),
+      medium: cleanParam(params.get('utm_medium')),
+      campaign: cleanParam(params.get('utm_campaign')),
+      content: cleanParam(params.get('utm_content')),
+    };
+    var hasCurrent = current.source || current.medium || current.campaign || current.content;
+
+    try {
+      if (hasCurrent) {
+        localStorage.setItem('jr-attribution', JSON.stringify(current));
+        return current;
+      }
+
+      var saved = localStorage.getItem('jr-attribution');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+
+    return current;
+  }
+
   function buildTrackingPayload(eventType, metadata) {
     return {
       eventType: eventType,
@@ -85,6 +114,10 @@
       pagePath: window.location.pathname + window.location.search,
       pageUrl: window.location.href.split('#')[0],
       referrer: document.referrer || '',
+      source: attribution.source || '',
+      medium: attribution.medium || '',
+      campaign: attribution.campaign || '',
+      content: attribution.content || '',
       language: isEN ? 'en' : 'fr',
       metadata: metadata || {},
     };
@@ -218,6 +251,10 @@
         pagePath: window.location.pathname + window.location.search,
         pageUrl: window.location.href.split('#')[0],
         referrer: document.referrer || '',
+        source: attribution.source || '',
+        medium: attribution.medium || '',
+        campaign: attribution.campaign || '',
+        content: attribution.content || '',
         language: isEN ? 'en' : 'fr',
       }),
     })
