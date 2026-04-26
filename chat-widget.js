@@ -12,7 +12,7 @@
   var CHAT_URL = API_URL + '/chat';
   var ANALYTICS_URL = API_URL + '/events';
   var MAX_MESSAGES = 8;
-  var TRACKING_VERSION = 'v10';
+  var TRACKING_VERSION = 'v11';
   var isEN = document.documentElement.lang === 'en';
 
   var t = {
@@ -92,16 +92,13 @@
       campaign: cleanParam(params.get('utm_campaign')),
       content: cleanParam(params.get('utm_content')),
     };
-    var hasCurrent = current.source || current.medium || current.campaign || current.content;
+    current.source = current.source || 'inconnu';
+    var hasCurrent = current.source !== 'inconnu' || current.medium || current.campaign || current.content;
 
     try {
       if (hasCurrent) {
-        localStorage.setItem('jr-attribution', JSON.stringify(current));
-        return current;
+        sessionStorage.setItem('jr-attribution', JSON.stringify(current));
       }
-
-      var saved = localStorage.getItem('jr-attribution');
-      if (saved) return JSON.parse(saved);
     } catch {}
 
     return current;
@@ -115,7 +112,7 @@
       pagePath: window.location.pathname + window.location.search,
       pageUrl: window.location.href.split('#')[0],
       referrer: document.referrer || '',
-      source: attribution.source || '',
+      source: attribution.source || 'inconnu',
       medium: attribution.medium || '',
       campaign: attribution.campaign || '',
       content: attribution.content || '',

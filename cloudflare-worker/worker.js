@@ -479,11 +479,12 @@ function normalizeStatsRow(row) {
   );
 }
 
+const SOURCE_EXPR = "CASE WHEN source IS NULL OR source = '' OR source = 'direct' THEN 'inconnu' ELSE source END";
 const SOURCE_FILTER_CONDITION = `
       AND (
         ? = 'all'
-        OR (? = 'include' AND instr(?, '|' || COALESCE(NULLIF(source, ''), 'direct') || '|') > 0)
-        OR (? = 'exclude' AND instr(?, '|' || COALESCE(NULLIF(source, ''), 'direct') || '|') = 0)
+        OR (? = 'include' AND instr(?, '|' || ${SOURCE_EXPR} || '|') > 0)
+        OR (? = 'exclude' AND instr(?, '|' || ${SOURCE_EXPR} || '|') = 0)
       )
 `;
 
@@ -637,7 +638,7 @@ async function handleAdminStats(request, env) {
 
   const availableSources = await env.ANALYTICS_DB.prepare(`
     SELECT
-      COALESCE(NULLIF(source, ''), 'direct') AS source,
+      ${SOURCE_EXPR} AS source,
       SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
       COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
       SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages
@@ -650,7 +651,7 @@ async function handleAdminStats(request, env) {
 
   const topSources = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
-      COALESCE(NULLIF(source, ''), 'direct') AS source,
+      ${SOURCE_EXPR} AS source,
       SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
       COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
       SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages
@@ -664,7 +665,7 @@ async function handleAdminStats(request, env) {
 
   const topCampaigns = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
-      COALESCE(NULLIF(source, ''), 'direct') AS source,
+      ${SOURCE_EXPR} AS source,
       COALESCE(NULLIF(medium, ''), '-') AS medium,
       COALESCE(NULLIF(campaign, ''), '-') AS campaign,
       COUNT(*) AS events,
@@ -1735,7 +1736,7 @@ function handleAdminDashboard() {
       }
 
       sourcePicker.innerHTML = sources.map(function (row) {
-        var source = row.source || 'direct';
+        var source = row.source || 'inconnu';
         var checked = selected.has(source) ? ' checked' : '';
         var count = formatNumber(row.page_views || 0);
         return '<label class="source-chip" title="' + escapeHtml(count + ' vue(s)') + '"><input type="checkbox" value="' + escapeHtml(source) + '"' + checked + ' />' + escapeHtml(source) + '<span class="muted">' + count + '</span></label>';
@@ -1858,12 +1859,12 @@ function handleAdminDashboard() {
         { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
         { label: 'Event', value: function (row) { return eventLabel(row.event_type); } },
         { label: 'Detail', value: actionDetail, className: 'answer' },
-        { label: 'Source', value: function (row) { return row.source || 'direct'; } }
+        { label: 'Source', value: function (row) { return row.source || 'inconnu'; } }
       ], 'Aucune action recente.');
 
       renderTable('recentQuestions', data.recentQuestions || [], [
         { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
-        { label: 'Source', value: function (row) { return row.source || 'direct'; } },
+        { label: 'Source', value: function (row) { return row.source || 'inconnu'; } },
         { label: 'Question', key: 'question', className: 'question' },
         { label: 'Reponse', key: 'answer', className: 'answer' },
         { label: 'Statut', key: 'status' },
