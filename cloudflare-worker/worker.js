@@ -474,13 +474,56 @@ function normalizeStatsRow(row) {
   );
 }
 
-function normalizeSourceFilter(value) {
-  const source = truncateText(value || "all", 120);
-  return source && source !== "all" ? source : "all";
+const SOURCE_FILTER_CONDITION = `
+      AND (
+        ? = 'all'
+        OR (? = 'include' AND instr(?, '|' || COALESCE(NULLIF(source, ''), 'direct') || '|') > 0)
+        OR (? = 'exclude' AND instr(?, '|' || COALESCE(NULLIF(source, ''), 'direct') || '|') = 0)
+      )
+`;
+
+function normalizeSourceValue(value) {
+  return truncateText(value, 120)?.replace(/[|,]/g, "").trim() || "";
 }
 
-async function loadSummary(env, start, end, sourceFilter) {
-  const row = await env.ANALYTICS_DB.prepare(`
+function normalizeSourceFilters(url) {
+  const requestedMode = url.searchParams.get("sourceMode");
+  const mode = requestedMode === "include" || requestedMode === "exclude" ? requestedMode : "all";
+  const rawSources = url.searchParams.getAll("sources")
+    .flatMap(value => String(value || "").split(","));
+  const legacySource = normalizeSourceValue(url.searchParams.get("source"));
+  if (legacySource && legacySource !== "all") {
+    rawSources.push(legacySource);
+  }
+
+  const sources = [...new Set(rawSources.map(normalizeSourceValue).filter(Boolean))]
+    .filter(source => source !== "all")
+    .slice(0, 30);
+
+  if (mode === "all" || sources.length === 0) {
+    return { mode: "all", sources: [], lookup: "||" };
+  }
+
+  return {
+    mode,
+    sources,
+    lookup: `|${sources.join("|")}|`,
+  };
+}
+
+function bindSourceFilter(statement, values, sourceFilters) {
+  return statement.bind(
+    ...values,
+    sourceFilters.mode,
+    sourceFilters.mode,
+    sourceFilters.lookup,
+    sourceFilters.mode,
+    sourceFilters.lookup,
+  );
+}
+
+async function loadSummary(env, start, end, sourceFilters) {
+  const row = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       COUNT(*) AS total_events,
       SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
@@ -491,8 +534,8 @@ async function loadSummary(env, start, end, sourceFilter) {
       COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
-  `).bind(start, end, sourceFilter, sourceFilter).first();
+    ${SOURCE_FILTER_CONDITION}
+  `), [start, end], sourceFilters).first();
 
   return normalizeStatsRow(row);
 }
@@ -512,7 +555,7 @@ async function handleAdminStats(request, env) {
 
   const url = new URL(request.url);
   const requestedDays = parseInt(url.searchParams.get("days") || "30", 10);
-  const sourceFilter = normalizeSourceFilter(url.searchParams.get("source"));
+  const sourceFilters = normalizeSourceFilters(url);
   const periodDays = Number.isFinite(requestedDays)
     ? Math.min(Math.max(requestedDays, 1), 365)
     : 30;
@@ -522,10 +565,10 @@ async function handleAdminStats(request, env) {
   const previousSince = new Date(now.getTime() - periodMs * 2).toISOString();
   const nowIso = now.toISOString();
 
-  const summary = await loadSummary(env, since, nowIso, sourceFilter);
-  const previousSummary = await loadSummary(env, previousSince, since, sourceFilter);
+  const summary = await loadSummary(env, since, nowIso, sourceFilters);
+  const previousSummary = await loadSummary(env, previousSince, since, sourceFilters);
 
-  const daily = await env.ANALYTICS_DB.prepare(`
+  const daily = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       substr(created_at, 1, 10) AS day,
       SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
@@ -535,12 +578,12 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY day
     ORDER BY day ASC
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const weekly = await env.ANALYTICS_DB.prepare(`
+  const weekly = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       strftime('%Y-W%W', created_at) AS week,
       MIN(substr(created_at, 1, 10)) AS start_day,
@@ -551,38 +594,38 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY week
     ORDER BY start_day ASC
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const topPages = await env.ANALYTICS_DB.prepare(`
+  const topPages = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       COALESCE(NULLIF(page_path, ''), 'unknown') AS page_path,
       COUNT(*) AS page_views,
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY page_path
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const topReferrers = await env.ANALYTICS_DB.prepare(`
+  const topReferrers = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       COALESCE(NULLIF(referrer, ''), 'direct') AS referrer,
       COUNT(*) AS page_views,
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY referrer
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const topSources = await env.ANALYTICS_DB.prepare(`
+  const availableSources = await env.ANALYTICS_DB.prepare(`
     SELECT
       COALESCE(NULLIF(source, ''), 'direct') AS source,
       SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
@@ -592,10 +635,24 @@ async function handleAdminStats(request, env) {
     WHERE created_at >= ? AND created_at < ?
     GROUP BY source
     ORDER BY page_views DESC
-    LIMIT 10
+    LIMIT 40
   `).bind(since, nowIso).all();
 
-  const topCampaigns = await env.ANALYTICS_DB.prepare(`
+  const topSources = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(NULLIF(source, ''), 'direct') AS source,
+      SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END) AS page_views,
+      COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
+      SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages
+    FROM analytics_events
+    WHERE created_at >= ? AND created_at < ?
+    ${SOURCE_FILTER_CONDITION}
+    GROUP BY source
+    ORDER BY page_views DESC
+    LIMIT 10
+  `), [since, nowIso], sourceFilters).all();
+
+  const topCampaigns = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       COALESCE(NULLIF(source, ''), 'direct') AS source,
       COALESCE(NULLIF(medium, ''), '-') AS medium,
@@ -606,39 +663,39 @@ async function handleAdminStats(request, env) {
       SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY source, medium, campaign
     ORDER BY page_views DESC, chat_messages DESC
     LIMIT 20
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const topCountries = await env.ANALYTICS_DB.prepare(`
+  const topCountries = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       COALESCE(NULLIF(country, ''), 'unknown') AS country,
       COUNT(*) AS page_views,
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY country
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const topOrganizations = await env.ANALYTICS_DB.prepare(`
+  const topOrganizations = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       COALESCE(NULLIF(as_organization, ''), 'unknown') AS organization,
       COUNT(*) AS page_views,
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY organization
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const devices = await env.ANALYTICS_DB.prepare(`
+  const devices = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       CASE
         WHEN lower(user_agent) LIKE '%ipad%' OR lower(user_agent) LIKE '%tablet%' THEN 'Tablet'
@@ -650,12 +707,12 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY device
     ORDER BY page_views DESC
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const browsers = await env.ANALYTICS_DB.prepare(`
+  const browsers = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       CASE
         WHEN lower(user_agent) LIKE '%edg/%' THEN 'Edge'
@@ -670,24 +727,24 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY browser
     ORDER BY page_views DESC
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const languages = await env.ANALYTICS_DB.prepare(`
+  const languages = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       COALESCE(NULLIF(language, ''), 'unknown') AS language,
       COUNT(*) AS page_views,
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     GROUP BY language
     ORDER BY page_views DESC
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
-  const recentQuestions = await env.ANALYTICS_DB.prepare(`
+  const recentQuestions = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       id,
       created_at,
@@ -701,22 +758,26 @@ async function handleAdminStats(request, env) {
       status
     FROM analytics_events
     WHERE event_type = 'chat_message' AND created_at >= ? AND created_at < ?
-      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+    ${SOURCE_FILTER_CONDITION}
     ORDER BY created_at DESC
     LIMIT 50
-  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
+  `), [since, nowIso], sourceFilters).all();
 
   return jsonResponse({
     generatedAt: new Date().toISOString(),
     periodDays,
-    sourceFilter,
+    sourceFilter: sourceFilters.sources.length === 1 && sourceFilters.mode === "include"
+      ? sourceFilters.sources[0]
+      : "all",
+    sourceMode: sourceFilters.mode,
+    sourceFilters: sourceFilters.sources,
     summary,
     previousSummary,
     daily: daily.results || [],
     weekly: weekly.results || [],
     topPages: topPages.results || [],
     topReferrers: topReferrers.results || [],
-    availableSources: topSources.results || [],
+    availableSources: availableSources.results || [],
     topSources: topSources.results || [],
     topCampaigns: topCampaigns.results || [],
     topCountries: topCountries.results || [],
@@ -1046,6 +1107,57 @@ function handleAdminDashboard() {
       justify-content: flex-end;
     }
 
+    .source-picker {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 38px;
+      align-items: center;
+    }
+
+    .source-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #141414;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease, color .15s ease;
+    }
+
+    .source-chip input {
+      width: 14px;
+      height: 14px;
+      padding: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .source-chip:has(input:checked) {
+      border-color: rgba(212,168,83,.75);
+      background: rgba(212,168,83,.12);
+      color: var(--text);
+    }
+
+    .source-chip.disabled {
+      opacity: .45;
+      cursor: default;
+    }
+
+    .source-hint {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: -2px;
+    }
+
     section {
       padding: 16px;
       overflow: hidden;
@@ -1286,14 +1398,18 @@ function handleAdminDashboard() {
           </select>
         </div>
         <div class="filter-field">
-          <label for="sourceFilter">Source</label>
-          <select id="sourceFilter">
-            <option value="all">Toutes sources</option>
+          <label for="sourceMode">Source</label>
+          <select id="sourceMode">
+            <option value="all" selected>Toutes</option>
+            <option value="include">Inclure</option>
+            <option value="exclude">Exclure</option>
           </select>
         </div>
         <div class="filter-actions">
           <button id="applyFilters" class="primary compact" type="button">Appliquer</button>
         </div>
+        <div id="sourcePicker" class="source-picker" aria-label="Sources disponibles"></div>
+        <p id="sourceFilterHint" class="source-hint">Choisis "Inclure" pour ne garder que certaines sources, ou "Exclure" pour retirer celles que tu ne veux pas voir.</p>
       </div>
     </section>
 
@@ -1350,7 +1466,9 @@ function handleAdminDashboard() {
     var tokenInput = document.getElementById('token');
     var daysInput = document.getElementById('days');
     var granularityInput = document.getElementById('granularity');
-    var sourceFilterInput = document.getElementById('sourceFilter');
+    var sourceModeInput = document.getElementById('sourceMode');
+    var sourcePicker = document.getElementById('sourcePicker');
+    var sourceFilterHint = document.getElementById('sourceFilterHint');
     var statusEl = document.getElementById('status');
     var linkSourceInput = document.getElementById('linkSource');
     var linkSourceCustomInput = document.getElementById('linkSourceCustom');
@@ -1513,16 +1631,44 @@ function handleAdminDashboard() {
       }).join('');
     }
 
-    function syncSourceFilterOptions(sources, selectedSource) {
-      var selected = selectedSource || sourceFilterInput.value || 'all';
-      var options = ['<option value="all">Toutes sources</option>'];
-      (sources || []).forEach(function (row) {
-        var source = row.source || 'direct';
-        options.push('<option value="' + escapeHtml(source) + '">' + escapeHtml(source) + '</option>');
+    function getSelectedFilterSources() {
+      return Array.prototype.slice.call(sourcePicker.querySelectorAll('input[type="checkbox"]:checked'))
+        .map(function (input) { return input.value; });
+    }
+
+    function setSourceFilterState() {
+      var mode = sourceModeInput.value || 'all';
+      var isAll = mode === 'all';
+      Array.prototype.slice.call(sourcePicker.querySelectorAll('input[type="checkbox"]')).forEach(function (input) {
+        if (isAll) input.checked = false;
+        input.disabled = isAll;
+        input.closest('.source-chip').classList.toggle('disabled', isAll);
       });
-      sourceFilterInput.innerHTML = options.join('');
-      sourceFilterInput.value = selected;
-      if (sourceFilterInput.value !== selected) sourceFilterInput.value = 'all';
+      if (isAll) {
+        sourceFilterHint.textContent = 'Toutes les sources sont affichees.';
+      } else if (mode === 'include') {
+        sourceFilterHint.textContent = 'Coche les sources a garder dans le dashboard.';
+      } else {
+        sourceFilterHint.textContent = 'Coche les sources a retirer du dashboard.';
+      }
+    }
+
+    function syncSourceFilterOptions(sources, selectedMode, selectedSources) {
+      var selected = new Set(selectedSources || getSelectedFilterSources());
+      sourceModeInput.value = selectedMode || sourceModeInput.value || 'all';
+      if (!sources || sources.length === 0) {
+        sourcePicker.innerHTML = '<span class="empty">Aucune source trackee pour cette periode.</span>';
+        setSourceFilterState();
+        return;
+      }
+
+      sourcePicker.innerHTML = sources.map(function (row) {
+        var source = row.source || 'direct';
+        var checked = selected.has(source) ? ' checked' : '';
+        var count = formatNumber(row.page_views || 0);
+        return '<label class="source-chip" title="' + escapeHtml(count + ' vue(s)') + '"><input type="checkbox" value="' + escapeHtml(source) + '"' + checked + ' />' + escapeHtml(source) + '<span class="muted">' + count + '</span></label>';
+      }).join('');
+      setSourceFilterState();
     }
 
     function renderChart(data) {
@@ -1584,7 +1730,7 @@ function handleAdminDashboard() {
 
     function render(data) {
       latestData = data;
-      syncSourceFilterOptions(data.availableSources || [], data.sourceFilter || 'all');
+      syncSourceFilterOptions(data.availableSources || [], data.sourceMode || 'all', data.sourceFilters || []);
       var summary = data.summary || {};
       var previous = data.previousSummary || {};
       var pageViews = number(summary.page_views);
@@ -1670,9 +1816,10 @@ function handleAdminDashboard() {
       setStatus('Chargement...', '');
 
       try {
-        var params = new URLSearchParams({
-          days: daysInput.value,
-          source: sourceFilterInput.value || 'all',
+        var params = new URLSearchParams({ days: daysInput.value });
+        params.set('sourceMode', sourceModeInput.value || 'all');
+        getSelectedFilterSources().forEach(function (source) {
+          params.append('sources', source);
         });
         var response = await fetch('/admin/stats?' + params.toString(), {
           headers: { Authorization: 'Bearer ' + token }
@@ -1692,7 +1839,11 @@ function handleAdminDashboard() {
     document.getElementById('resetFilters').addEventListener('click', function () {
       daysInput.value = '30';
       granularityInput.value = 'daily';
-      sourceFilterInput.value = 'all';
+      sourceModeInput.value = 'all';
+      Array.prototype.slice.call(sourcePicker.querySelectorAll('input[type="checkbox"]')).forEach(function (input) {
+        input.checked = false;
+      });
+      setSourceFilterState();
       loadStats();
     });
     document.getElementById('generateLink').addEventListener('click', generateTrackedLink);
@@ -1712,7 +1863,13 @@ function handleAdminDashboard() {
       input.addEventListener('change', generateTrackedLink);
     });
     daysInput.addEventListener('change', loadStats);
-    sourceFilterInput.addEventListener('change', loadStats);
+    sourceModeInput.addEventListener('change', function () {
+      setSourceFilterState();
+      loadStats();
+    });
+    sourcePicker.addEventListener('change', function (event) {
+      if (event.target.matches('input[type="checkbox"]')) loadStats();
+    });
     granularityInput.addEventListener('change', function () { if (latestData) renderChart(latestData); });
     document.getElementById('recentQuestions').addEventListener('click', function (event) {
       var button = event.target.closest('.delete-question');
