@@ -474,7 +474,12 @@ function normalizeStatsRow(row) {
   );
 }
 
-async function loadSummary(env, start, end) {
+function normalizeSourceFilter(value) {
+  const source = truncateText(value || "all", 120);
+  return source && source !== "all" ? source : "all";
+}
+
+async function loadSummary(env, start, end, sourceFilter) {
   const row = await env.ANALYTICS_DB.prepare(`
     SELECT
       COUNT(*) AS total_events,
@@ -486,7 +491,8 @@ async function loadSummary(env, start, end) {
       COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
-  `).bind(start, end).first();
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
+  `).bind(start, end, sourceFilter, sourceFilter).first();
 
   return normalizeStatsRow(row);
 }
@@ -506,6 +512,7 @@ async function handleAdminStats(request, env) {
 
   const url = new URL(request.url);
   const requestedDays = parseInt(url.searchParams.get("days") || "30", 10);
+  const sourceFilter = normalizeSourceFilter(url.searchParams.get("source"));
   const periodDays = Number.isFinite(requestedDays)
     ? Math.min(Math.max(requestedDays, 1), 365)
     : 30;
@@ -515,8 +522,8 @@ async function handleAdminStats(request, env) {
   const previousSince = new Date(now.getTime() - periodMs * 2).toISOString();
   const nowIso = now.toISOString();
 
-  const summary = await loadSummary(env, since, nowIso);
-  const previousSummary = await loadSummary(env, previousSince, since);
+  const summary = await loadSummary(env, since, nowIso, sourceFilter);
+  const previousSummary = await loadSummary(env, previousSince, since, sourceFilter);
 
   const daily = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -528,9 +535,10 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY day
     ORDER BY day ASC
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const weekly = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -543,9 +551,10 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY week
     ORDER BY start_day ASC
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const topPages = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -554,10 +563,11 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY page_path
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const topReferrers = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -566,10 +576,11 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY referrer
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const topSources = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -595,10 +606,11 @@ async function handleAdminStats(request, env) {
       SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY source, medium, campaign
     ORDER BY page_views DESC, chat_messages DESC
     LIMIT 20
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const topCountries = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -607,10 +619,11 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY country
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const topOrganizations = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -619,10 +632,11 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY organization
     ORDER BY page_views DESC
     LIMIT 10
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const devices = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -636,9 +650,10 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY device
     ORDER BY page_views DESC
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const browsers = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -655,9 +670,10 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY browser
     ORDER BY page_views DESC
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const languages = await env.ANALYTICS_DB.prepare(`
     SELECT
@@ -666,12 +682,14 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
     WHERE event_type = 'page_view' AND created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     GROUP BY language
     ORDER BY page_views DESC
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   const recentQuestions = await env.ANALYTICS_DB.prepare(`
     SELECT
+      id,
       created_at,
       language,
       page_path,
@@ -683,19 +701,22 @@ async function handleAdminStats(request, env) {
       status
     FROM analytics_events
     WHERE event_type = 'chat_message' AND created_at >= ? AND created_at < ?
+      AND (? = 'all' OR COALESCE(NULLIF(source, ''), 'direct') = ?)
     ORDER BY created_at DESC
     LIMIT 50
-  `).bind(since, nowIso).all();
+  `).bind(since, nowIso, sourceFilter, sourceFilter).all();
 
   return jsonResponse({
     generatedAt: new Date().toISOString(),
     periodDays,
+    sourceFilter,
     summary,
     previousSummary,
     daily: daily.results || [],
     weekly: weekly.results || [],
     topPages: topPages.results || [],
     topReferrers: topReferrers.results || [],
+    availableSources: topSources.results || [],
     topSources: topSources.results || [],
     topCampaigns: topCampaigns.results || [],
     topCountries: topCountries.results || [],
@@ -704,6 +725,35 @@ async function handleAdminStats(request, env) {
     browsers: browsers.results || [],
     languages: languages.results || [],
     recentQuestions: recentQuestions.results || [],
+  });
+}
+
+async function handleAdminDeleteEvent(request, env) {
+  if (!env.ADMIN_TOKEN) {
+    return jsonResponse({ error: "ADMIN_TOKEN is not configured" }, 503);
+  }
+
+  if (getAdminTokenFromRequest(request) !== env.ADMIN_TOKEN) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  if (!env.ANALYTICS_DB) {
+    return jsonResponse({ error: "ANALYTICS_DB is not configured" }, 503);
+  }
+
+  const id = Number(new URL(request.url).searchParams.get("id"));
+  if (!Number.isInteger(id) || id <= 0) {
+    return jsonResponse({ error: "Invalid event id" }, 400);
+  }
+
+  const result = await env.ANALYTICS_DB.prepare(`
+    DELETE FROM analytics_events
+    WHERE id = ? AND event_type = 'chat_message'
+  `).bind(id).run();
+
+  return jsonResponse({
+    ok: true,
+    deleted: result.meta?.changes || 0,
   });
 }
 
@@ -781,6 +831,14 @@ function handleAdminDashboard() {
     input { width: min(360px, 100%); }
     button { cursor: pointer; font-weight: 800; }
     button.primary { background: var(--accent); border-color: var(--accent); color: #111; }
+    button.danger {
+      height: 30px;
+      border-color: rgba(255,107,107,.35);
+      color: var(--red);
+      background: rgba(255,107,107,.08);
+      padding: 0 10px;
+      font-size: 12px;
+    }
     button.secondary:hover, select:hover, input:focus { border-color: var(--accent); outline: none; }
 
     .auth {
@@ -793,11 +851,69 @@ function handleAdminDashboard() {
       margin-bottom: 14px;
     }
 
+    details.generator {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    details.generator > summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px;
+      font-weight: 800;
+    }
+
+    details.generator > summary::-webkit-details-marker { display: none; }
+
+    .generator-body {
+      padding: 0 16px 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .generator-help {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      margin: 12px 0;
+    }
+
     .generator-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+      grid-template-columns: minmax(180px, 260px) minmax(180px, 1fr) auto;
       gap: 8px;
       align-items: end;
+    }
+
+    .source-custom.hidden { display: none; }
+
+    .advanced-link {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: #141414;
+    }
+
+    .advanced-link summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .advanced-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
     }
 
     .generated {
@@ -1018,7 +1134,7 @@ function handleAdminDashboard() {
       .toolbar { justify-content: flex-start; }
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .columns, .two, .three { grid-template-columns: 1fr; }
-      .generator-grid, .generated { grid-template-columns: 1fr; }
+      .generator-grid, .advanced-grid, .generated { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
       main { width: min(100vw - 20px, 1220px); padding-top: 20px; }
@@ -1048,6 +1164,9 @@ function handleAdminDashboard() {
           <option value="daily" selected>Jour</option>
           <option value="weekly">Semaine</option>
         </select>
+        <select id="sourceFilter" aria-label="Filtrer par source">
+          <option value="all">Toutes sources</option>
+        </select>
         <button id="refresh" class="primary" type="button">Actualiser</button>
         <button id="logout" class="secondary" type="button">Oublier token</button>
       </div>
@@ -1063,30 +1182,49 @@ function handleAdminDashboard() {
 
     <div id="status" class="status"></div>
 
-    <section>
-      <div class="panel-head">
-        <h2>Generateur de liens candidature</h2>
-        <p class="muted">Utilise un lien different par canal, entreprise ou message.</p>
+    <details class="generator">
+      <summary>
+        <span>Generateur de liens candidature</span>
+        <span class="muted">ouvrir / fermer</span>
+      </summary>
+      <div class="generator-body">
+        <div class="generator-help">
+          <span><strong>Simple :</strong> mets juste le canal ou la boite dans "Source". Exemple : linkedin, mistral, airbus.</span>
+          <span><strong>Resultat :</strong> le dashboard saura que cette visite vient de cette source.</span>
+        </div>
+        <div class="generator-grid">
+          <select id="linkSource" aria-label="Source">
+            <option value="linkedin">LinkedIn</option>
+            <option value="cv">CV</option>
+            <option value="perso">Perso</option>
+            <option value="indeed">Indeed</option>
+            <option value="__custom">+ Ajouter une source</option>
+          </select>
+          <input id="linkSourceCustom" class="source-custom hidden" type="text" placeholder="Nouvelle source ex: mistral, airbus" />
+          <button id="generateLink" class="primary" type="button">Generer</button>
+        </div>
+        <details class="advanced-link">
+          <summary>Options avancees</summary>
+          <div class="advanced-grid">
+            <select id="linkMedium" aria-label="Medium">
+              <option value="">Medium optionnel</option>
+              <option value="dm">LinkedIn DM</option>
+              <option value="post">LinkedIn post</option>
+              <option value="application">Candidature</option>
+              <option value="email">Email</option>
+              <option value="cv">CV PDF</option>
+              <option value="other">Autre</option>
+            </select>
+            <input id="linkCampaign" type="text" placeholder="Campagne optionnelle ex: 2026" />
+            <input id="linkContent" type="text" placeholder="Variante optionnelle ex: relance" />
+          </div>
+        </details>
+        <div class="generated">
+          <input id="generatedLink" type="text" readonly value="https://julienrabault.github.io/?src=linkedin" />
+          <button id="copyLink" class="secondary" type="button">Copier</button>
+        </div>
       </div>
-      <div class="generator-grid">
-        <input id="linkSource" type="text" placeholder="source: linkedin, mistral, airbus" />
-        <select id="linkMedium" aria-label="Medium">
-          <option value="dm">LinkedIn DM</option>
-          <option value="post">LinkedIn post</option>
-          <option value="application">Candidature</option>
-          <option value="email">Email</option>
-          <option value="cv">CV PDF</option>
-          <option value="other">Autre</option>
-        </select>
-        <input id="linkCampaign" type="text" placeholder="campagne: candidature-2026" />
-        <input id="linkContent" type="text" placeholder="contenu: message-a / relance" />
-        <button id="generateLink" class="primary" type="button">Generer</button>
-      </div>
-      <div class="generated">
-        <input id="generatedLink" type="text" readonly value="https://julienrabault.github.io/?src=linkedin" />
-        <button id="copyLink" class="secondary" type="button">Copier</button>
-      </div>
-    </section>
+    </details>
 
     <div class="metrics">
       <div class="card"><div class="label">Vues</div><div id="pageViews" class="value">0</div><div id="deltaPageViews" class="delta">0%</div></div>
@@ -1173,8 +1311,10 @@ function handleAdminDashboard() {
     var tokenInput = document.getElementById('token');
     var daysInput = document.getElementById('days');
     var granularityInput = document.getElementById('granularity');
+    var sourceFilterInput = document.getElementById('sourceFilter');
     var statusEl = document.getElementById('status');
     var linkSourceInput = document.getElementById('linkSource');
+    var linkSourceCustomInput = document.getElementById('linkSourceCustom');
     var linkMediumInput = document.getElementById('linkMedium');
     var linkCampaignInput = document.getElementById('linkCampaign');
     var linkContentInput = document.getElementById('linkContent');
@@ -1250,15 +1390,29 @@ function handleAdminDashboard() {
         .replace(/^-+|-+$/g, '');
     }
 
+    function getSelectedSource() {
+      if (linkSourceInput.value === '__custom') {
+        return slug(linkSourceCustomInput.value) || 'custom';
+      }
+      return slug(linkSourceInput.value) || 'linkedin';
+    }
+
+    function syncSourceInput() {
+      var isCustom = linkSourceInput.value === '__custom';
+      linkSourceCustomInput.classList.toggle('hidden', !isCustom);
+      if (isCustom) linkSourceCustomInput.focus();
+      generateTrackedLink();
+    }
+
     function generateTrackedLink() {
-      var source = slug(linkSourceInput.value) || 'linkedin';
-      var medium = slug(linkMediumInput.value) || 'dm';
+      var source = getSelectedSource();
+      var medium = slug(linkMediumInput.value);
       var campaign = slug(linkCampaignInput.value);
       var content = slug(linkContentInput.value);
       var url = new URL('https://julienrabault.github.io/');
       url.searchParams.set('src', source);
-      url.searchParams.set('utm_source', source);
-      url.searchParams.set('utm_medium', medium);
+      if (medium || campaign || content) url.searchParams.set('utm_source', source);
+      if (medium) url.searchParams.set('utm_medium', medium);
       if (campaign) url.searchParams.set('utm_campaign', campaign);
       if (content) url.searchParams.set('utm_content', content);
       generatedLinkInput.value = url.toString();
@@ -1279,7 +1433,8 @@ function handleAdminDashboard() {
         html += '<tr>';
         columns.forEach(function (column) {
           var value = typeof column.value === 'function' ? column.value(row) : row[column.key];
-          html += '<td class="' + (column.className || '') + '">' + escapeHtml(value) + '</td>';
+          var content = typeof column.html === 'function' ? column.html(row) : escapeHtml(value);
+          html += '<td class="' + (column.className || '') + '">' + content + '</td>';
         });
         html += '</tr>';
       });
@@ -1315,6 +1470,18 @@ function handleAdminDashboard() {
         var width = row.base > 0 ? Math.max(2, Math.min(100, Math.round(row.value / row.base * 100))) : 0;
         return '<div class="funnel-row"><strong>' + row.label + '</strong><div class="funnel-track"><div class="funnel-fill" style="width:' + width + '%"></div></div><span>' + formatNumber(row.value) + '</span></div>';
       }).join('');
+    }
+
+    function syncSourceFilterOptions(sources, selectedSource) {
+      var selected = selectedSource || sourceFilterInput.value || 'all';
+      var options = ['<option value="all">Toutes sources</option>'];
+      (sources || []).forEach(function (row) {
+        var source = row.source || 'direct';
+        options.push('<option value="' + escapeHtml(source) + '">' + escapeHtml(source) + '</option>');
+      });
+      sourceFilterInput.innerHTML = options.join('');
+      sourceFilterInput.value = selected;
+      if (sourceFilterInput.value !== selected) sourceFilterInput.value = 'all';
     }
 
     function renderChart(data) {
@@ -1409,6 +1576,7 @@ function handleAdminDashboard() {
 
     function render(data) {
       latestData = data;
+      syncSourceFilterOptions(data.availableSources || [], data.sourceFilter || 'all');
       var summary = data.summary || {};
       var previous = data.previousSummary || {};
       var pageViews = number(summary.page_views);
@@ -1480,8 +1648,28 @@ function handleAdminDashboard() {
         { label: 'Source', value: function (row) { return row.source || 'direct'; } },
         { label: 'Question', key: 'question', className: 'question' },
         { label: 'Reponse', key: 'answer', className: 'answer' },
-        { label: 'Statut', key: 'status' }
+        { label: 'Statut', key: 'status' },
+        { label: '', html: function (row) { return '<button class="danger delete-question" type="button" data-id="' + escapeHtml(row.id) + '">Supprimer</button>'; } }
       ], 'Aucune question sur cette periode.');
+    }
+
+    async function deleteQuestion(id) {
+      var token = tokenInput.value.trim();
+      if (!token || !id) return;
+      if (!confirm('Supprimer cette question du dashboard ?')) return;
+
+      try {
+        var response = await fetch('/admin/events?id=' + encodeURIComponent(id), {
+          method: 'DELETE',
+          headers: { Authorization: 'Bearer ' + token }
+        });
+        var data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Erreur HTTP ' + response.status);
+        setStatus('Question supprimee.', 'ok');
+        await loadStats();
+      } catch (err) {
+        setStatus(err.message || 'Impossible de supprimer la question.', 'error');
+      }
     }
 
     async function loadStats() {
@@ -1495,7 +1683,11 @@ function handleAdminDashboard() {
       setStatus('Chargement...', '');
 
       try {
-        var response = await fetch('/admin/stats?days=' + encodeURIComponent(daysInput.value), {
+        var params = new URLSearchParams({
+          days: daysInput.value,
+          source: sourceFilterInput.value || 'all',
+        });
+        var response = await fetch('/admin/stats?' + params.toString(), {
           headers: { Authorization: 'Bearer ' + token }
         });
         var data = await response.json();
@@ -1520,12 +1712,18 @@ function handleAdminDashboard() {
         setStatus('Lien genere, copie manuelle possible.', '');
       }
     });
-    [linkSourceInput, linkMediumInput, linkCampaignInput, linkContentInput].forEach(function (input) {
+    linkSourceInput.addEventListener('change', syncSourceInput);
+    [linkSourceCustomInput, linkMediumInput, linkCampaignInput, linkContentInput].forEach(function (input) {
       input.addEventListener('input', generateTrackedLink);
       input.addEventListener('change', generateTrackedLink);
     });
     daysInput.addEventListener('change', loadStats);
+    sourceFilterInput.addEventListener('change', loadStats);
     granularityInput.addEventListener('change', function () { if (latestData) renderChart(latestData); });
+    document.getElementById('recentQuestions').addEventListener('click', function (event) {
+      var button = event.target.closest('.delete-question');
+      if (button) deleteQuestion(button.getAttribute('data-id'));
+    });
     tokenInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') loadStats(); });
     document.getElementById('logout').addEventListener('click', function () {
       localStorage.removeItem('jr-admin-token');
@@ -1533,7 +1731,7 @@ function handleAdminDashboard() {
       setStatus('Token supprime de ce navigateur.', '');
     });
 
-    generateTrackedLink();
+    syncSourceInput();
     if (savedToken) loadStats();
     else setStatus('Entre le token admin pour charger les stats.', '');
   </script>
@@ -1553,6 +1751,10 @@ export default {
 
     if (url.pathname === "/admin/stats" && request.method === "GET") {
       return handleAdminStats(request, env);
+    }
+
+    if (url.pathname === "/admin/events" && request.method === "DELETE") {
+      return handleAdminDeleteEvent(request, env);
     }
 
     if (url.pathname === "/admin" && request.method === "GET") {
