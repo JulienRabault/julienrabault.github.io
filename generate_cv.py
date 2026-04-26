@@ -87,7 +87,7 @@ def build_cv():
                    "github.com/JulienRabault</a>", s["contact_link"])],
         [icon(ICON_LOC, ICO), Paragraph("Toulouse, France", s["contact_text"])],
         [icon(ICON_WEB, ICO),
-         Paragraph('<a href="https://julienrabault.github.io" color="#1155CC">'
+         Paragraph('<a href="https://julienrabault.github.io/?src=cv" color="#1155CC">'
                    "julienrabault.github.io</a>", s["contact_link"])],
     ]
     contact_table = Table(contact_rows, colWidths=[5 * mm, 55 * mm])
