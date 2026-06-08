@@ -22,16 +22,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@0.475.0/dist/umd/lucide.js"></script>
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <a class="skip-link" href="#hero">Skip to content</a>
 
   <nav class="site-nav" aria-label="Main navigation">
     <div class="nav-inner">
-      <a href="#hero" class="brand-link" aria-label="Julien Rabault">
-        <span>JR</span>
-        <span>AI Engineer</span>
+      <a href="#hero" class="brand-link" aria-label="Julien Rabault, AI Engineer">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Julien Rabault</span>
+        <span class="brand-role">· AI Engineer</span>
       </a>
 
       <ul class="nav-links" id="nav-links">
@@ -69,7 +70,7 @@
         <p class="eyebrow">Applied AI / ML Engineer · Toulouse</p>
         <h1>Julien Rabault</h1>
         <p class="lead">
-          5 years moving ML and GenAI systems into production — on supercomputers or in front of business users. Currently: LangGraph agents and RAG over ~100k documents at Berger-Levrault. Before that: 4 years at CNRS for Météo France, CNES, and CEA.
+          5 years moving ML and GenAI systems into production, on supercomputers or in front of business users. Currently: LangGraph agents and RAG over ~100k documents at Berger-Levrault. Before that: 4 years at CNRS for Météo France, CNES, and CEA.
         </p>
         <div class="hero-actions">
           <a href="CV_JULIEN_RABAULT_EN.pdf" download class="button button-primary">Download resume</a>
@@ -103,14 +104,14 @@
       <p class="section-label">Profile</p>
       <h2>From CNRS labs to business product.</h2>
       <p>
-        For 4 years at CNRS, I worked alongside research teams — meteorologists, ecologists, astrophysicists — on Jean Zay: training, reproducibility, production deployment. Today at Berger-Levrault, I do the same for business users: lawyers, public agents, pilot teams.
+        For 4 years at CNRS, I worked alongside research teams (meteorologists, ecologists, astrophysicists) on Jean Zay: training, reproducibility, production deployment. Today at Berger-Levrault, I do the same for business users: lawyers, public agents, pilot teams.
       </p>
     </section>
 
     <section id="experience" class="section">
       <div class="section-header">
         <p class="section-label">Experience</p>
-        <h2>Three roles — from supercomputer to production product.</h2>
+        <h2>Three roles, from supercomputer to production product.</h2>
       </div>
 
       <div class="timeline">
@@ -122,13 +123,14 @@
           <div class="timeline-content">
             <h3>AI Engineer · Berger-Levrault</h3>
             <p>
-              Building Athena, an agentic platform for querying technical documents and connecting agents to business APIs.
+              Building Athena, an agentic platform for querying technical documents and connecting agents to business APIs. ~70 pilot users, Langfuse observability.
             </p>
             <ul>
-              <li>MCP Builder: 120+ internal APIs mapped from OpenAPI specs with human-in-the-loop review.</li>
-              <li>LangGraph multi-agent architecture: question routing, RAG agents, MCP agents, sourced answers.</li>
-              <li>OCR/PDF/DOCX content-extractor rebuild, async Celery batch + Mistral batch API: −50% on extraction costs.</li>
-              <li>5 Airflow DAGs in production for customer ingestion, Langfuse observability, ~30 pilot users.</li>
+              <li>Reworking the agentic architecture, as a team: from a router (one agent per task) to a single tool-first agent: context management, skills, sub-agent orchestration, sourced answers. LangGraph, in production.</li>
+              <li>OCR/PDF/DOCX content-extractor rebuild, async Celery batch + Mistral batch API: −50% on extraction costs, deployed.</li>
+              <li>MCP Builder: LLM agent + human-in-the-loop review to turn internal business-unit APIs (~100 APIs) into MCP servers via FastMCP. Deployed.</li>
+              <li>RAG ingestion chain (Airflow): extended and added enrichment steps: data augmentation, chunking, embeddings, question/keyword generation for indexing.</li>
+              <li>Agent evaluation & reliability: golden-set test suites, LLM-as-judge scoring, regression tracking via Langfuse.</li>
             </ul>
           </div>
         </article>
@@ -146,7 +148,7 @@
             <ul>
               <li>MetScore for Meteo France: Python metrics library still used in production.</li>
               <li>Weather DDPM in PyTorch: diffusion model trained on Jean Zay, 20% less compute at equivalent quality.</li>
-              <li>DeepFaune: YOLOv5 on 1.5M images, 24 classes, 93% accuracy, 3x faster inference.</li>
+              <li>DeepFaune: YOLOv8 on 1.5M images, 24 classes, 93% accuracy, 3x faster inference.</li>
               <li>Other contributions: AUTOFILL for CEA, BIGSF for CNES, LLM training for CNRS researchers.</li>
             </ul>
           </div>
@@ -251,7 +253,7 @@
       <div class="skill-groups">
         <div>
           <h3>Agents & RAG</h3>
-          <p>RAG / GraphRAG, multi-agents, MCP, LangGraph, structured outputs, embeddings, routing.</p>
+          <p>RAG / GraphRAG, tool-first agents, multi-agents, sub-agents, MCP, LangGraph, structured outputs, embeddings.</p>
         </div>
         <div>
           <h3>Deep Learning</h3>
@@ -263,7 +265,7 @@
         </div>
         <div>
           <h3>Development</h3>
-          <p>Python, FastAPI, LangChain, HuggingFace, Qdrant, pgvector, Mistral / OpenAI API, Git.</p>
+          <p>Python, FastAPI, LangChain, HuggingFace, Weaviate, Mistral / OpenAI API, Git.</p>
         </div>
       </div>
     </section>

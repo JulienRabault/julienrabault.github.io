@@ -22,16 +22,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@0.475.0/dist/umd/lucide.js"></script>
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <a class="skip-link" href="#hero">Aller au contenu</a>
 
   <nav class="site-nav" aria-label="Navigation principale">
     <div class="nav-inner">
-      <a href="#hero" class="brand-link" aria-label="Julien Rabault">
-        <span>JR</span>
-        <span>AI Engineer</span>
+      <a href="#hero" class="brand-link" aria-label="Julien Rabault, AI Engineer">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Julien Rabault</span>
+        <span class="brand-role">· AI Engineer</span>
       </a>
 
       <ul class="nav-links" id="nav-links">
@@ -69,7 +70,7 @@
         <p class="eyebrow">Applied AI / ML Engineer · Toulouse</p>
         <h1>Julien Rabault</h1>
         <p class="lead">
-          5 ans à mettre des modèles IA en prod — qu'ils tournent sur supercalculateur ou devant un utilisateur métier. Aujourd'hui, agents LangGraph et RAG sur ~100k documents chez Berger-Levrault. Avant, 4 ans au CNRS pour Météo France, le CNES, le CEA.
+          5 ans à mettre des modèles IA en prod, qu'ils tournent sur supercalculateur ou devant un utilisateur métier. Aujourd'hui, agents LangGraph et RAG sur ~100k documents chez Berger-Levrault. Avant, 4 ans au CNRS pour Météo France, le CNES, le CEA.
         </p>
         <div class="hero-actions">
           <a href="CV_JULIEN_RABAULT.pdf" download class="button button-primary">Télécharger le CV</a>
@@ -103,14 +104,14 @@
       <p class="section-label">Profil</p>
       <h2>Du labo CNRS au produit métier.</h2>
       <p>
-        Pendant 4 ans au CNRS, j'ai accompagné des équipes de recherche — météorologues, écologues, astrophysiciens — sur Jean Zay : entraînement, reproductibilité, mise en prod. Aujourd'hui chez Berger-Levrault, je fais le même travail mais pour des utilisateurs métier : juristes, agents publics, équipes pilotes.
+        Pendant 4 ans au CNRS, j'ai accompagné des équipes de recherche (météorologues, écologues, astrophysiciens) sur Jean Zay : entraînement, reproductibilité, mise en prod. Aujourd'hui chez Berger-Levrault, je fais le même travail mais pour des utilisateurs métier : juristes, agents publics, équipes pilotes.
       </p>
     </section>
 
     <section id="experience" class="section">
       <div class="section-header">
         <p class="section-label">Expérience</p>
-        <h2>Trois postes — du supercalculateur au produit en prod.</h2>
+        <h2>Trois postes, du supercalculateur au produit en prod.</h2>
       </div>
 
       <div class="timeline">
@@ -122,13 +123,14 @@
           <div class="timeline-content">
             <h3>AI Engineer · Berger-Levrault</h3>
             <p>
-              Construction d'Athena, plateforme agentique pour interroger des documents techniques et connecter les agents aux APIs métier.
+              Construction d'Athena, plateforme agentique pour interroger des documents techniques et connecter les agents aux APIs métier. ~70 utilisateurs pilotes, observabilité Langfuse.
             </p>
             <ul>
-              <li>MCP Builder : 120+ APIs internes cartographiées depuis specs OpenAPI avec revue human-in-the-loop.</li>
-              <li>Architecture multi-agents LangGraph : routage par type de question, agents RAG, agents MCP, réponses sourcées.</li>
-              <li>Refonte content-extractor OCR/PDF/DOCX, batch async Celery + API batch Mistral : −50% sur les coûts d'extraction.</li>
-              <li>5 DAGs Airflow en prod pour l'ingestion client, observabilité Langfuse, ~30 utilisateurs pilotes.</li>
+              <li>Refonte de l'architecture agentique, en équipe : d'un routeur (un agent par tâche) vers un agent unique tool-first : gestion du contexte, skills, orchestration de sous-agents, réponses sourcées. LangGraph, en production.</li>
+              <li>Refonte content-extractor OCR/PDF/DOCX, batch async Celery + API batch Mistral : −50 % sur les coûts d'extraction, service déployé.</li>
+              <li>MCP Builder : agent LLM + revue human-in-the-loop pour transformer les APIs internes des BU (≈100 APIs) en serveurs MCP via FastMCP. Déployé.</li>
+              <li>Chaîne d'ingestion RAG (Airflow) : complétion et ajout d'étapes d'enrichissement : data augmentation, chunking, embeddings, génération de questions/mots-clés indexés.</li>
+              <li>Évaluation & fiabilité des agents : jeux de référence (golden sets), scoring LLM-as-judge, suivi des régressions via Langfuse.</li>
             </ul>
           </div>
         </article>
@@ -146,7 +148,7 @@
             <ul>
               <li>MetScore pour Météo France : librairie Python de métriques, toujours en production.</li>
               <li>DDPM météo en PyTorch : modèle de diffusion entraîné sur Jean Zay, -20% de calcul à qualité équivalente.</li>
-              <li>DeepFaune : YOLOv5 sur 1,5M images, 24 classes, 93% de précision, inférence 3x plus rapide.</li>
+              <li>DeepFaune : YOLOv8 sur 1,5M images, 24 classes, 93% de précision, inférence 3x plus rapide.</li>
               <li>Autres contributions : AUTOFILL pour le CEA, BIGSF pour le CNES, formation LLM pour chercheurs CNRS.</li>
             </ul>
           </div>
@@ -251,7 +253,7 @@
       <div class="skill-groups">
         <div>
           <h3>Agentique & RAG</h3>
-          <p>RAG / GraphRAG, multi-agents, MCP, LangGraph, structured outputs, embeddings, routing.</p>
+          <p>RAG / GraphRAG, agents tool-first, multi-agents, sous-agents, MCP, LangGraph, structured outputs, embeddings.</p>
         </div>
         <div>
           <h3>Deep Learning</h3>
@@ -263,7 +265,7 @@
         </div>
         <div>
           <h3>Développement</h3>
-          <p>Python, FastAPI, LangChain, HuggingFace, Qdrant, pgvector, Mistral / OpenAI API, Git.</p>
+          <p>Python, FastAPI, LangChain, HuggingFace, Weaviate, Mistral / OpenAI API, Git.</p>
         </div>
       </div>
     </section>
