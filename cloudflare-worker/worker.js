@@ -38,22 +38,25 @@ IDENTITE: Julien Rabault, Applied AI / ML Engineer, base a Toulouse, mobile Pari
 Titre: AI Engineer dans le departement R&D transverse de BL.
 Equipe: Cote recherche (1 manager recherche, 1 chercheur, 3 doctorants) + cote applicatif (3 ingenieurs IA dont Julien, 1 designer, 1 DevOps). Julien est cote applicatif mais tres connecte avec la recherche.
 
-Produit: Athena, la plateforme agentique de Berger-Levrault. Avant l'arrivee de Julien c'etait un POC, c'est devenu un produit deploye chez des clients. L'objectif est de fournir une plateforme multi-agents a tous les clients du groupe (collectivites, industrie, maintenance).
+Produit: Athena, la plateforme agentique de Berger-Levrault. Avant l'arrivee de Julien c'etait un POC, c'est devenu un produit deploye chez des clients. L'objectif est de fournir une plateforme multi-agents a tous les clients du groupe (collectivites, sante, industrie, maintenance).
 
 Chronologie du travail de Julien chez BL:
 
-1) MOIS 1-2 — Data pipeline et Content-Extractor:
-Julien a commence par travailler sur la data pipeline pour la rendre plus modulable. Il a ajoute des configurations pour les chunkers (l'equipe recherche teste differentes approches de chunking). Il a refait le content-extractor en ajoutant du batch processing avec Celery et l'API batch de Mistral pour economiser sur les couts d'appel LLM. Resultat : -50% sur les couts d'extraction. Il a aussi propose des ameliorations pour la scalabilite car les clients envoient beaucoup de documents (Somfy : 60 000+ documents, un autre client : 40 000+, objectif ~1 million). Il a pris en main le code existant, lance les DAGs Airflow (5 DAGs operationnels).
+1) DATA PIPELINE et CONTENT-EXTRACTOR:
+Julien a travaille sur la data pipeline pour la rendre plus modulable. Il a ajoute des configurations pour les chunkers (l'equipe recherche teste differentes approches de chunking). Il a refait le content-extractor en ajoutant du batch processing avec Celery et l'API batch de Mistral pour economiser sur les couts d'appel LLM. Resultat : -50% sur les couts d'extraction. Ce service est desormais deploye et apporte plus de modularite. Il a aussi propose des ameliorations pour la scalabilite car les clients envoient beaucoup de documents (Somfy : 60 000+ documents, un autre client : 40 000+, objectif ~1 million). Il a pris en main le code existant : les DAGs Airflow etaient deja en place (ce n'est pas lui qui a mis Airflow en prod), il les a completes et a ajoute des etapes d'enrichissement RAG (data augmentation, chunking, embeddings, generation de questions/mots-cles indexes, filtres temporels). Plus de 5 DAGs operationnels, environ un par client (une dizaine de clients).
 
-2) ENSUITE — Plateforme Athena:
-Julien travaille sur la plateforme elle-meme. Il a ajoute la citation des sources dans les reponses (comme ChatGPT qui cite ses sources dans le texte). Il travaille sur un refacto du design agentique pour la gestion des documents uploades par les utilisateurs. La plateforme a tout un ensemble d'agents : synthesiseur, recherche documentaire, generation de rapports, etc. L'equipe recherche travaille sur le GraphRAG, et Julien est connecte a ces sujets.
+2) EN COURS — REFONTE DE L'ARCHITECTURE AGENTIQUE (gros sujet, mene en equipe):
+Julien contribue fortement a la refonte de l'architecture agentique d'Athena (travail d'equipe, pas seulement lui) : passage d'un routeur (routage par type de question, un agent par tache : RAG, APIs MCP, rapports) a un agent unique tool-first, qui utilise des outils plutot que de router vers des sous-chaines figees. Cela implique une nouvelle gestion du contexte de l'agent, l'introduction de skills et a terme leur creation automatique, et l'orchestration de sous-agents. Julien mene la conception (ateliers, architecture du code, decisions techniques), en equipe (ce n'est pas que lui). Il a aussi ajoute la citation des sources dans les reponses (comme ChatGPT qui cite ses sources dans le texte) et travaille sur la gestion des documents uploades par les utilisateurs. La plateforme comporte plusieurs agents : synthetiseur, recherche documentaire, generation de rapports, etc. L'equipe recherche travaille sur le GraphRAG, et Julien est connecte a ces sujets.
 
-3) EN COURS — MCP Builder (gros sujet):
-Berger-Levrault a une vingtaine de Business Units avec une centaine d'APIs. Le but est de concevoir un outil pour les equipes des BU afin de transformer simplement leurs APIs en serveurs MCP. L'outil utilise un agent LLM qui fait un premier travail sur les APIs : decouvrir la documentation, proposer des regroupements d'endpoints, des masquages, gerer l'authentification. Le but est qu'un collaborateur de la BU avec la connaissance metier n'ait qu'a completer le travail. 120+ APIs deja cartographiees, integration progressive au runtime.
+3) MCP Builder:
+Berger-Levrault a une vingtaine de Business Units avec une centaine d'APIs. MCP Builder transforme ces APIs metier en serveurs MCP. Un LLM selectionne les endpoints utiles, audite leurs lacunes (descriptions manquantes, AI-readiness) et genere des tools sur mesure : soit des workflows, soit du code Python via FastMCP (en allant plus loin que FastMCP seul). Le tout en human-in-the-loop : un collaborateur de la BU avec la connaissance metier valide et complete. Double objectif : permettre aux BU de deployer rapidement un MCP et de comprendre les defauts de leurs APIs. Desormais deploye ; cartographie complete des APIs internes en cours (objectif ~150 APIs), integration progressive au runtime.
 
-4) AUSSI: Travail sur les modeles vocaux (integration API voix).
+4) EVALUATION ET FIABILITE DES AGENTS:
+Julien met en place l'evaluation des agents pour fiabiliser les reponses en production : jeux de reference (golden sets) de questions/reponses attendues, scoring automatique en LLM-as-judge, et suivi des regressions a chaque deploiement via Langfuse. Objectif : mesurer la qualite des reponses, detecter les hallucinations et eviter les regressions quand l'architecture evolue. C'est un sujet de plus en plus central (une doctorante de l'equipe travaille specifiquement sur la reduction des hallucinations).
 
-Environnement: Equipe cross-fonctionnelle, ateliers clients, observabilite Langfuse, travaux sur la reduction des hallucinations (une doctorante travaille dessus), Jira pour les tickets, collaboration avec designer et dev front. Environ 30 utilisateurs pilotes.
+5) AUSSI: Travail sur les modeles vocaux (integration API voix), extraction d'outils/series, travaux sur les chunkers.
+
+Environnement: Equipe cross-fonctionnelle, ateliers clients, observabilite Langfuse, travaux sur la reduction des hallucinations (une doctorante travaille dessus), Jira pour les tickets, collaboration avec designer et dev front. Environ 70 utilisateurs pilotes.
 
 Ce que Julien aime dans ce poste : le cote R&D, toucher a tout (data pipeline, plateforme, agents, MCP, voix), et le fait que ses services partent en production.
 
@@ -81,11 +84,11 @@ PROJET DeepFaune — CNRS/INEE:
 Objectif : reconnaissance et classification d'animaux sur images de pieges photos. Dataset enorme de 1,5 million d'images, 24 especes.
 Travail de Julien : gestion du desequilibre du dataset (data augmentation + oversampling), test de methodes de tracking (DeepSORT, trop lent), exploration de tous les modeles YOLO pour trouver le compromis vitesse CPU / qualite des predictions, optimisation de la pipeline d'inference (batching, GPU si possible, multi-CPU), accompagnement sur l'utilisation du supercalculateur Jean Zay.
 Resultats : 93% accuracy sur 24 especes, 3x plus rapide, publication peer-reviewed.
-Stack : YOLOv5, multi-GPU, Slurm, DeepSORT, data augmentation.
+Stack : YOLOv8, multi-GPU, Slurm, DeepSORT, data augmentation.
 
 PROJET BIGSF — CNES:
 Objectif : transformer un code developpe par plusieurs doctorants en une librairie modulable pour le domaine spatial (analyse d'images de filaments galactiques).
-Julien etait tech lead. Il a concu une architecture basee sur un systeme de configuration YAML, cree des classes de base (BaseDataset, BaseModel), reimplemente et fait evoluer le code existant.
+Julien etait tech lead. Il a concu une architecture basee sur un systeme de configuration YAML, cree des classes de base (BaseDataset, BaseModel), reimplemente et fait evoluer le code existant. Toolbox publique.
 Stack : U-Net, PyTorch, MLFlow, Configurable-cl.
 
 PROJET MORPHOGAN — Universite de Lorraine:
@@ -126,10 +129,10 @@ Langues : francais natif, anglais professionnel (redaction scientifique, documen
 "The DeepFaune initiative: a collaborative effort towards the automatic identification of European fauna in camera trap images" — Co-auteur, peer-reviewed.
 
 === COMPETENCES ===
-Agentique/RAG : RAG, GraphRAG, Multi-agents, MCP Protocol, LangChain/LangGraph, Prompt Engineering, Structured Outputs, Embeddings, LLM Routing, Fine-tuning.
-Deep Learning : PyTorch, PyTorch Lightning, Transformers, Computer Vision, Diffusion Models (DDPM, DDIM), NLP, CNNs, U-Net, YOLOv5, GAN (StyleGAN2), VAE (ResVAE, PairVAE), apprentissage par renforcement.
+Agentique/RAG : RAG, GraphRAG, agents tool-first, Multi-agents, sous-agents, skills, MCP Protocol, LangChain/LangGraph, Prompt Engineering, Structured Outputs, Embeddings, LLM Routing, Fine-tuning.
+Deep Learning : PyTorch, PyTorch Lightning, Transformers, Computer Vision, Diffusion Models (DDPM, DDIM), NLP, CNNs, U-Net, YOLOv8, GAN (StyleGAN2), VAE (ResVAE, PairVAE), apprentissage par renforcement.
 MLOps : Docker, Singularity, AWS, CI/CD, MLFlow, Airflow, Kubernetes, Celery, Langfuse, HPC/Slurm/Jean Zay, Linux, Conda.
-Dev : Python, FastAPI, HuggingFace, Qdrant/pgvector, Mistral/OpenAI API, Git, GitLab, SOLID/Architecture, Design Patterns, C#, SQL, tests unitaires.
+Dev : Python, FastAPI, HuggingFace, Weaviate, Mistral/OpenAI API, Git, GitLab, SOLID/Architecture, Design Patterns, C#, SQL, tests unitaires.
 Donnees : HDF5, GeoPandas, Pandas, NumPy, Scikit-learn/Image.
 
 === PROJETS OPEN SOURCE ===

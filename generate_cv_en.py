@@ -1,311 +1,255 @@
-"""Generate Julien Rabault's CV in English — same layout as FR version."""
+"""Generate Julien Rabault's CV as a clean, ATS-friendly one-page PDF (EN). v8
+
+Same design as the FR version: single column, generous whitespace,
+restrained typography, sparing bold. No decorative graphics.
+"""
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.colors import HexColor
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_LEFT, TA_RIGHT
+from reportlab.lib.enums import TA_RIGHT
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, Image
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 )
 import os
 
-BLACK = HexColor("#000000")
-DARK = HexColor("#1a1a1a")
-GRAY = HexColor("#3a3a3a")
-LIGHT_GRAY = HexColor("#666666")
-SECTION = HexColor("#014D56")
-BORDER = HexColor("#999999")
+# ─── Palette (near-monochrome, one restrained link accent) ───
+INK = HexColor("#1A1A1A")
+BODY = HexColor("#333333")
+MUTED = HexColor("#6B6B6B")
+RULE = HexColor("#D7D7D7")
+LINK = "#1F5673"
 
 FONT = "Helvetica"
 FONT_BOLD = "Helvetica-Bold"
 
 BASE = os.path.dirname(__file__)
-ICON_PHONE = os.path.join(BASE, "cv_icons", "icon_2.png")
-ICON_EMAIL = os.path.join(BASE, "cv_icons", "icon_3.png")
-ICON_WEB = os.path.join(BASE, "cv_icons", "icon_1.png")
-ICON_LOC = os.path.join(BASE, "cv_icons", "icon_0.png")
-ICON_GITHUB = os.path.join(BASE, "cv_icons", "icon_github.png")
-ICON_LINKEDIN = os.path.join(BASE, "cv_icons", "icon_linkedin_dark.png")
+
+ICON_DIR = os.path.join(BASE, "assets", "cv_icons")
 
 
-def S(name, **kw):
-    defaults = {"fontName": FONT, "fontSize": 8.8, "leading": 11.5, "textColor": GRAY}
-    defaults.update(kw)
-    return ParagraphStyle(name, **defaults)
+def _icon(name: str) -> str:
+    path = os.path.join(ICON_DIR, f"{name}.png")
+    return f'<img src="{path}" width="8" height="8" valign="middle"/>'
 
 
-def icon(path, size=3 * mm):
-    return Image(path, width=size, height=size)
+NAME = "JULIEN RABAULT"
+ROLE = "Applied AI / ML Engineer"
+CONTACT = (
+    f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;{_icon("phone")}&nbsp;+33 7 81 16 46 29<br/>'
+    f'{_icon("email")}&nbsp;<a href="mailto:julienrabault@icloud.com" color="{LINK}">julienrabault@icloud.com</a><br/>'
+    f'{_icon("linkedin")}&nbsp;<a href="https://linkedin.com/in/julienrabault" color="{LINK}">linkedin.com/in/julienrabault</a><br/>'
+    f'{_icon("github")}&nbsp;<a href="https://github.com/JulienRabault" color="{LINK}">github.com/JulienRabault</a><br/>'
+    f'{_icon("globe")}&nbsp;<a href="https://julienrabault.github.io/?src=cv" color="{LINK}">julienrabault.github.io</a>'
+)
+
+SUMMARY = (
+    "Applied AI / ML engineer. Four years at CNRS training and industrializing deep learning models "
+    "in production (PyTorch, multi-GPU, Jean Zay supercomputer), with two peer-reviewed publications. "
+    "Now at Berger-Levrault: building Athena, a multi-agent agentic platform (LangGraph, RAG, MCP) "
+    "deployed to clients."
+)
+
+SKILLS = [
+    ("Agentic &amp; RAG",
+     "RAG / GraphRAG, tool-first agents, multi-agents, sub-agents, MCP, LangChain / LangGraph, "
+     "prompt engineering, structured outputs, embeddings, fine-tuning"),
+    ("Deep Learning",
+     "PyTorch, Transformers, computer vision, diffusion models (DDPM / DDIM), NLP, "
+     "CNN / U-Net / YOLOv8, generative models (GAN, VAE)"),
+    ("MLOps &amp; Infra",
+     "Docker, AWS, CI/CD, MLflow, Airflow, Kubernetes, Celery, Langfuse, HPC / Slurm, Linux"),
+    ("Development",
+     "Python, FastAPI, Hugging Face, Weaviate, Mistral / OpenAI API, Git, "
+     "SOLID / architecture, C#, SQL"),
+]
+
+
+def styles():
+    def S(name, **kw):
+        base = {"fontName": FONT, "fontSize": 8.5, "leading": 11.3, "textColor": BODY}
+        base.update(kw)
+        return ParagraphStyle(name, **base)
+
+    return {
+        "name": S("name", fontName=FONT_BOLD, fontSize=20, leading=22, textColor=INK),
+        "role": S("role", fontSize=10.5, leading=13, textColor=MUTED),
+        "contact": S("contact", fontSize=8.2, leading=11.5, textColor=MUTED, alignment=TA_RIGHT),
+        "summary": S("summary", fontSize=8.5, leading=11.5, textColor=BODY),
+        "section": S("section", fontName=FONT_BOLD, fontSize=9.5, leading=11,
+                     textColor=INK, spaceBefore=0, spaceAfter=0),
+        "job": S("job", fontName=FONT_BOLD, fontSize=10, leading=12, textColor=INK),
+        "dates": S("dates", fontSize=8.5, leading=12, textColor=MUTED, alignment=TA_RIGHT),
+        "org": S("org", fontSize=8.5, leading=11, textColor=MUTED, spaceAfter=2),
+        "intro": S("intro", fontSize=8.5, leading=11.5, textColor=BODY, spaceAfter=2),
+        "bullet": S("bullet", fontSize=8.5, leading=11.5, textColor=BODY,
+                    leftIndent=10, bulletIndent=0, spaceAfter=1.5),
+        "edu": S("edu", fontSize=8.5, leading=11.5, textColor=BODY, spaceAfter=1.5),
+        "edu_date": S("edu_date", fontSize=8.5, leading=11.5, textColor=MUTED, alignment=TA_RIGHT),
+        "small": S("small", fontSize=8.5, leading=11.5, textColor=BODY, spaceAfter=2),
+    }
 
 
 def build_cv():
     output = os.path.join(BASE, "CV_JULIEN_RABAULT_EN.pdf")
     doc = SimpleDocTemplate(
         output, pagesize=A4,
-        leftMargin=5 * mm, rightMargin=5 * mm,
-        topMargin=2 * mm, bottomMargin=3 * mm
+        leftMargin=9 * mm, rightMargin=9 * mm,
+        topMargin=5 * mm, bottomMargin=6 * mm,
+        title="Resume - Julien Rabault", author="Julien Rabault",
     )
-
-    s = {
-        "name": S("name", fontName=FONT_BOLD, fontSize=22, leading=26, textColor=BLACK),
-        "role": S("role", fontName=FONT_BOLD, fontSize=13, leading=16, textColor=BLACK),
-        "contact_text": S("ct", fontSize=8, leading=10, textColor=GRAY),
-        "contact_link": S("cl", fontSize=8, leading=10, textColor=GRAY),
-        "section": S("section", fontName=FONT_BOLD, fontSize=10.5, leading=13.5, textColor=SECTION,
-                      spaceBefore=5, spaceAfter=3),
-        "job": S("job", fontName=FONT_BOLD, fontSize=10, leading=12.5, textColor=BLACK),
-        "company": S("company", fontName=FONT_BOLD, fontSize=8.8, leading=11.5, textColor=SECTION,
-                      spaceAfter=1.5),
-        "body": S("body", fontSize=8.8, leading=11.5, textColor=GRAY, spaceAfter=1.5),
-        "bullet": S("bullet", fontName=FONT_BOLD, fontSize=8.2, leading=10.8, textColor=DARK,
-                     leftIndent=8, spaceAfter=0.5),
-        "bullet_body": S("bullet_body", fontSize=8.2, leading=10.8, textColor=GRAY,
-                          leftIndent=8, spaceAfter=1.5),
-        "small": S("small", fontSize=8.8, leading=11.5, textColor=GRAY),
-        "date": S("date", fontSize=8.8, leading=11.5, textColor=GRAY, alignment=TA_RIGHT),
-        "skill_cat": S("skill_cat", fontName=FONT_BOLD, fontSize=8.2, leading=10.8, textColor=DARK),
-        "skill_val": S("skill_val", fontSize=8.2, leading=10.8, textColor=GRAY),
-    }
-
-    W = 200 * mm
-    ICO = 2.8 * mm
+    s = styles()
+    W = 192 * mm
     story = []
 
-    # ─── HEADER ───
-    contact_rows = [
-        [icon(ICON_PHONE, ICO), Paragraph("+33 7 81 16 46 29", s["contact_text"])],
-        [icon(ICON_EMAIL, ICO),
-         Paragraph('<a href="mailto:julienrabault@icloud.com" color="#1155CC">'
-                   "julienrabault@icloud.com</a>", s["contact_link"])],
-        [icon(ICON_LINKEDIN, ICO),
-         Paragraph('<a href="https://linkedin.com/in/julienrabault" color="#1155CC">'
-                   "linkedin.com/in/julienrabault</a>", s["contact_link"])],
-        [icon(ICON_GITHUB, ICO),
-         Paragraph('<a href="https://github.com/JulienRabault" color="#1155CC">'
-                   "github.com/JulienRabault</a>", s["contact_link"])],
-        [icon(ICON_LOC, ICO), Paragraph("Toulouse, France", s["contact_text"])],
-        [icon(ICON_WEB, ICO),
-         Paragraph('<a href="https://julienrabault.github.io/?src=cv" color="#1155CC">'
-                   "julienrabault.github.io</a>", s["contact_link"])],
-    ]
-    contact_table = Table(contact_rows, colWidths=[5 * mm, 55 * mm])
-    contact_table.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 0.5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 0.5),
-        ("LEFTPADDING", (0, 0), (0, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-    ]))
+    def section(label):
+        story.append(Spacer(1, 2.2 * mm))
+        story.append(Paragraph(label, s["section"]))
+        story.append(Spacer(1, 1.1 * mm))
+        story.append(HRFlowable(width="100%", thickness=0.6, color=RULE,
+                                spaceBefore=0, spaceAfter=2.2))
 
-    header = [[
-        [Paragraph("JULIEN RABAULT", s["name"]),
-         Paragraph("Applied AI / ML Engineer", s["role"])],
-        contact_table
-    ]]
-    ht = Table(header, colWidths=[W - 62 * mm, 62 * mm])
-    ht.setStyle(TableStyle([
+    def job_header(title, dates):
+        t = Table([[Paragraph(title, s["job"]), Paragraph(dates, s["dates"])]],
+                  colWidths=[W * 0.72, W * 0.28])
+        t.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ]))
+        story.append(t)
+
+    def bullet(text):
+        story.append(Paragraph(text, s["bullet"], bulletText="•"))
+
+    # ─── HEADER (name/role left, contact right) ───
+    left = [Paragraph(NAME, s["name"]), Spacer(1, 1.2 * mm), Paragraph(ROLE, s["role"])]
+    header = Table([[left, Paragraph(CONTACT, s["contact"])]],
+                   colWidths=[W * 0.55, W * 0.45])
+    header.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("TOPPADDING", (0, 0), (-1, -1), 0),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ]))
-    story.append(ht)
-    story.append(Spacer(1, 2 * mm))
+    story.append(header)
+    story.append(Spacer(1, 2.2 * mm))
+    story.append(Paragraph(SUMMARY, s["summary"]))
 
-    # Summary
+    # ─── SKILLS ───
+    section("TECHNICAL SKILLS")
+    for cat, items in SKILLS:
+        row = [[Paragraph("<b>" + cat + "</b>", s["small"]), Paragraph(items, s["small"])]]
+        t = Table(row, colWidths=[34 * mm, W - 34 * mm])
+        t.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ]))
+        story.append(t)
+
+    # ─── EXPERIENCE ───
+    section("PROFESSIONAL EXPERIENCE")
+
+    job_header("AI Engineer", "Jan. 2026 - present")
+    story.append(Paragraph("Berger-Levrault &middot; Toulouse &middot; AI R&amp;D team", s["org"]))
     story.append(Paragraph(
-        "Four years at CNRS, training and fine-tuning deep learning models in production (PyTorch, multi-GPU, "
-        "Jean Zay supercomputer), with two peer-reviewed publications. Currently at Berger-Levrault designing "
-        "Athena, an agentic AI platform powered by LangGraph, RAG, and MCP.",
-        s["body"]
-    ))
-    story.append(Spacer(1, 0.5 * mm))
-    story.append(HRFlowable(width="100%", thickness=0.8, color=BORDER))
+        "Designing and building Athena, Berger-Levrault's agentic platform: agents connected to "
+        "documents and business APIs for the group's clients (local government, industry, "
+        "healthcare, maintenance). ~70 pilot users, Langfuse observability.", s["intro"]))
+    bullet("Refactor of Athena's agentic architecture (multi-agent platform in production, LangGraph), "
+           "as a team: from a router (one agent per task: RAG, MCP APIs, reports) to a single "
+           "tool-first agent, with context management, skills and automatic skill creation, and "
+           "sub-agent orchestration.")
+    bullet("Content extractor (OCR / PDF / DOCX): full rebuild, async batch processing (Celery + "
+           "Mistral batch API), extensible factory/registry architecture. Deployed, -50% on extraction costs.")
+    bullet("MCP Builder: turns business-unit APIs into MCP servers. An LLM selects the useful "
+           "endpoints, audits their gaps and generates custom tools (workflows or Python code via "
+           "FastMCP), human-in-the-loop. Deployed.")
+    bullet("RAG ingestion chain (Airflow). Extended and added enrichment steps: data augmentation, "
+           "chunking, embeddings, question/keyword generation for indexing, date filters.")
+    bullet("Agent evaluation and reliability: golden-set test suites, LLM-as-judge scoring "
+           "and regression tracking via Langfuse.")
 
-    # ─── TECHNICAL SKILLS ───
-    story.append(Paragraph("TECHNICAL SKILLS", s["section"]))
-    skills = [
-        ("Agentic &amp; RAG",
-         "RAG / GraphRAG, Multi-agent systems, MCP Protocol, LangChain / LangGraph, Prompt Engineering, "
-         "Structured Outputs, Embeddings, LLM Routing, Fine-tuning"),
-        ("Deep Learning",
-         "PyTorch, Transformers, Computer Vision, Diffusion Models (DDPM), NLP, "
-         "CNNs / U-Net / YOLOv5, Generative models (GAN, VAE)"),
-        ("MLOps &amp; Infra",
-         "Docker, AWS, CI/CD, MLFlow, Airflow, Kubernetes, Celery, Langfuse, HPC / Slurm, Linux"),
-        ("Development",
-         "Python, FastAPI, HuggingFace, Qdrant / pgvector, Mistral / OpenAI API, Git, "
-         "SOLID / Architecture, C#, SQL"),
-    ]
-    for cat, items in skills:
-        row = [[Paragraph(cat + " :", s["skill_cat"]), Paragraph(items, s["skill_val"])]]
-        t = Table(row, colWidths=[30 * mm, W - 30 * mm])
+    story.append(Spacer(1, 2.2 * mm))
+    job_header("Machine Learning Engineer", "Dec. 2021 - Jan. 2026 &middot; 4 yrs")
+    story.append(Paragraph("CNRS &middot; National AI Research Programme (PNRIA) &middot; Toulouse", s["org"]))
+    story.append(Paragraph(
+        "Network of AI engineers supporting research teams (weather, astrophysics, materials, "
+        "ethology, biology). 10+ projects supported, up to two in parallel (6-12 months), for "
+        "Météo France, CNES, CEA, INEE. Training and fine-tuning on Jean "
+        "Zay (multi-GPU DDP, 8 GPUs, Slurm).", s["intro"]))
+    bullet("<b>GENS / MetScore, Météo France:</b> multi-GPU optimization and fine-tuning of a "
+           "diffusion model (DDPM) in PyTorch; built MetScore (metrics library), still in "
+           "production. Diffusion POC at -20% compute for equivalent quality. Co-author of the AMS 2025 paper.")
+    bullet("<b>DeepFaune, CNRS / INEE:</b> fine-tuned YOLOv8 on 1.5M images (24 classes), "
+           "class-imbalance handling. 93% accuracy, 3× faster inference. "
+           "Peer-reviewed publication.")
+    bullet("<b>BIGSF, CNES:</b> tech lead on the rebuild of a galactic-filament image-analysis "
+           "library (U-Net): modular architecture, tests, documentation. Public toolbox.")
+    bullet("<b>Others:</b> AUTOFILL (CEA, PairVAE, MAE 0.98), MORPHOGAN (StyleGAN2, Univ. Lorraine). "
+           "Taught &ldquo;Introduction to LLMs&rdquo; (3h, ~25 PhD students / researchers).")
+
+    story.append(Spacer(1, 2.2 * mm))
+    job_header("Software Engineer (apprenticeship)", "Aug. 2020 - Sept. 2021 &middot; 1 yr")
+    story.append(Paragraph("Agileo Automation &middot; Montauban", s["org"]))
+    story.append(Paragraph(
+        "Supervision and control framework for robotic machinery (semiconductors): C#, object-oriented "
+        "architecture, HMI, CI/CD. Team of 5, Agile / Scrum.", s["intro"]))
+
+    # ─── EDUCATION ───
+    section("EDUCATION")
+
+    def edu_row(left_text, date):
+        t = Table([[Paragraph(left_text, s["edu"]), Paragraph(date, s["edu_date"])]],
+                  colWidths=[W * 0.82, W * 0.18])
         t.setStyle(TableStyle([
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("TOPPADDING", (0, 0), (-1, -1), 0),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
         ]))
         story.append(t)
 
-    story.append(Spacer(1, 0.3 * mm))
-    story.append(HRFlowable(width="100%", thickness=0.8, color=BORDER))
-
-    # ─── WORK EXPERIENCE ───
-    story.append(Paragraph("WORK EXPERIENCE", s["section"]))
-
-    def job_header(title, date_str):
-        row = [[Paragraph(title, s["job"]), Paragraph(date_str, s["date"])]]
-        t = Table(row, colWidths=[W * 0.7, W * 0.3])
-        t.setStyle(TableStyle([
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 0),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-        ]))
-        return t
-
-    # --- BL ---
-    story.append(job_header("AI ENGINEER", "Jan. 2026 - present"))
+    edu_row("<b>MSc Artificial Intelligence &amp; Pattern Recognition (IARF)</b>, "
+            "Université Paul Sabatier Toulouse III / IRIT", "2019 - 2021")
+    edu_row("<b>BSc Computer Science</b>, Université Paul Sabatier Toulouse III", "2016 - 2019")
     story.append(Paragraph(
-        "Berger-Levrault  |  Toulouse  |  AI R&amp;D team, 12 people", s["company"]))
-    story.append(Paragraph(
-        "Designing and building <b>Athena</b>, Berger-Levrault's agentic platform: "
-        "multi-agent orchestration, intelligent routing, integrated with documents and business APIs "
-        "across verticals including local government, industry, and maintenance. "
-        "Currently in pilot with ~30 users. "
-        "Cross-functional team (designer, frontend dev, DevOps), client workshops, Langfuse observability.",
-        s["body"]
-    ))
-    proofs_bl = [
-        ("Multi-agent architecture",
-         "Designed the multi-agent architecture (LangGraph), built question-type routing, "
-         "orchestrated RAG agents and MCP API agents, integrated source attribution into responses. "
-         "<b>Platform in production</b>, delivering grounded and actionable answers across business domains."),
-        ("Content extractor - OCR/PDF/DOCX",
-         "Redesigned and rebuilt the extraction service: OCR, images, PDF, DOCX. Async batch processing "
-         "(Celery + Mistral batch API), factory/registry patterns for extensibility. "
-         "<b>Cut extraction costs by 50%.</b>"),
-        ("Airflow pipelines",
-         "Inherited and improved document ingestion pipelines "
-         "(PDF, technical manuals, work orders, equipment documentation). <b>5 operational DAGs.</b>"),
-        ("MCP Builder",
-         "Developed an LLM-powered pipeline that pre-processes OpenAPI specs (endpoint grouping, masking, "
-         "description generation), with human-in-the-loop review for route validation and domain knowledge. "
-         "<b>120+ internal APIs mapped</b>, progressively integrated at runtime."),
-    ]
-    for title, desc in proofs_bl:
-        story.append(Paragraph(title, s["bullet"]))
-        story.append(Paragraph(desc, s["bullet_body"]))
-
-    story.append(Spacer(1, 3.5 * mm))
-
-    # --- CNRS ---
-    story.append(job_header("MACHINE LEARNING ENGINEER", "Dec. 2021 - Jan. 2026"))
-    story.append(Paragraph(
-        "CNRS - National AI Research Programme (PNRIA)  |  Toulouse", s["company"]))
-    story.append(Paragraph(
-        "Collaborated with research teams across France on applied AI projects. "
-        "Led two projects in parallel (6-12 months each), delivering to major French research institutions "
-        "(Meteo France, CNES, CEA, INEE). Training and fine-tuning on Jean Zay (multi-GPU DDP, up to 8 GPUs, Slurm).",
-        s["body"]
-    ))
-    story.append(Paragraph("GENS / MetScore - Meteo France", s["bullet"]))
-    story.append(Paragraph(
-        "Evaluated production weather models; performed multi-GPU optimization and fine-tuning of a diffusion "
-        "model (DDPM) in PyTorch on Jean Zay. Built MetScore (YAML config, Python library). "
-        "<b>Library still in production</b>; diffusion POC achieved <b>20% compute savings</b> with no loss in quality. "
-        "Co-authored AMS 2025 paper.",
-        s["bullet_body"]
-    ))
-    story.append(Paragraph("DeepFaune - CNRS/INEE", s["bullet"]))
-    story.append(Paragraph(
-        "Fine-tuned YOLOv5 on a custom dataset (1.5M images, 24 classes), multi-GPU training, "
-        "addressed class imbalance, optimized for inference speed on CPU. "
-        "<b>93% accuracy across 24 species, 3x faster.</b> Peer-reviewed publication.",
-        s["bullet_body"]
-    ))
-    story.append(Paragraph("Other contributions", s["bullet"]))
-    story.append(Paragraph(
-        "AUTOFILL (CEA, PairVAE, nanomaterial data generation, MAE 0.98), "
-        "BIGSF (CNES, tech lead and architecture refactor, galactic filament image analysis library), "
-        "MORPHOGAN (Univ. Lorraine, StyleGAN2 code overhaul, automated pipeline).<br/>"
-        "Taught: <i>Introduction to LLMs</i> (3-hour course, ~25 PhD students and CNRS researchers).",
-        s["bullet_body"]
-    ))
-
-    story.append(Spacer(1, 3.5 * mm))
-
-    # --- Agileo ---
-    story.append(job_header("SOFTWARE ENGINEER (apprenticeship)", "Aug. 2020 - Sept. 2021"))
-    story.append(Paragraph("Agileo Automation  |  Montauban", s["company"]))
-    story.append(Paragraph(
-        "Built a supervision and control framework for robotic machinery in semiconductor manufacturing. "
-        "C#, object-oriented architecture, HMI, CI/CD. Team of 5 engineers, Agile/Scrum.",
-        s["body"]
-    ))
-
-    story.append(Spacer(1, 0.3 * mm))
-    story.append(HRFlowable(width="100%", thickness=0.8, color=BORDER))
-
-    # ─── EDUCATION ───
-    sm = S("sm_formation", fontSize=7.5, leading=9.5, textColor=GRAY)
-    sm_date = S("sm_date", fontSize=7.5, leading=9.5, textColor=GRAY, alignment=TA_RIGHT)
-    story.append(Paragraph("EDUCATION", s["section"]))
-    row_m = [[Paragraph("<b>MSc - ARTIFICIAL INTELLIGENCE &amp; PATTERN RECOGNITION (IARF)</b>  |  "
-              "Universite Paul Sabatier Toulouse III - IRIT  |  Deep Learning, Computer Vision, NLP", sm),
-              Paragraph("2019 - 2021", sm_date)]]
-    t_m = Table(row_m, colWidths=[W * 0.8, W * 0.2])
-    t_m.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"),
-                              ("TOPPADDING", (0, 0), (-1, -1), 0),
-                              ("BOTTOMPADDING", (0, 0), (-1, -1), 1)]))
-    story.append(t_m)
-    row_l = [[Paragraph("<b>BSc - COMPUTER SCIENCE</b>  |  Universite Paul Sabatier Toulouse III", sm),
-              Paragraph("2016 - 2019", sm_date)]]
-    t_l = Table(row_l, colWidths=[W * 0.8, W * 0.2])
-    t_l.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"),
-                              ("TOPPADDING", (0, 0), (-1, -1), 0),
-                              ("BOTTOMPADDING", (0, 0), (-1, -1), 1)]))
-    story.append(t_l)
-    story.append(Paragraph(
-        "<b>Languages:</b> French (native)  |  English (full professional proficiency, scientific writing)", sm))
-
-    story.append(Spacer(1, 0.3 * mm))
-    story.append(HRFlowable(width="100%", thickness=0.8, color=BORDER))
+        "<b>Languages:</b> French (native) &middot; English (full professional proficiency, "
+        "scientific writing, technical documentation)", s["small"]))
 
     # ─── PUBLICATIONS ───
-    ps = S("pub", fontSize=7.8, leading=10, textColor=GRAY)
-    story.append(Paragraph("PUBLICATIONS", s["section"]))
+    section("PUBLICATIONS")
     story.append(Paragraph(
-        '<a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" '
-        'color="#1155CC">'
-        '"Enriching Operational High-Resolution Ensemble Forecasts with StyleGAN-2"</a>'
-        " - AIES, 2025. <b>3rd author</b>, peer-reviewed.",
-        ps
-    ))
-    story.append(Spacer(1, 0.3 * mm))
+        f'<a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" '
+        f'color="{LINK}">Enriching Operational High-Resolution Ensemble Forecasts with StyleGAN-2</a>. '
+        "AIES, 2025. 3rd author, peer-reviewed.", s["small"]))
     story.append(Paragraph(
-        '<a href="https://scholar.google.fr/citations?view_op=view_citation&amp;hl=fr&amp;'
-        'user=iUFJqVMAAAAJ&amp;citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" color="#1155CC">'
-        '"The DeepFaune initiative: automatic identification of European fauna"</a>'
-        " - <b>Julien Rabault</b> et al. <b>Co-author</b>, peer-reviewed.",
-        ps
-    ))
-
-    story.append(Spacer(1, 0.3 * mm))
-    story.append(HRFlowable(width="100%", thickness=0.8, color=BORDER))
+        f'<a href="https://scholar.google.fr/citations?view_op=view_citation&amp;hl=fr&amp;'
+        f'user=iUFJqVMAAAAJ&amp;citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" color="{LINK}">'
+        "The DeepFaune initiative: automatic identification of European fauna</a>. "
+        "N. Rigoudy et al. Co-author, peer-reviewed.", s["small"]))
 
     # ─── OPEN SOURCE PROJECTS ───
-    story.append(Paragraph("OPEN SOURCE PROJECTS", s["section"]))
+    section("OPEN SOURCE PROJECTS")
     story.append(Paragraph(
-        '<a href="https://github.com/JulienRabault/LLMock" color="#1155CC"><b>LLMock</b></a> (PyPI) - '
-        "LLM mock server for testing retries, fallbacks and rate limiting. Python, FastAPI, "
-        "10+ providers, OpenAI-compatible.", ps))
-    story.append(Spacer(1, 0.3 * mm))
+        f'<a href="https://github.com/JulienRabault/LLMock" color="{LINK}"><b>LLMock</b></a> (PyPI). '
+        "LLM mock server: retries / fallbacks, 10+ providers, OpenAI-compatible. Python, FastAPI.",
+        s["small"]))
     story.append(Paragraph(
-        '<a href="https://github.com/JulienRabault/DDPM-weather" color="#1155CC"><b>DDPM-weather</b></a> - '
-        "Probabilistic diffusion model for weather image denoising, 20% compute cost savings. PyTorch, Meteo France.", ps))
-    story.append(Spacer(1, 0.3 * mm))
+        f'<a href="https://github.com/JulienRabault/DDPM-weather" color="{LINK}"><b>DDPM-weather</b></a>. '
+        "Probabilistic diffusion model for weather image denoising, -20% resources. PyTorch.",
+        s["small"]))
     story.append(Paragraph(
-        '<a href="https://github.com/JulienRabault/DaysToBananaDeath" color="#1155CC"><b>BananaML</b></a> - '
-        "End-to-end ML pipeline deployed on AWS. Computer Vision + REST API. FastAPI, Docker, CI/CD.", ps))
+        f'<a href="https://github.com/JulienRabault/DaysToBananaDeath" color="{LINK}"><b>BananaML</b></a>. '
+        "End-to-end ML pipeline on AWS: computer vision + REST API. FastAPI, Docker, CI/CD.",
+        s["small"]))
 
     doc.build(story)
     print(f"CV (EN) generated: {output}")
