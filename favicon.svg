@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#f6f7f2"/>
-  <path d="M2.5 2.5h27v27h-27z" fill="none" stroke="#8a988d" stroke-width="1"/>
-  <text x="5" y="22" font-family="Atkinson Hyperlegible,system-ui,sans-serif" font-weight="700" font-size="17" fill="#17372e">JR</text>
-  <rect x="24" y="22" width="3" height="3" fill="#2f705f"/>
+  <rect width="32" height="32" rx="7" fill="#f5f6f8"/>
+  <path d="M2.5 2.5h27v27h-27z" fill="none" stroke="#99a1ad" stroke-width="1"/>
+  <text x="5" y="22" font-family="Atkinson Hyperlegible,system-ui,sans-serif" font-weight="700" font-size="17" fill="#1d2129">JR</text>
+  <rect x="24" y="22" width="3" height="3" fill="#bd8326"/>
 </svg>

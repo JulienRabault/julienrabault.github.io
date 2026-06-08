@@ -1,33 +1,33 @@
 :root {
   color-scheme: light;
-  --bg: oklch(98% 0.005 110);
-  --surface: oklch(99.5% 0.003 110);
-  --surface-muted: oklch(95% 0.008 118);
-  --text-primary: oklch(20% 0.015 165);
-  --text-secondary: oklch(42% 0.018 165);
-  --text-muted: oklch(58% 0.014 165);
-  --border: oklch(90% 0.008 130);
-  --border-strong: oklch(80% 0.012 138);
-  --accent: oklch(42% 0.13 158);
-  --accent-strong: oklch(34% 0.12 158);
-  --focus: oklch(58% 0.17 252);
+  --bg: oklch(98.5% 0.002 255);
+  --surface: oklch(99.6% 0.0015 255);
+  --surface-muted: oklch(96% 0.004 258);
+  --text-primary: oklch(24% 0.012 262);
+  --text-secondary: oklch(45% 0.014 262);
+  --text-muted: oklch(57% 0.012 262);
+  --border: oklch(91% 0.004 260);
+  --border-strong: oklch(83% 0.007 260);
+  --accent: oklch(52% 0.115 60);
+  --accent-strong: oklch(44% 0.12 56);
+  --focus: oklch(58% 0.15 254);
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: oklch(19% 0.018 165);
-  --surface: oklch(23% 0.02 165);
-  --surface-muted: oklch(27% 0.022 165);
-  --text-primary: oklch(94% 0.008 120);
-  --text-secondary: oklch(76% 0.012 130);
-  --text-muted: oklch(60% 0.014 140);
-  --border: oklch(32% 0.022 165);
-  --border-strong: oklch(42% 0.026 165);
-  --accent: oklch(74% 0.11 155);
-  --accent-strong: oklch(84% 0.11 155);
-  --focus: oklch(74% 0.14 252);
+  --bg: oklch(20.5% 0.008 262);
+  --surface: oklch(24% 0.01 262);
+  --surface-muted: oklch(28% 0.012 262);
+  --text-primary: oklch(95% 0.004 255);
+  --text-secondary: oklch(76% 0.008 255);
+  --text-muted: oklch(61% 0.009 258);
+  --border: oklch(33% 0.012 262);
+  --border-strong: oklch(44% 0.014 262);
+  --accent: oklch(77% 0.105 72);
+  --accent-strong: oklch(84% 0.09 74);
+  --focus: oklch(74% 0.12 254);
 }
 
 * {
@@ -431,8 +431,10 @@ li + li {
   display: block;
   margin-bottom: 0.55rem;
   color: var(--text-muted);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
 
 .section h2 {
@@ -452,7 +454,7 @@ li + li {
 .section-header {
   display: grid;
   gap: 0.5rem;
-  margin-bottom: 1.6rem;
+  margin-bottom: 1.2rem;
 }
 
 .timeline {
