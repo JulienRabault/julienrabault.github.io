@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" class="scroll-smooth" data-theme="dark">
 <head>
   <script>
-    (function() {
-      var saved = localStorage.getItem('theme');
-      document.documentElement.setAttribute('data-theme', saved || 'light');
-    })();
-  </script>
+  (function() {
+    var saved = localStorage.getItem('theme');
+    var system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', saved || system);
+  })();
+</script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Julien Rabault · AI Engineer · GenAI, RAG & MLOps</title>
   <meta name="description" content="Julien Rabault · AI Engineer specializing in GenAI, RAG, multi-agent systems & MLOps. 4 years of CNRS R&D, peer-reviewed publication. Toulouse, France." />
   <meta property="og:title" content="Julien Rabault · AI Engineer" />
@@ -18,279 +19,511 @@
   <meta name="twitter:card" content="summary" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
 
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@0.475.0/dist/umd/lucide.js"></script>
-  <link rel="stylesheet" href="style.css?v=9" />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
-  <a class="skip-link" href="#hero">Skip to content</a>
 
-  <nav class="site-nav" aria-label="Main navigation">
-    <div class="nav-inner">
-      <a href="#hero" class="brand-link" aria-label="Julien Rabault, AI Engineer">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span>Julien Rabault</span>
-        <span class="brand-role">· AI Engineer</span>
+  <nav class="navbar-glass fixed top-0 left-0 right-0 z-50" aria-label="Main navigation">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+
+    <!-- Logo -->
+    <a href="#hero" class="font-display font-extrabold text-lg tracking-tight">
+      JR<span class="text-[var(--accent)]">.</span>
+    </a>
+
+    <!-- Desktop links -->
+    <ul class="hidden md:flex items-center gap-8 list-none">
+      <li><a href="#experience" class="nav-link text-[var(--text-muted)] text-sm hover:text-[var(--text-primary)] transition-colors duration-150">Experience</a></li>
+      <li><a href="#projects" class="nav-link text-[var(--text-muted)] text-sm hover:text-[var(--text-primary)] transition-colors duration-150">Projects</a></li>
+      <li><a href="#publication" class="nav-link text-[var(--text-muted)] text-sm hover:text-[var(--text-primary)] transition-colors duration-150">Publication</a></li>
+      <li><a href="#skills" class="nav-link text-[var(--text-muted)] text-sm hover:text-[var(--text-primary)] transition-colors duration-150">Skills</a></li>
+    </ul>
+
+    <!-- Desktop CTA + Hamburger -->
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="hidden md:inline-block text-[var(--text-muted)] text-xs hover:text-[var(--text-primary)] transition-colors duration-150 tracking-wide">FR</a>
+      <a href="CV_JULIEN_RABAULT_EN.pdf" download class="hidden md:inline-block border border-[var(--border)] text-[var(--text-secondary)] text-sm px-4 py-2 rounded-md hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all duration-150 cursor-pointer">
+        CV PDF
+      </a>
+      <a href="#contact" class="hidden md:inline-block bg-[var(--accent)] text-black text-sm font-bold px-4 py-2 rounded-md hover:opacity-85 transition-opacity duration-150 cursor-pointer">
+        Contact
+      </a>
+      <button id="theme-toggle" aria-label="Toggle theme"
+        class="p-2 cursor-pointer text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors duration-150">
+        <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
+      </button>
+      <button id="hamburger" class="md:hidden p-2 cursor-pointer" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+        <i data-lucide="menu" class="w-5 h-5 text-[var(--text-primary)]"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="mobile-menu md:hidden navbar-glass border-t border-[var(--border)]">
+    <div class="px-6 py-4 flex flex-col gap-4">
+      <a href="#experience" class="mobile-nav-link text-[var(--text-secondary)] text-sm">Experience</a>
+      <a href="#projects" class="mobile-nav-link text-[var(--text-secondary)] text-sm">Projects</a>
+      <a href="#publication" class="mobile-nav-link text-[var(--text-secondary)] text-sm">Publication</a>
+      <a href="#skills" class="mobile-nav-link text-[var(--text-secondary)] text-sm">Skills</a>
+      <a href="index.html" class="mobile-nav-link text-[var(--text-muted)] text-sm">FR · Version française</a>
+      <a href="#contact" class="mobile-nav-link bg-[var(--accent)] text-black text-sm font-bold px-4 py-2 rounded-md text-center">Contact</a>
+    </div>
+  </div>
+</nav>
+  <section id="hero" class="min-h-[85vh] flex flex-col items-center justify-center text-center px-6 pt-24 pb-16 relative">
+
+  <!-- Corner decorations -->
+  <span class="hidden md:block absolute top-24 left-8 text-[11px] text-[var(--text-muted)] tracking-wide">Toulouse, FR</span>
+  <span class="hidden md:block absolute bottom-10 left-8 text-[11px] text-[var(--text-muted)] tracking-wide">julienrabault@icloud.com</span>
+  <span class="hidden md:block absolute bottom-10 right-8 text-[11px] text-[var(--text-muted)] tracking-wide">
+    Open to opportunities
+  </span>
+
+  <!-- Role line -->
+  <div class="hero-role flex items-center gap-3 text-[13px] text-[var(--text-muted)] tracking-widest uppercase mb-7">
+    Applied AI / ML Engineer · Toulouse
+  </div>
+
+  <!-- Name -->
+  <h1 class="hero-name font-display mb-8">
+    Julien Rabault
+  </h1>
+
+  <!-- Tagline -->
+  <p class="hero-tagline text-[var(--text-secondary)] text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
+    I build <span class="text-[var(--accent)] font-semibold">RAG over 100k documents</span>, LLM agents,<br class="hidden sm:inline"/> and Deep Learning trained on supercomputers.
+  </p>
+
+  <!-- CTA buttons -->
+  <div class="hero-cta flex flex-col sm:flex-row gap-3 items-center">
+    <a href="CV_JULIEN_RABAULT_EN.pdf" download
+       class="border border-[var(--border)] text-[var(--text-secondary)] text-sm px-5 py-3 rounded-md hover:border-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all duration-150 cursor-pointer">
+      Resume PDF
+    </a>
+    <a href="#contact"
+       class="bg-[var(--accent)] text-black text-sm font-bold px-6 py-3 rounded-md hover:opacity-90 transition-opacity duration-150 cursor-pointer">
+      Get in touch →
+    </a>
+  </div>
+
+  <a href="#about" class="scroll-hint absolute bottom-6 left-1/2 -translate-x-1/2" aria-label="Scroll down">
+    <i data-lucide="chevron-down" class="w-5 h-5 text-[var(--text-muted)]"></i>
+  </a>
+</section>
+  <section id="about" class="max-w-[860px] mx-auto px-6 py-24 border-t border-[var(--border)]">
+  <div class="reveal grid md:grid-cols-[120px_1fr] gap-6">
+    <span class="text-[11px] text-[var(--text-muted)] uppercase tracking-widest pt-1">About</span>
+    <div>
+      <div class="flex flex-col gap-4">
+        <p class="text-[var(--text-secondary)] text-base leading-relaxed">
+          4 years at <span class="text-[var(--accent)] font-semibold">CNRS</span> training models for researchers in weather, astrophysics, ecology and nanomaterials. Multi-GPU on Jean Zay, libraries still running in prod at Météo France, 2 peer-reviewed publications.
+        </p>
+        <p class="text-[var(--text-secondary)] text-base leading-relaxed">
+          Now at <span class="text-[var(--accent)] font-semibold">Berger-Levrault</span>, I build Athena: business users ask questions about ~100k technical documents, RAG and MCP agents find the answer and cite their sources.
+        </p>
+        <p class="text-[var(--text-muted)] text-sm leading-relaxed">
+          3 packages on <a href="https://pypi.org/user/JulienRabault/" target="_blank" rel="noopener" class="text-[var(--accent)] hover:opacity-80 transition-opacity">PyPI</a>. When I'm not coding, I read sci-fi and hike the Pyrenees. Based in Toulouse, open to Paris / Montreal.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+  <section id="experience" class="max-w-[860px] mx-auto px-6 py-24">
+  <div class="reveal grid md:grid-cols-[120px_1fr] gap-6">
+
+    <div>
+      <span class="text-[11px] text-[var(--text-muted)] uppercase tracking-widest">Experience</span>
+    </div>
+
+    <div class="relative pl-5">
+      <div class="timeline-line"></div>
+
+      <!-- Berger-Levrault -->
+      <div class="reveal mb-14">
+        <div class="bg-[var(--bg-subtle)] rounded-lg p-4 mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
+          <div>
+            <h3 class="font-display font-semibold text-[var(--text-primary)] text-lg">AI Engineer</h3>
+            <p class="text-[var(--accent)] text-sm font-medium">Berger-Levrault</p>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] shrink-0">Jan. 2026 – present · Toulouse</span>
+        </div>
+        <p class="text-[var(--text-muted)] text-xs mb-3">AI R&amp;D team · 12 people</p>
+        <p class="text-[var(--text-secondary)] text-sm leading-relaxed">
+          <span class="text-[var(--accent)] font-semibold">Athena</span> is Berger-Levrault's agentic platform: tool-first agent, connected to documents and business APIs for all clients (local government, industry, maintenance).<br/>
+          In production, ~70 pilot users. Langfuse observability, client workshops, iterating on field feedback.
+        </p>
+        </div>
+        <p class="text-[var(--text-muted)] text-xs mb-4">4 key contributions:</p>
+        <div class="flex flex-col gap-3 mt-2">
+          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Athena · tool-first agentic architecture</p>
+            <p class="text-[var(--text-muted)] text-sm">
+              <span class="text-[var(--text-secondary)]">Context:</span> build the agentic foundation for all BL clients (local government, industry, maintenance).<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> agentic architecture rebuild with the team (LangGraph): from a router (one agent per task) to a single tool-first agent — context management, skills, sub-agent orchestration, source-grounded answers.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> platform in production, source-grounded and actionable answers across multiple business domains.
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">RAG</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">MCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">LangGraph</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Tool-first</span></div>
+          </div>
+          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Content-extractor · OCR/PDF/DOCX</p>
+            <p class="text-[var(--text-muted)] text-sm">
+              <span class="text-[var(--text-secondary)]">Context:</span> initial service was a basic image extractor and hard to extend.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> full OCR/images/PDF/DOCX rebuild, async batching (Celery + Mistral batch API), factory/registry architecture to add extractors/chunkers quickly.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">-50% extraction costs</span>.
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">OCR</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Celery</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Mistral Batch</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Factory/Registry</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Python</span></div>
+          </div>
+          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">Airflow pipelines</p>
+            <p class="text-[var(--text-muted)] text-sm">
+              <span class="text-[var(--text-secondary)]">Context:</span> document ingestion per client account.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> evolved the ingestion pipelines with the team (PDFs, manuals, work orders, machine docs) and added RAG enrichment steps: data augmentation, chunking, embeddings, question/keyword generation for indexing.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">5 operational DAGs</span> (1 per client).
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Airflow</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">DAG</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">PDF/DOCX</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Ingestion</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Chunking</span></div>
+          </div>
+          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">MCP Builder</p>
+            <p class="text-[var(--text-muted)] text-sm">
+              <span class="text-[var(--text-secondary)]">Context:</span> rapidly connect BL's internal APIs to agents.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> an LLM agent analyzes OpenAPI specs to pre-process endpoints (grouping, masking, description generation) and generate MCP servers via FastMCP, then human-in-the-loop review to validate routes and business context.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">~100 internal APIs</span> turned into MCP servers, deployed.
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">OpenAPI</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">FastMCP</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Human-in-the-loop</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">API Integration</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CNRS -->
+      <div class="reveal mb-14">
+        <div class="bg-[var(--bg-subtle)] rounded-lg p-4 mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-3">
+          <div>
+            <h3 class="font-display font-semibold text-[var(--text-primary)] text-lg">Machine Learning Engineer</h3>
+            <p class="text-[var(--accent)] text-sm font-medium">CNRS · National AI Research Program (PNRIA)</p>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] shrink-0">Dec. 2021 – Jan. 2026 · Toulouse</span>
+        </div>
+        <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-2">
+          Part of the PNRIA network, I worked with research teams across France on their AI problems.<br/>
+          Always 2 projects running in parallel (6-12 months each), delivered to partners like Météo France, CNES, CEA, INEE.<br/>
+          Training and fine-tuning on Jean Zay (multi-GPU DDP, up to 8 GPUs, Slurm). PyTorch profiling.
+        </p>
+        </div>
+        <p class="text-[var(--text-muted)] text-xs mb-4">Selected proof points:</p>
+        <div class="flex flex-col gap-3 mt-2 mb-4">
+          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">GENS / MetScore · Météo France</p>
+            <p class="text-[var(--text-muted)] text-sm">
+              <span class="text-[var(--text-secondary)]">Context:</span> evaluate weather models in production, multi-GPU optimization and fine-tuning of a diffusion model.<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> designed MetScore (YAML configuration + Python library) and trained a diffusion model (DDPM) in PyTorch for weather-image generation on Jean Zay.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">library still in production</span> + diffusion POC at <span class="text-[var(--accent)] font-semibold">-20% compute</span> with equivalent quality.<br/>
+              <a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" target="_blank" rel="noopener" class="text-[var(--accent)] hover:opacity-80 transition-opacity inline-flex items-center gap-1">Co-author on AMS 2025 paper <i data-lucide="arrow-up-right" class="w-3 h-3 inline"></i></a>
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">PyTorch</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">DDPM</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">HPC</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Python</span></div>
+          </div>
+          <div class="border-l-2 border-[var(--accent)]/40 pl-4">
+            <p class="text-[var(--text-secondary)] text-sm font-medium mb-1">DeepFaune · CNRS/INEE</p>
+            <p class="text-[var(--text-muted)] text-sm">
+              <span class="text-[var(--text-secondary)]">Context:</span> wildlife recognition on camera traps (1.5M images).<br/>
+              <span class="text-[var(--text-secondary)]">Role:</span> fine-tuning YOLOv8 on custom dataset (1.5M images, 24 classes), multi-GPU training, class-imbalance handling, precision/speed optimization for CPU deployment.<br/>
+              <span class="text-[var(--text-secondary)]">Result:</span> <span class="text-[var(--accent)] font-semibold">93% on 24 species, 3× faster</span>.<br/>
+              <a href="https://scholar.google.fr/citations?view_op=view_citation&hl=fr&user=iUFJqVMAAAAJ&citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" target="_blank" rel="noopener" class="text-[var(--accent)] hover:opacity-80 transition-opacity inline-flex items-center gap-1">Peer-reviewed publication <i data-lucide="arrow-up-right" class="w-3 h-3 inline"></i></a>
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-2"><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Fine-tuning</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">YOLOv8</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">PyTorch</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Multi-GPU</span><span class="skill-badge text-[10px] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full cursor-default">Computer Vision</span></div>
+          </div>
+        </div>
+        <div class="border-l-2 border-[var(--border)] pl-4">
+          <p class="text-[var(--text-muted)] text-sm">Other contributions: AUTOFILL (CEA, PairVAE, MAE 0.98), BIGSF (CNES, tech lead and architecture refactor), <em>Introduction to LLMs</em> training (3h, ~25 CNRS PhD students/researchers).</p>
+        </div>
+
+      </div>
+
+      <!-- Agileo -->
+      <div class="reveal">
+        <div class="bg-[var(--bg-subtle)] rounded-lg p-4">
+        <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-3">
+          <div>
+            <h3 class="font-display font-semibold text-[var(--text-primary)] text-lg">Software Engineer</h3>
+            <p class="text-[var(--accent)] text-sm font-medium">Agileo Automation <span class="text-[var(--text-muted)] font-normal">(apprenticeship)</span></p>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] shrink-0">Aug. 2020 – Sept. 2021 · Montauban</span>
+        </div>
+        <p class="text-[var(--text-secondary)] text-sm leading-relaxed">
+          Supervision and control framework for robotic machinery in semiconductor manufacturing. Object-oriented architecture, C#, HMI. Team of 5 engineers, Agile/Scrum.
+        </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+  <section id="formation" class="max-w-[860px] mx-auto px-6 py-16 border-t border-[var(--border)]">
+  <div class="reveal grid md:grid-cols-[120px_1fr] gap-6">
+    <span class="text-[11px] text-[var(--text-muted)] uppercase tracking-widest pt-1">Education</span>
+    <div class="flex flex-col gap-6">
+
+      <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
+        <div>
+          <p class="text-[var(--text-primary)] text-sm font-medium">M.Sc. · Artificial Intelligence & Pattern Recognition (IARF)</p>
+          <p class="text-[var(--text-secondary)] text-sm">Université Paul Sabatier Toulouse III · IRIT</p>
+          <p class="text-[var(--text-muted)] text-xs mt-1">Specialization in Deep Learning, Computer Vision, NLP. IRIT lab (Toulouse Computer Science Research Institute).</p>
+        </div>
+        <span class="text-[11px] text-[var(--text-muted)] whitespace-nowrap">2019 – 2021</span>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
+        <div>
+          <p class="text-[var(--text-primary)] text-sm font-medium">B.Sc. Computer Science</p>
+          <p class="text-[var(--text-secondary)] text-sm">Université Paul Sabatier Toulouse III</p>
+        </div>
+        <span class="text-[11px] text-[var(--text-muted)] whitespace-nowrap">2016 – 2019</span>
+      </div>
+
+      <div class="mt-4 pt-4 border-t border-[var(--border)]">
+        <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-widest mb-3">Languages</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">French · native</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">English · fluent (B2)</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+  <section id="projects" class="max-w-[860px] mx-auto px-6 py-24 border-t border-[var(--border)]">
+
+  <div class="reveal flex items-baseline justify-between mb-10">
+    <span class="text-[11px] text-[var(--text-muted)] uppercase tracking-widest">Open source projects</span>
+    <span class="text-[11px] text-[var(--text-muted)]">04 projects · <i data-lucide="github" class="w-3 h-3 inline"></i></span>
+  </div>
+
+  <div class="reveal flex flex-col">
+
+    <a href="https://github.com/JulienRabault/LLMock" target="_blank" rel="noopener"
+       class="project-row flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-5 cursor-pointer">
+      <span class="text-[11px] text-[var(--text-muted)] w-8 shrink-0 hidden sm:block">01</span>
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="project-name font-display font-bold text-[var(--text-primary)] text-xl transition-colors duration-150">LLMock</span>
+          <span class="text-[11px] border border-[var(--accent)]/30 text-[var(--accent)]/70 px-2 py-0.5 rounded-full">PyPI</span>
+        </div>
+        <p class="text-[11px] text-[var(--text-muted)]">LLM mock server to test retries, fallbacks and rate limiting, zero tokens spent</p>
+      </div>
+      <span class="hidden sm:block text-[11px] text-[var(--text-muted)] text-right shrink-0">Python · FastAPI · Chaos eng.<br/>10+ providers · OpenAI-compatible</span>
+      <i data-lucide="arrow-up-right" class="project-arrow w-4 h-4 text-[var(--text-muted)] shrink-0 hidden sm:block"></i>
+    </a>
+
+    <a href="https://github.com/JulienRabault/DDPM-weather" target="_blank" rel="noopener"
+       class="project-row flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-5 cursor-pointer">
+      <span class="text-[11px] text-[var(--text-muted)] w-8 shrink-0 hidden sm:block">02</span>
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="project-name font-display font-bold text-[var(--text-primary)] text-xl transition-colors duration-150">DDPM-weather</span>
+          <span class="text-[11px] border border-[var(--accent)]/30 text-[var(--accent)]/70 px-2 py-0.5 rounded-full">Open Source</span>
+        </div>
+        <p class="text-[11px] text-[var(--text-muted)]">Denoising diffusion probabilistic model for weather imagery · −20% resource usage</p>
+      </div>
+      <span class="hidden sm:block text-[11px] text-[var(--text-muted)] text-right shrink-0">Python · PyTorch · Diffusion<br/>Météo France</span>
+      <i data-lucide="arrow-up-right" class="project-arrow w-4 h-4 text-[var(--text-muted)] shrink-0 hidden sm:block"></i>
+    </a>
+
+    <a href="https://github.com/JulienRabault/uniqpath" target="_blank" rel="noopener"
+       class="project-row flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-5 cursor-pointer">
+      <span class="text-[11px] text-[var(--text-muted)] w-8 shrink-0 hidden sm:block">03</span>
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="project-name font-display font-bold text-[var(--text-primary)] text-xl transition-colors duration-150">uniqpath</span>
+          <span class="text-[11px] border border-[var(--accent)]/30 text-[var(--accent)]/70 px-2 py-0.5 rounded-full">PyPI</span>
+        </div>
+        <p class="text-[11px] text-[var(--text-muted)]">Python utility to generate unique file paths: incremental suffixes, UUIDs, timestamps</p>
+      </div>
+      <span class="hidden sm:block text-[11px] text-[var(--text-muted)] text-right shrink-0">Python · Utility<br/>Open Source</span>
+      <i data-lucide="arrow-up-right" class="project-arrow w-4 h-4 text-[var(--text-muted)] shrink-0 hidden sm:block"></i>
+    </a>
+
+    <a href="https://github.com/JulienRabault/DaysToBananaDeath" target="_blank" rel="noopener"
+       class="project-row flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-5 cursor-pointer">
+      <span class="text-[11px] text-[var(--text-muted)] w-8 shrink-0 hidden sm:block">04</span>
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-1">
+          <span class="project-name font-display font-bold text-[var(--text-primary)] text-xl transition-colors duration-150">BananaML</span>
+          <span class="text-[11px] border border-[var(--accent)]/30 text-[var(--accent)]/70 px-2 py-0.5 rounded-full">Production</span>
+        </div>
+        <p class="text-[11px] text-[var(--text-muted)]">End-to-end ML pipeline deployed on AWS · Computer Vision + REST API</p>
+      </div>
+      <span class="hidden sm:block text-[11px] text-[var(--text-muted)] text-right shrink-0">FastAPI · AWS · Docker<br/>CI/CD · ML in prod</span>
+      <i data-lucide="arrow-up-right" class="project-arrow w-4 h-4 text-[var(--text-muted)] shrink-0 hidden sm:block"></i>
+    </a>
+
+  </div>
+</section>
+  <section id="publication" class="max-w-[860px] mx-auto px-6 py-16 border-t border-[var(--border)]">
+  <div class="reveal grid md:grid-cols-[120px_1fr] gap-6">
+    <span class="text-[11px] text-[var(--text-muted)] uppercase tracking-widest pt-1">Publication</span>
+    <div class="flex flex-col gap-4">
+      <a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml"
+         target="_blank" rel="noopener"
+         class="block border-l-2 border-[var(--accent)] pl-5 py-4 bg-[var(--bg-subtle)] rounded-r-md hover:opacity-90 transition-opacity duration-150 cursor-pointer">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="text-[10px] border border-[var(--accent)]/40 text-[var(--accent)]/80 px-2 py-0.5 rounded-full">Peer-reviewed · 2025</span>
+          <span class="text-[10px] text-[var(--text-muted)] border border-[var(--border)] px-2 py-0.5 rounded-full">3rd author</span>
+        </div>
+        <p class="text-[var(--text-secondary)] text-sm leading-relaxed italic">
+          "Enriching Operational High-Resolution Ensemble Forecasts with StyleGAN-2"
+        </p>
+        <p class="text-[var(--text-muted)] text-xs mt-2">C. Brochet, G. Moldovan, <span class="text-[var(--text-secondary)]">J. Rabault</span>, C. Regan, L. Raynaud</p>
+        <p class="text-[var(--text-muted)] text-xs mt-1">Artificial Intelligence for the Earth Systems (AIES), vol. 4, no. 1 · DOI: 10.1175/AIES-D-24-0058.1</p>
       </a>
 
-      <ul class="nav-links" id="nav-links">
-        <li><a href="#experience" class="nav-link">Experience</a></li>
-        <li><a href="#projects" class="nav-link">Projects</a></li>
-        <li><a href="#publication" class="nav-link">Papers</a></li>
-        <li><a href="#skills" class="nav-link">Skills</a></li>
-      </ul>
-
-      <div class="nav-actions">
-        <a href="index.html" class="lang-link">FR</a>
-        <a href="CV_JULIEN_RABAULT_EN.pdf" download class="nav-cta">Resume</a>
-        <button id="theme-toggle" class="icon-button" aria-label="Toggle theme">
-          <i id="theme-icon" data-lucide="sun"></i>
-        </button>
-        <button id="hamburger" class="icon-button menu-button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
-          <i data-lucide="menu"></i>
-        </button>
-      </div>
-    </div>
-
-    <div id="mobile-menu" class="mobile-menu">
-      <a href="#experience" class="mobile-nav-link">Experience</a>
-      <a href="#projects" class="mobile-nav-link">Projects</a>
-      <a href="#publication" class="mobile-nav-link">Papers</a>
-      <a href="#skills" class="mobile-nav-link">Skills</a>
-      <a href="index.html" class="mobile-nav-link">FR · Version française</a>
-      <a href="#contact" class="mobile-nav-link">Contact</a>
-    </div>
-  </nav>
-
-  <main>
-    <section id="hero" class="hero section">
-      <div class="hero-copy">
-        <p class="eyebrow">Applied AI / ML Engineer · Toulouse</p>
-        <h1>Julien Rabault</h1>
-        <p class="lead">
-          5 years moving ML and GenAI systems into production, on supercomputers or in front of business users. Currently: LangGraph agents and RAG over ~100k documents at Berger-Levrault. Before that: 4 years at CNRS for Météo France, CNES, and CEA.
+      <a href="https://scholar.google.fr/citations?view_op=view_citation&hl=fr&user=iUFJqVMAAAAJ&citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C"
+         target="_blank" rel="noopener"
+         class="block border-l-2 border-[var(--accent)] pl-5 py-4 bg-[var(--bg-subtle)] rounded-r-md hover:opacity-90 transition-opacity duration-150 cursor-pointer">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <span class="text-[10px] border border-[var(--accent)]/40 text-[var(--accent)]/80 px-2 py-0.5 rounded-full">Peer-reviewed</span>
+          <span class="text-[10px] text-[var(--text-muted)] border border-[var(--border)] px-2 py-0.5 rounded-full">Co-author</span>
+        </div>
+        <p class="text-[var(--text-secondary)] text-sm leading-relaxed italic">
+          "The DeepFaune initiative: a collaborative effort towards the automatic identification of European fauna in camera trap images"
         </p>
-        <div class="hero-actions">
-          <a href="CV_JULIEN_RABAULT_EN.pdf" download class="button button-primary">Download resume</a>
-          <a href="mailto:julienrabault@icloud.com" class="button">Get in touch</a>
-        </div>
-      </div>
+        <p class="text-[var(--text-muted)] text-xs mt-2"><span class="text-[var(--text-secondary)]">Julien Rabault</span> et al.</p>
+        <p class="text-[var(--text-muted)] text-xs mt-1">Google Scholar</p>
+      </a>
+    </div>
+  </div>
+</section>
+  <section id="skills" class="max-w-[860px] mx-auto px-6 py-24 border-t border-[var(--border)]">
+  <div class="reveal grid md:grid-cols-[120px_1fr] gap-6">
+    <span class="text-[11px] text-[var(--text-muted)] uppercase tracking-widest pt-1">Skills</span>
 
-      <aside class="hero-panel" aria-label="Professional summary">
-        <dl>
-          <div>
-            <dt>Current</dt>
-            <dd>AI Engineer at Berger-Levrault, AI R&D team</dd>
-          </div>
-          <div>
-            <dt>Focus</dt>
-            <dd>RAG over ~100k documents, multi-agent systems, MCP</dd>
-          </div>
-          <div>
-            <dt>Before</dt>
-            <dd>4 years at CNRS / PNRIA, AI projects for Meteo France, CNES, CEA, INEE</dd>
-          </div>
-          <div>
-            <dt>Contact</dt>
-            <dd><a href="mailto:julienrabault@icloud.com">julienrabault@icloud.com</a></dd>
-          </div>
-        </dl>
-      </aside>
-    </section>
+    <div class="flex flex-col gap-8">
 
-    <section id="about" class="section section-narrow">
-      <p class="section-label">Profile</p>
-      <p>
-        For 4 years at CNRS, I worked alongside research teams (meteorologists, ecologists, astrophysicists) on Jean Zay: training, reproducibility, production deployment. Today at Berger-Levrault, I do the same for business users: lawyers, public agents, pilot teams.
-      </p>
-    </section>
-
-    <section id="experience" class="section">
-      <div class="section-header">
-        <p class="section-label">Experience</p>
-      </div>
-
-      <div class="timeline">
-        <article class="timeline-item">
-          <div class="timeline-meta">
-            <span>Jan. 2026 · present</span>
-            <span>Toulouse</span>
-          </div>
-          <div class="timeline-content">
-            <h3>AI Engineer · Berger-Levrault</h3>
-            <p>
-              Building Athena, an agentic platform for querying technical documents and connecting agents to business APIs. ~70 pilot users, Langfuse observability.
-            </p>
-            <ul>
-              <li>Reworking the agentic architecture, as a team: from a router (one agent per task) to a single tool-first agent: context management, skills, sub-agent orchestration, sourced answers. LangGraph, in production.</li>
-              <li>OCR/PDF/DOCX content-extractor rebuild, async Celery batch + Mistral batch API: −50% on extraction costs, deployed.</li>
-              <li>MCP Builder: LLM agent + human-in-the-loop review to turn internal business-unit APIs (~100 APIs) into MCP servers via FastMCP. Deployed.</li>
-              <li>RAG ingestion chain (Airflow): extended and added enrichment steps: data augmentation, chunking, embeddings, question/keyword generation for indexing.</li>
-              <li>Agent evaluation & reliability: golden-set test suites, LLM-as-judge scoring, regression tracking via Langfuse.</li>
-            </ul>
-          </div>
-        </article>
-
-        <article class="timeline-item">
-          <div class="timeline-meta">
-            <span>Dec. 2021 · Jan. 2026</span>
-            <span>CNRS · PNRIA</span>
-          </div>
-          <div class="timeline-content">
-            <h3>Machine Learning Engineer · CNRS</h3>
-            <p>
-              Supported research teams on 6 to 12 month AI projects, with training and fine-tuning on Jean Zay.
-            </p>
-            <ul>
-              <li>MetScore for Meteo France: Python metrics library still used in production.</li>
-              <li>Weather DDPM in PyTorch: diffusion model trained on Jean Zay, 20% less compute at equivalent quality.</li>
-              <li>DeepFaune: YOLOv8 on 1.5M images, 24 classes, 93% accuracy, 3x faster inference.</li>
-              <li>Other contributions: AUTOFILL for CEA, BIGSF for CNES, LLM training for CNRS researchers.</li>
-            </ul>
-          </div>
-        </article>
-
-        <article class="timeline-item">
-          <div class="timeline-meta">
-            <span>Aug. 2020 · Sep. 2021</span>
-            <span>Montauban</span>
-          </div>
-          <div class="timeline-content">
-            <h3>Software Engineer · Agileo Automation</h3>
-            <p>
-              Supervision and control framework for robotic semiconductor machines: C#, object-oriented architecture, HMI, Agile/Scrum team.
-            </p>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section id="formation" class="section compact-section">
-      <div class="section-header">
-        <p class="section-label">Education</p>
-      </div>
-      <div class="simple-grid">
-        <div>
-          <h3>Master IARF · Université Paul Sabatier Toulouse III</h3>
-          <p>2019-2021 · Artificial Intelligence and Pattern Recognition, IRIT.</p>
-        </div>
-        <div>
-          <h3>Bachelor, Computer Science · Université Paul Sabatier Toulouse III</h3>
-          <p>2016-2019 · Algorithms, software, and general computer science.</p>
-        </div>
-        <div>
-          <h3>Languages</h3>
-          <p>Native French · Fluent English.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="projects" class="section">
-      <div class="section-header">
-        <p class="section-label">Projects</p>
-      </div>
-
-      <div class="project-list">
-        <a href="https://github.com/JulienRabault/LLMock" target="_blank" rel="noopener" class="project-row">
-          <span>01</span>
-          <strong>LLMock</strong>
-          <p>LLM mock server to test retries, fallbacks, and rate limiting without tokens.</p>
-          <em>Python · FastAPI · PyPI</em>
-        </a>
-        <a href="https://github.com/JulienRabault/DDPM-weather" target="_blank" rel="noopener" class="project-row">
-          <span>02</span>
-          <strong>DDPM-weather</strong>
-          <p>Probabilistic diffusion model for weather image denoising.</p>
-          <em>PyTorch · Diffusion · Meteo France</em>
-        </a>
-        <a href="https://github.com/JulienRabault/uniqpath" target="_blank" rel="noopener" class="project-row">
-          <span>03</span>
-          <strong>uniqpath</strong>
-          <p>Python utility for generating unique file paths.</p>
-          <em>Python · Utility · PyPI</em>
-        </a>
-        <a href="https://github.com/JulienRabault/DaysToBananaDeath" target="_blank" rel="noopener" class="project-row">
-          <span>04</span>
-          <strong>BananaML</strong>
-          <p>End-to-end ML pipeline deployed on AWS with Computer Vision and REST API.</p>
-          <em>FastAPI · AWS · Docker</em>
-        </a>
-      </div>
-    </section>
-
-    <section id="publication" class="section">
-      <div class="section-header">
-        <p class="section-label">Papers</p>
-      </div>
-
-      <div class="publication-list">
-        <a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" target="_blank" rel="noopener">
-          <span>AIES · 2025 · 3rd author</span>
-          <strong>Enriching Operational High-Resolution Ensemble Forecasts with StyleGAN-2</strong>
-          <p>C. Brochet, G. Moldovan, J. Rabault, C. Regan, L. Raynaud. DOI: 10.1175/AIES-D-24-0058.1</p>
-        </a>
-        <a href="https://scholar.google.fr/citations?view_op=view_citation&hl=fr&user=iUFJqVMAAAAJ&citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" target="_blank" rel="noopener">
-          <span>Peer-reviewed · Co-author</span>
-          <strong>The DeepFaune initiative</strong>
-          <p>Automatic identification of European fauna in camera trap images.</p>
-        </a>
-      </div>
-    </section>
-
-    <section id="skills" class="section">
-      <div class="section-header">
-        <p class="section-label">Skills</p>
-      </div>
-
-      <div class="skill-groups">
-        <div>
-          <h3>Agents & RAG</h3>
-          <p>RAG / GraphRAG, tool-first agents, multi-agents, sub-agents, MCP, LangGraph, structured outputs, embeddings.</p>
-        </div>
-        <div>
-          <h3>Deep Learning</h3>
-          <p>PyTorch, Transformers, Computer Vision, Diffusion Models, NLP, CNNs, U-Net, YOLO.</p>
-        </div>
-        <div>
-          <h3>MLOps & Infra</h3>
-          <p>Docker, AWS, CI/CD, MLFlow, Airflow, Kubernetes, Celery, Langfuse, HPC / Slurm.</p>
-        </div>
-        <div>
-          <h3>Development</h3>
-          <p>Python, FastAPI, LangChain, HuggingFace, Weaviate, Mistral / OpenAI API, Git.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="contact" class="section contact-section">
+      <!-- GenAI & LLMs -->
       <div>
-        <p class="section-label">Contact</p>
-        <p>Open to new opportunities. Toulouse, Paris, or Montreal. Remote OK.</p>
+        <p class="text-[11px] text-[var(--text-secondary)] uppercase tracking-widest mb-3">Agentic AI & RAG</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-badge skill-badge-primary text-xs px-3 py-1.5 rounded cursor-default">RAG / GraphRAG</span>
+          <span class="skill-badge skill-badge-primary text-xs px-3 py-1.5 rounded cursor-default">Multi-agent Systems</span>
+          <span class="skill-badge skill-badge-primary text-xs px-3 py-1.5 rounded cursor-default">MCP Protocol</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Prompt Engineering</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Structured Outputs</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Embeddings</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Tool-first agents</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Fine-tuning</span>
+        </div>
       </div>
-      <div class="contact-links">
-        <a href="mailto:julienrabault@icloud.com"><i data-lucide="mail"></i>Email</a>
-        <a href="https://linkedin.com/in/julienrabault" target="_blank" rel="noopener"><i data-lucide="linkedin"></i>LinkedIn</a>
-        <a href="https://github.com/JulienRabault" target="_blank" rel="noopener"><i data-lucide="github"></i>GitHub</a>
-      </div>
-    </section>
-  </main>
 
-  <footer class="site-footer">
-    <span>Julien Rabault · Toulouse, France · <span id="year"></span></span>
-  </footer>
+      <!-- Deep Learning -->
+      <div>
+        <p class="text-[11px] text-[var(--text-secondary)] uppercase tracking-widest mb-3">Deep Learning & Vision</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-badge skill-badge-primary text-xs px-3 py-1.5 rounded cursor-default">PyTorch</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Transformers</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Computer Vision</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Diffusion Models</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">NLP</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">CNNs / U-Net / YOLO</span>
+        </div>
+      </div>
+
+      <!-- MLOps & Infra -->
+      <div>
+        <p class="text-[11px] text-[var(--text-secondary)] uppercase tracking-widest mb-3">MLOps & Infrastructure</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-badge skill-badge-primary text-xs px-3 py-1.5 rounded cursor-default">Docker</span>
+          <span class="skill-badge skill-badge-primary text-xs px-3 py-1.5 rounded cursor-default">AWS</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">CI/CD</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">MLFlow</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Airflow</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Kubernetes</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Celery</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Langfuse</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">HPC / Slurm</span>
+        </div>
+      </div>
+
+      <!-- Dev & Frameworks -->
+      <div>
+        <p class="text-[11px] text-[var(--text-secondary)] uppercase tracking-widest mb-3">Engineering & Frameworks</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="skill-badge skill-badge-primary text-xs px-3 py-1.5 rounded cursor-default">Python</span>
+          <span class="skill-badge skill-badge-primary text-xs px-3 py-1.5 rounded cursor-default">FastAPI</span>
+          <span class="skill-badge skill-badge-primary text-xs px-3 py-1.5 rounded cursor-default">LangChain / LangGraph</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">HuggingFace</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Weaviate</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Mistral / OpenAI API</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">Git</span>
+          <span class="skill-badge text-xs text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1.5 rounded cursor-default">SOLID / Architecture</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+  <section id="contact" class="bg-[var(--bg-subtle)] border-t border-[var(--border)] px-6 py-24">
+  <div class="reveal max-w-[860px] mx-auto text-center">
+    <p class="text-[11px] text-[var(--text-muted)] uppercase tracking-widest mb-6">Contact</p>
+    <h2 class="font-display font-bold text-3xl md:text-4xl text-[var(--text-primary)] mb-4" style="letter-spacing: -0.03em;">
+      Let's work <span class="text-[var(--accent)]">together</span>
+    </h2>
+    <p class="text-[var(--text-secondary)] text-sm mb-4 max-w-md mx-auto leading-relaxed">
+      Available for new opportunities. Toulouse, Paris or Montreal. Remote OK.
+    </p>
+    <p class="text-[var(--text-muted)] text-xs mb-8">Domains: GenAI · RAG · Multi-agent Systems · MLOps · Computer Vision</p>
+
+    <a href="CV_JULIEN_RABAULT_EN.pdf" download
+       class="inline-flex items-center gap-2 bg-[var(--accent)] text-black text-sm font-bold px-8 py-3 rounded-md hover:opacity-90 transition-opacity duration-150 cursor-pointer mb-8">
+      <i data-lucide="file-text" class="w-4 h-4"></i>
+      Download my CV
+    </a>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+      <a href="mailto:julienrabault@icloud.com"
+         class="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] text-sm px-5 py-3 rounded-md hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all duration-150 cursor-pointer">
+        <i data-lucide="mail" class="w-4 h-4"></i>
+        julienrabault@icloud.com
+      </a>
+      <a href="https://linkedin.com/in/julienrabault" target="_blank" rel="noopener"
+         class="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] text-sm px-5 py-3 rounded-md hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all duration-150 cursor-pointer">
+        <i data-lucide="linkedin" class="w-4 h-4"></i>
+        LinkedIn
+      </a>
+      <a href="https://github.com/JulienRabault" target="_blank" rel="noopener"
+         class="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] text-sm px-5 py-3 rounded-md hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all duration-150 cursor-pointer">
+        <i data-lucide="github" class="w-4 h-4"></i>
+        GitHub
+      </a>
+    </div>
+
+    <p class="text-[var(--text-muted)] text-xs">
+      Julien Rabault · Toulouse, France · <span id="year"></span>
+    </p>
+  </div>
+</section>
 
   <a
     href="https://jr-portfolio-chat.julienrabault.workers.dev/admin"
     class="admin-dashboard-link"
     target="_blank"
     rel="noopener"
-    aria-label="Dashboard analytics"
-    title="Dashboard analytics"
+    aria-label="Analytics dashboard"
+    title="Analytics dashboard"
   ></a>
 
-  <script src="script.js?v=5"></script>
+  <script src="script.js?v=2"></script>
   <script src="chat-widget.js?v=12"></script>
   <script>lucide.createIcons();</script>
 </body>
