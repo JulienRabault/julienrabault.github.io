@@ -1,30 +1,30 @@
-"""Generate Julien Rabault's CV as a clean, ATS-friendly one-page PDF (EN). v8
+"""Generate Julien Rabault's resume as a clean, ATS-friendly PDF (EN). v9
 
-Same design as the FR version: single column, generous whitespace,
-restrained typography, sparing bold. No decorative graphics.
+Layout follows the r/EngineeringResumes reference template: centred name and a
+single contact line, serif body text, bold reserved for job titles and skill
+categories, and one sentence per bullet.
 """
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.colors import HexColor
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_RIGHT
+from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 )
 import os
 
-# ─── Palette (near-monochrome, one restrained link accent) ───
 INK = HexColor("#1A1A1A")
-BODY = HexColor("#333333")
+BODY = HexColor("#2B2B2B")
 MUTED = HexColor("#6B6B6B")
 RULE = HexColor("#D7D7D7")
 LINK = "#1F5673"
 
 FONT = "Helvetica"
 FONT_BOLD = "Helvetica-Bold"
+FONT_ITALIC = "Helvetica-Oblique"
 
 BASE = os.path.dirname(__file__)
-
 ICON_DIR = os.path.join(BASE, "assets", "cv_icons")
 
 
@@ -34,9 +34,11 @@ def _icon(name: str) -> str:
 
 
 NAME = "JULIEN RABAULT"
-ROLE = "Applied AI / ML Engineer"
+ROLE = "AI Engineer &middot; LLM agents &amp; RAG in production"
+
 CONTACT = (
-    f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;{_icon("phone")}&nbsp;+33 7 81 16 46 29<br/>'
+    f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;'
+    f'{_icon("phone")}&nbsp;+33 7 81 16 46 29<br/>'
     f'{_icon("email")}&nbsp;<a href="mailto:julienrabault@icloud.com" color="{LINK}">julienrabault@icloud.com</a><br/>'
     f'{_icon("linkedin")}&nbsp;<a href="https://linkedin.com/in/julienrabault" color="{LINK}">linkedin.com/in/julienrabault</a><br/>'
     f'{_icon("github")}&nbsp;<a href="https://github.com/JulienRabault" color="{LINK}">github.com/JulienRabault</a><br/>'
@@ -44,49 +46,150 @@ CONTACT = (
 )
 
 SUMMARY = (
-    "Applied AI / ML engineer. Four years at CNRS training and industrializing deep learning models "
-    "in production (PyTorch, multi-GPU, Jean Zay supercomputer), with two peer-reviewed publications. "
-    "Now at Berger-Levrault: building Athena, a multi-agent agentic platform (LangGraph, RAG, MCP) "
-    "deployed to clients."
+    "I design and ship LLM agents and RAG systems that run in production at customer sites, after "
+    "four years of applied research at CNRS training and fine-tuning deep learning models on a "
+    "national supercomputer (PyTorch, multi-GPU). Two peer-reviewed publications."
 )
 
 SKILLS = [
-    ("Agentic &amp; RAG",
-     "RAG / GraphRAG, tool-first agents, multi-agents, sub-agents, MCP, LangChain / LangGraph, "
-     "prompt engineering, structured outputs, embeddings, fine-tuning"),
-    ("Deep Learning",
-     "PyTorch, Transformers, computer vision, diffusion models (DDPM / DDIM), NLP, "
-     "CNN / U-Net / YOLOv8, generative models (GAN, VAE)"),
-    ("MLOps &amp; Infra",
-     "Docker, AWS, CI/CD, MLflow, Airflow, Kubernetes, Celery, Langfuse, HPC / Slurm, Linux"),
-    ("Development",
-     "Python, FastAPI, Hugging Face, Weaviate, Mistral / OpenAI API, Git, "
-     "SOLID / architecture, C#, SQL"),
+    ("Agentic systems",
+     "LLM agents in production, RAG, evals (golden sets, LLM-as-judge), observability, agent "
+     "security, inference cost tracking, multimodal (OCR, vision, audio), MCP, "
+     "LangChain / LangGraph, fine-tuning"),
+    ("Languages &amp; data",
+     "Python, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, Mistral and OpenAI APIs"),
+    ("Infrastructure",
+     "Docker, Kubernetes, Helm, GitLab CI, AWS, Celery, RabbitMQ, S3, Airflow, MLflow, Langfuse, "
+     "Slurm, Linux"),
+    ("Machine learning",
+     "PyTorch, Transformers, multi-GPU training (DDP), diffusion models, computer vision, "
+     "U-Net, YOLO, GAN, VAE"),
 ]
+
+EXPERIENCE = [
+    {
+        "title": "AI Engineer",
+        "org": "Berger-Levrault",
+        "place": "Toulouse &middot; AI R&amp;D team",
+        "dates": "Jan. 2026 &ndash; present",
+        "context": (
+            "Design and delivery of Athena, Berger-Levrault's agentic platform: agents wired into "
+            "the document corpora and business APIs of the group's clients (local government, legal, "
+            "industry, maintenance, public-sector HR). ~100k technical documents indexed, ~70 pilot "
+            "users, Langfuse observability, monitoring and cost tracking, client workshops."
+        ),
+        "bullets": [
+            "<b>Athena agentic architecture</b> (LangGraph), rebuilt with the team: moved from a "
+            "router (one agent per task: RAG, MCP APIs, reports) to a reusable agent configured per "
+            "profile, with context management, automatically generated skills, sub-agent "
+            "orchestration and a unified event contract. Adding a tool no longer means building a "
+            "new graph.",
+
+            "<b>Agent evaluation and reliability</b>: golden sets, LLM-as-judge scoring, "
+            "comparative benchmarks between architectures and regression tracking through "
+            "Langfuse.",
+
+            "<b>Agent security</b>: sandboxing of retrieved content against indirect prompt "
+            "injection, execution bounds on tools (timeouts, per-profile restrictions).",
+
+            "<b>MCP Builder</b>: turns business-unit APIs into MCP servers. An LLM selects the "
+            "useful endpoints, audits their gaps and generates purpose-built tools (workflows or "
+            "Python code via FastMCP), human-in-the-loop. Built solo, deployed. Model selected on a "
+            "documented benchmark: 4.1× faster and 3.2× cheaper.",
+
+            "<b>Content-extractor</b>, multimodal extraction (OCR / PDF / DOCX / audio): service "
+            "built from scratch, 7 extraction pipelines, async batch processing (Celery + Mistral "
+            "batch API), extensible factory/registry architecture. Deployed, -50% on extraction "
+            "costs.",
+
+            "<b>Document template agent</b>: tools that extract templates from Word documents, then "
+            "a second agent and tools that fill those templates from natural language. From "
+            "prototype to production.",
+
+            "<b>LLM pipeline for business data structuring</b> (public-sector HR): turns interview "
+            "write-ups into normalised, deduplicated and clustered training needs, then matches them "
+            "against a catalogue.",
+
+            "<b>RAG ingestion chain</b> (Airflow): added enrichment stages (data augmentation, chunking, "
+            "embeddings, indexed questions and keywords, time filters). One DAG per client in "
+            "production.",
+        ],
+    },
+    {
+        "title": "Machine Learning Engineer",
+        "org": "CNRS &middot; PNRIA",
+        "place": "Toulouse",
+        "dates": "Dec. 2021 &ndash; Jan. 2026 &middot; 4 yrs",
+        "context": (
+            "Network of AI engineers supporting research teams (weather, astrophysics, materials, "
+            "ethology, biology). 10+ projects supported, up to two in parallel (6-12 months), for "
+            "Météo France, CNES, CEA and INEE. Training and fine-tuning on the Jean Zay "
+            "supercomputer (multi-GPU DDP, 8 GPUs, Slurm)."
+        ),
+        "bullets": [
+            "<b>GENS / MetScore, Météo France:</b> multi-GPU optimisation and fine-tuning of a "
+            "diffusion model (DDPM) in PyTorch; designed MetScore (metrics library), still in "
+            "production. Diffusion POC at -20% compute for equivalent quality. Co-author, AIES 2025.",
+
+            "<b>DeepFaune, CNRS / INEE:</b> fine-tuned YOLOv8 on 1.5M images (24 classes) with "
+            "class-imbalance handling. 93% accuracy, 3× faster inference. Peer-reviewed publication.",
+
+            "<b>BIGSF, CNES:</b> tech lead on the rebuild of a galactic-filament image analysis "
+            "library (U-Net): modular architecture, tests, documentation. Public toolbox.",
+
+            "<b>AUTOFILL, CEA:</b> implemented the PairVAE model for generating and completing "
+            "nanomaterial data, 0.98 mean absolute error. Library parameterised for other materials.",
+
+            "<b>MORPHOGAN, Univ. Lorraine:</b> full rebuild of a StyleGAN2 codebase to study the "
+            "morphological variability of butterfly wings: automated pipeline, tests, containerisation.",
+
+            "<b>Teaching:</b> created and delivered \"Introduction to LLMs\" to ~25 PhD students and "
+            "researchers.",
+        ],
+    },
+    {
+        "title": "Software Engineer",
+        "org": "Agileo Automation",
+        "place": "Montauban",
+        "dates": "Aug. 2020 &ndash; Sept. 2021 &middot; 1 yr",
+        "context": "",
+        "bullets": [
+            "<b>Supervision framework for robotic manufacturing equipment</b> (semiconductors): C#, "
+            "object-oriented architecture, HMI, CI/CD. Team of 5, Agile / Scrum.",
+        ],
+    },
+]
+
+EDUCATION = [
+    ("MSc Artificial Intelligence &amp; Pattern Recognition",
+     "Université Paul Sabatier / IRIT", "2019 &ndash; 2021"),
+    ("BSc Computer Science", "Université Paul Sabatier Toulouse III", "2016 &ndash; 2019"),
+]
+
+BODY_SIZE = 9.8
+BODY_LEAD = 12.9
 
 
 def styles():
     def S(name, **kw):
-        base = {"fontName": FONT, "fontSize": 8.5, "leading": 11.3, "textColor": BODY}
+        base = {"fontName": FONT, "fontSize": BODY_SIZE, "leading": BODY_LEAD, "textColor": BODY}
         base.update(kw)
         return ParagraphStyle(name, **base)
 
     return {
         "name": S("name", fontName=FONT_BOLD, fontSize=20, leading=22, textColor=INK),
         "role": S("role", fontSize=10.5, leading=13, textColor=MUTED),
-        "contact": S("contact", fontSize=8.2, leading=11.5, textColor=MUTED, alignment=TA_RIGHT),
-        "summary": S("summary", fontSize=8.5, leading=11.5, textColor=BODY),
-        "section": S("section", fontName=FONT_BOLD, fontSize=9.5, leading=11,
-                     textColor=INK, spaceBefore=0, spaceAfter=0),
-        "job": S("job", fontName=FONT_BOLD, fontSize=10, leading=12, textColor=INK),
-        "dates": S("dates", fontSize=8.5, leading=12, textColor=MUTED, alignment=TA_RIGHT),
-        "org": S("org", fontSize=8.5, leading=11, textColor=MUTED, spaceAfter=2),
-        "intro": S("intro", fontSize=8.5, leading=11.5, textColor=BODY, spaceAfter=2),
-        "bullet": S("bullet", fontSize=8.5, leading=11.5, textColor=BODY,
-                    leftIndent=10, bulletIndent=0, spaceAfter=1.5),
-        "edu": S("edu", fontSize=8.5, leading=11.5, textColor=BODY, spaceAfter=1.5),
-        "edu_date": S("edu_date", fontSize=8.5, leading=11.5, textColor=MUTED, alignment=TA_RIGHT),
-        "small": S("small", fontSize=8.5, leading=11.5, textColor=BODY, spaceAfter=2),
+        "contact": S("contact", fontSize=8.2, leading=11.3, textColor=MUTED, alignment=TA_RIGHT),
+        "summary": S("summary",),
+        "section": S("section", fontName=FONT_BOLD, fontSize=10.6, leading=12.2, textColor=INK),
+        "job": S("job", fontSize=11.2, leading=14, textColor=INK),
+        "dates": S("dates", fontSize=9, leading=14, textColor=MUTED, alignment=TA_RIGHT),
+        "context": S("context", fontName=FONT_ITALIC, textColor=MUTED,
+                     spaceBefore=2.5, spaceAfter=3.5),
+        "bullet": S("bullet", leftIndent=11, bulletIndent=0, spaceAfter=2),
+        "edu": S("edu",),
+        "edu_date": S("edu_date", textColor=MUTED, alignment=TA_RIGHT),
+        "small": S("small", spaceAfter=2.6),
     }
 
 
@@ -94,26 +197,19 @@ def build_cv():
     output = os.path.join(BASE, "CV_JULIEN_RABAULT_EN.pdf")
     doc = SimpleDocTemplate(
         output, pagesize=A4,
-        leftMargin=9 * mm, rightMargin=9 * mm,
-        topMargin=5 * mm, bottomMargin=6 * mm,
+        leftMargin=14 * mm, rightMargin=14 * mm,
+        topMargin=10 * mm, bottomMargin=10 * mm,
         title="Resume - Julien Rabault", author="Julien Rabault",
     )
     s = styles()
-    W = 192 * mm
+    W = 182 * mm
     story = []
 
-    def section(label):
-        story.append(Spacer(1, 2.2 * mm))
-        story.append(Paragraph(label, s["section"]))
-        story.append(Spacer(1, 1.1 * mm))
-        story.append(HRFlowable(width="100%", thickness=0.6, color=RULE,
-                                spaceBefore=0, spaceAfter=2.2))
-
-    def job_header(title, dates):
-        t = Table([[Paragraph(title, s["job"]), Paragraph(dates, s["dates"])]],
-                  colWidths=[W * 0.72, W * 0.28])
+    def two_col(left_text, right_text, left_style, right_style, ratio=0.70):
+        t = Table([[Paragraph(left_text, left_style), Paragraph(right_text, right_style)]],
+                  colWidths=[W * ratio, W * (1 - ratio)])
         t.setStyle(TableStyle([
-            ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("TOPPADDING", (0, 0), (-1, -1), 0),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -121,8 +217,12 @@ def build_cv():
         ]))
         story.append(t)
 
-    def bullet(text):
-        story.append(Paragraph(text, s["bullet"], bulletText="•"))
+    def section(label):
+        story.append(Spacer(1, 2.6 * mm))
+        story.append(Paragraph(label, s["section"]))
+        story.append(Spacer(1, 1.1 * mm))
+        story.append(HRFlowable(width="100%", thickness=0.6, color=RULE,
+                                spaceBefore=0, spaceAfter=2.6))
 
     # ─── HEADER (name/role left, contact right) ───
     left = [Paragraph(NAME, s["name"]), Spacer(1, 1.2 * mm), Paragraph(ROLE, s["role"])]
@@ -136,119 +236,56 @@ def build_cv():
         ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ]))
     story.append(header)
-    story.append(Spacer(1, 2.2 * mm))
+    story.append(Spacer(1, 2.5 * mm))
     story.append(Paragraph(SUMMARY, s["summary"]))
 
-    # ─── SKILLS ───
-    section("TECHNICAL SKILLS")
+    # ─── COMPETENCES ───
+    section("SKILLS")
     for cat, items in SKILLS:
-        row = [[Paragraph("<b>" + cat + "</b>", s["small"]), Paragraph(items, s["small"])]]
-        t = Table(row, colWidths=[34 * mm, W - 34 * mm])
-        t.setStyle(TableStyle([
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 0),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
-            ("LEFTPADDING", (0, 0), (-1, -1), 0),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-        ]))
-        story.append(t)
+        story.append(Paragraph(f"<b>{cat}:</b> {items}", s["small"]))
 
     # ─── EXPERIENCE ───
     section("PROFESSIONAL EXPERIENCE")
+    for i, job in enumerate(EXPERIENCE):
+        if i:
+            story.append(Spacer(1, 5 * mm))
+        two_col(f"<b>{job['title']}</b>, {job['org']} &mdash; {job['place']}",
+                job["dates"], s["job"], s["dates"])
+        if job["context"]:
+            story.append(Paragraph(job["context"], s["context"]))
+        else:
+            story.append(Spacer(1, 2.2 * mm))
+        for b in job["bullets"]:
+            story.append(Paragraph(b, s["bullet"], bulletText="•"))
 
-    job_header("AI Engineer", "Jan. 2026 - present")
-    story.append(Paragraph("Berger-Levrault &middot; Toulouse &middot; AI R&amp;D team", s["org"]))
-    story.append(Paragraph(
-        "Designing and building Athena, Berger-Levrault's agentic platform: agents connected to "
-        "documents and business APIs for the group's clients (local government, industry, "
-        "healthcare, maintenance). ~70 pilot users, Langfuse observability.", s["intro"]))
-    bullet("Refactor of Athena's agentic architecture (multi-agent platform in production, LangGraph), "
-           "as a team: from a router (one agent per task: RAG, MCP APIs, reports) to a single "
-           "tool-first agent, with context management, skills and automatic skill creation, and "
-           "sub-agent orchestration.")
-    bullet("Content extractor (OCR / PDF / DOCX): full rebuild, async batch processing (Celery + "
-           "Mistral batch API), extensible factory/registry architecture. Deployed, -50% on extraction costs.")
-    bullet("MCP Builder: turns business-unit APIs into MCP servers. An LLM selects the useful "
-           "endpoints, audits their gaps and generates custom tools (workflows or Python code via "
-           "FastMCP), human-in-the-loop. Deployed.")
-    bullet("RAG ingestion chain (Airflow). Extended and added enrichment steps: data augmentation, "
-           "chunking, embeddings, question/keyword generation for indexing, date filters.")
-    bullet("Agent evaluation and reliability: golden-set test suites, LLM-as-judge scoring "
-           "and regression tracking via Langfuse.")
-
-    story.append(Spacer(1, 2.2 * mm))
-    job_header("Machine Learning Engineer", "Dec. 2021 - Jan. 2026 &middot; 4 yrs")
-    story.append(Paragraph("CNRS &middot; National AI Research Programme (PNRIA) &middot; Toulouse", s["org"]))
-    story.append(Paragraph(
-        "Network of AI engineers supporting research teams (weather, astrophysics, materials, "
-        "ethology, biology). 10+ projects supported, up to two in parallel (6-12 months), for "
-        "Météo France, CNES, CEA, INEE. Training and fine-tuning on Jean "
-        "Zay (multi-GPU DDP, 8 GPUs, Slurm).", s["intro"]))
-    bullet("<b>GENS / MetScore, Météo France:</b> multi-GPU optimization and fine-tuning of a "
-           "diffusion model (DDPM) in PyTorch; built MetScore (metrics library), still in "
-           "production. Diffusion POC at -20% compute for equivalent quality. Co-author of the AMS 2025 paper.")
-    bullet("<b>DeepFaune, CNRS / INEE:</b> fine-tuned YOLOv8 on 1.5M images (24 classes), "
-           "class-imbalance handling. 93% accuracy, 3× faster inference. "
-           "Peer-reviewed publication.")
-    bullet("<b>BIGSF, CNES:</b> tech lead on the rebuild of a galactic-filament image-analysis "
-           "library (U-Net): modular architecture, tests, documentation. Public toolbox.")
-    bullet("<b>Others:</b> AUTOFILL (CEA, PairVAE, MAE 0.98), MORPHOGAN (StyleGAN2, Univ. Lorraine). "
-           "Taught &ldquo;Introduction to LLMs&rdquo; (3h, ~25 PhD students / researchers).")
-
-    story.append(Spacer(1, 2.2 * mm))
-    job_header("Software Engineer (apprenticeship)", "Aug. 2020 - Sept. 2021 &middot; 1 yr")
-    story.append(Paragraph("Agileo Automation &middot; Montauban", s["org"]))
-    story.append(Paragraph(
-        "Supervision and control framework for robotic machinery (semiconductors): C#, object-oriented "
-        "architecture, HMI, CI/CD. Team of 5, Agile / Scrum.", s["intro"]))
-
-    # ─── EDUCATION ───
+    # ─── FORMATION ───
     section("EDUCATION")
-
-    def edu_row(left_text, date):
-        t = Table([[Paragraph(left_text, s["edu"]), Paragraph(date, s["edu_date"])]],
-                  colWidths=[W * 0.82, W * 0.18])
-        t.setStyle(TableStyle([
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 0),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
-            ("LEFTPADDING", (0, 0), (-1, -1), 0),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-        ]))
-        story.append(t)
-
-    edu_row("<b>MSc Artificial Intelligence &amp; Pattern Recognition (IARF)</b>, "
-            "Université Paul Sabatier Toulouse III / IRIT", "2019 - 2021")
-    edu_row("<b>BSc Computer Science</b>, Université Paul Sabatier Toulouse III", "2016 - 2019")
-    story.append(Paragraph(
-        "<b>Languages:</b> French (native) &middot; English (full professional proficiency, "
-        "scientific writing, technical documentation)", s["small"]))
+    for title, school, date in EDUCATION:
+        two_col(f"<b>{title}</b>, {school}", date, s["edu"], s["edu_date"], ratio=0.85)
 
     # ─── PUBLICATIONS ───
     section("PUBLICATIONS")
     story.append(Paragraph(
         f'<a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" '
-        f'color="{LINK}">Enriching Operational High-Resolution Ensemble Forecasts with StyleGAN-2</a>. '
-        "AIES, 2025. 3rd author, peer-reviewed.", s["small"]))
+        f'color="{LINK}">Enriching Operational High-Resolution Ensemble Forecasts with '
+        "StyleGAN-2</a>, AIES 2025, peer-reviewed.", s["small"]))
     story.append(Paragraph(
         f'<a href="https://scholar.google.fr/citations?view_op=view_citation&amp;hl=fr&amp;'
         f'user=iUFJqVMAAAAJ&amp;citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" color="{LINK}">'
-        "The DeepFaune initiative: automatic identification of European fauna</a>. "
-        "N. Rigoudy et al. Co-author, peer-reviewed.", s["small"]))
-
-    # ─── OPEN SOURCE PROJECTS ───
-    section("OPEN SOURCE PROJECTS")
+        "The DeepFaune initiative: automatic identification of European fauna</a>, peer-reviewed.",
+        s["small"]))
+    section("OPEN SOURCE")
     story.append(Paragraph(
-        f'<a href="https://github.com/JulienRabault/LLMock" color="{LINK}"><b>LLMock</b></a> (PyPI). '
-        "LLM mock server: retries / fallbacks, 10+ providers, OpenAI-compatible. Python, FastAPI.",
+        f'<b><a href="https://github.com/langchain-ai/langchain/pull/37008" color="{LINK}">'
+        "LangChain</a></b>: merged contribution to the Mistral integration, surfacing citation "
+        "metadata.", s["small"]))
+    story.append(Paragraph(
+        f'<b><a href="https://github.com/JulienRabault/LLMock" color="{LINK}">LLMock</a></b> '
+        "(PyPI): LLM mock server for testing retries and fallbacks, 10+ providers.",
         s["small"]))
     story.append(Paragraph(
-        f'<a href="https://github.com/JulienRabault/DDPM-weather" color="{LINK}"><b>DDPM-weather</b></a>. '
-        "Probabilistic diffusion model for weather image denoising, -20% resources. PyTorch.",
-        s["small"]))
-    story.append(Paragraph(
-        f'<a href="https://github.com/JulienRabault/DaysToBananaDeath" color="{LINK}"><b>BananaML</b></a>. '
-        "End-to-end ML pipeline on AWS: computer vision + REST API. FastAPI, Docker, CI/CD.",
+        f'<b><a href="https://github.com/JulienRabault/DDPM-weather" color="{LINK}">'
+        "DDPM-weather</a></b>: diffusion model for weather image denoising.",
         s["small"]))
 
     doc.build(story)
