@@ -1,4 +1,4 @@
-"""Generate Julien Rabault's resume as a clean, ATS-friendly PDF (EN). v9
+"""[VERSION LONGUE, 2 pages] Generate Julien Rabault's resume as a clean, ATS-friendly PDF (EN). v9
 
 Layout follows the r/EngineeringResumes reference template: centred name and a
 single contact line, serif body text, bold reserved for job titles and skill
@@ -47,18 +47,23 @@ CONTACT = (
 
 SUMMARY = (
     "I design and ship LLM agents and RAG systems that run in production at customer sites, after "
-    "four years of deep learning on a national supercomputer at CNRS (PyTorch, multi-GPU). "
-    "Two peer-reviewed publications."
+    "four years of applied research at CNRS training and fine-tuning deep learning models on a "
+    "national supercomputer (PyTorch, multi-GPU). Two peer-reviewed publications."
 )
 
 SKILLS = [
     ("Agentic systems",
      "LLM agents in production, RAG, evals (golden sets, LLM-as-judge), observability, agent "
-     "security, multimodal (OCR, vision, audio), MCP, LangChain / LangGraph, fine-tuning"),
+     "security, inference cost tracking, multimodal (OCR, vision, audio), MCP, "
+     "LangChain / LangGraph, fine-tuning"),
     ("Languages &amp; data",
-     "Python, PyTorch, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, Mistral and OpenAI APIs"),
+     "Python, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, Mistral and OpenAI APIs"),
     ("Infrastructure",
-     "Docker, Kubernetes, Helm, GitLab CI, AWS, Celery, RabbitMQ, Airflow, Langfuse, Slurm, Linux"),
+     "Docker, Kubernetes, Helm, GitLab CI, AWS, Celery, RabbitMQ, S3, Airflow, MLflow, Langfuse, "
+     "Slurm, Linux"),
+    ("Machine learning",
+     "PyTorch, Transformers, multi-GPU training (DDP), diffusion models, computer vision, "
+     "U-Net, YOLO, GAN, VAE"),
 ]
 
 EXPERIENCE = [
@@ -70,21 +75,22 @@ EXPERIENCE = [
         "context": (
             "Design and delivery of Athena, Berger-Levrault's agentic platform: agents wired into "
             "the document corpora and business APIs of the group's clients (local government, legal, "
-            "industry, maintenance, public-sector HR). ~100k documents indexed, ~70 pilot users, "
-            "observability and cost tracking under Langfuse, client workshops."
+            "industry, maintenance, public-sector HR). ~100k technical documents indexed, ~70 pilot "
+            "users, Langfuse observability, monitoring and cost tracking, client workshops."
         ),
         "bullets": [
-            "<b>Athena agentic architecture</b> (LangChain / LangGraph), rebuilt with the team: moved "
-            "from a "
+            "<b>Athena agentic architecture</b> (LangGraph), rebuilt with the team: moved from a "
             "router (one agent per task: RAG, MCP APIs, reports) to a reusable agent configured per "
             "profile, with context management, automatically generated skills, sub-agent "
             "orchestration and a unified event contract. Adding a tool no longer means building a "
             "new graph.",
 
-            "<b>Agent evaluation, reliability and security</b>: golden sets, LLM-as-judge scoring, "
-            "comparative benchmarks between architectures and regression tracking through Langfuse; "
-            "sandboxing of retrieved content against indirect prompt injection and execution bounds "
-            "on tools.",
+            "<b>Agent evaluation and reliability</b>: golden sets, LLM-as-judge scoring, "
+            "comparative benchmarks between architectures and regression tracking through "
+            "Langfuse.",
+
+            "<b>Agent security</b>: sandboxing of retrieved content against indirect prompt "
+            "injection, execution bounds on tools (timeouts, per-profile restrictions).",
 
             "<b>MCP Builder</b>: turns business-unit APIs into MCP servers. An LLM selects the "
             "useful endpoints, audits their gaps and generates purpose-built tools (workflows or "
@@ -96,12 +102,16 @@ EXPERIENCE = [
             "costs.",
 
             "<b>Document template agent</b>: tools that extract templates from Word documents, then "
-            "a second agent that fills them from natural language. From prototype to production.",
+            "a second agent and tools that fill those templates from natural language. From "
+            "prototype to production.",
 
             "<b>LLM pipeline for business data structuring</b> (public-sector HR): turns interview "
-            "write-ups into normalised, deduplicated needs matched against a catalogue. Also "
-            "enrichment of the RAG ingestion chain (Airflow): chunking, embeddings, indexed "
-            "questions and keywords.",
+            "write-ups into normalised, deduplicated and clustered training needs, then matches them "
+            "against a catalogue.",
+
+            "<b>RAG ingestion chain</b> (Airflow): added enrichment stages (data augmentation, chunking, "
+            "embeddings, indexed questions and keywords, time filters). One DAG per client in "
+            "production.",
         ],
     },
     {
@@ -123,10 +133,17 @@ EXPERIENCE = [
             "<b>DeepFaune, CNRS / INEE:</b> fine-tuned YOLOv8 on 1.5M images (24 classes) with "
             "class-imbalance handling. 93% accuracy, 3× faster inference. Peer-reviewed publication.",
 
-            "<b>BIGSF (CNES), AUTOFILL (CEA), MORPHOGAN (Univ. Lorraine):</b> tech lead on the "
-            "rebuild of a galactic image analysis library (U-Net, public toolbox); PairVAE for "
-            "nanomaterial data completion (0.98 MAE); StyleGAN2 rebuild. Created and delivered "
-            "\"Introduction to LLMs\" to ~25 PhD students.",
+            "<b>BIGSF, CNES:</b> tech lead on the rebuild of a galactic-filament image analysis "
+            "library (U-Net): modular architecture, tests, documentation. Public toolbox.",
+
+            "<b>AUTOFILL, CEA:</b> implemented the PairVAE model for generating and completing "
+            "nanomaterial data, 0.98 mean absolute error. Library parameterised for other materials.",
+
+            "<b>MORPHOGAN, Univ. Lorraine:</b> full rebuild of a StyleGAN2 codebase to study the "
+            "morphological variability of butterfly wings: automated pipeline, tests, containerisation.",
+
+            "<b>Teaching:</b> created and delivered \"Introduction to LLMs\" to ~25 PhD students and "
+            "researchers.",
         ],
     },
     {
@@ -136,8 +153,8 @@ EXPERIENCE = [
         "dates": "Aug. 2020 &ndash; Sept. 2021 &middot; 1 yr",
         "context": "",
         "bullets": [
-            "<b>Supervision framework for manufacturing equipment</b> (semiconductors): C#, "
-            "object-oriented architecture, HMI, CI/CD. Team of 5 in Scrum.",
+            "<b>Supervision framework for robotic manufacturing equipment</b> (semiconductors): C#, "
+            "object-oriented architecture, HMI, CI/CD. Team of 5, Agile / Scrum.",
         ],
     },
 ]
@@ -148,8 +165,8 @@ EDUCATION = [
     ("BSc Computer Science", "Université Paul Sabatier Toulouse III", "2016 &ndash; 2019"),
 ]
 
-BODY_SIZE = 9.0
-BODY_LEAD = 11.4
+BODY_SIZE = 9.8
+BODY_LEAD = 12.9
 
 
 def styles():
@@ -176,15 +193,15 @@ def styles():
 
 
 def build_cv():
-    output = os.path.join(BASE, "CV_JULIEN_RABAULT_EN.pdf")
+    output = os.path.join(BASE, "CV_JULIEN_RABAULT_EN_LONG.pdf")
     doc = SimpleDocTemplate(
         output, pagesize=A4,
-        leftMargin=11 * mm, rightMargin=11 * mm,
-        topMargin=7 * mm, bottomMargin=7 * mm,
+        leftMargin=14 * mm, rightMargin=14 * mm,
+        topMargin=10 * mm, bottomMargin=10 * mm,
         title="Resume - Julien Rabault", author="Julien Rabault",
     )
     s = styles()
-    W = 188 * mm
+    W = 182 * mm
     story = []
 
     def two_col(left_text, right_text, left_style, right_style, ratio=0.70):
@@ -200,7 +217,7 @@ def build_cv():
         story.append(t)
 
     def section(label):
-        story.append(Spacer(1, 1.5 * mm))
+        story.append(Spacer(1, 2.6 * mm))
         story.append(Paragraph(label, s["section"]))
         story.append(Spacer(1, 1.1 * mm))
         story.append(HRFlowable(width="100%", thickness=0.6, color=RULE,
@@ -230,7 +247,7 @@ def build_cv():
     section("PROFESSIONAL EXPERIENCE")
     for i, job in enumerate(EXPERIENCE):
         if i:
-            story.append(Spacer(1, 3.2 * mm))
+            story.append(Spacer(1, 5 * mm))
         two_col(f"<b>{job['title']}</b>, {job['org']} &mdash; {job['place']}",
                 job["dates"], s["job"], s["dates"])
         if job["context"]:
@@ -242,13 +259,11 @@ def build_cv():
 
     # ─── FORMATION ───
     section("EDUCATION")
-    story.append(Paragraph(
-        "<b>MSc Artificial Intelligence &amp; Pattern Recognition</b>, Université Paul Sabatier / "
-        "IRIT (2021) &nbsp;&middot;&nbsp; <b>BSc Computer Science</b>, Université Paul Sabatier "
-        "(2019)", s["small"]))
+    for title, school, date in EDUCATION:
+        two_col(f"<b>{title}</b>, {school}", date, s["edu"], s["edu_date"], ratio=0.85)
 
     # ─── PUBLICATIONS ───
-    section("PUBLICATIONS &amp; OPEN SOURCE")
+    section("PUBLICATIONS")
     story.append(Paragraph(
         f'<a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" '
         f'color="{LINK}">Enriching Operational High-Resolution Ensemble Forecasts with '
@@ -258,13 +273,20 @@ def build_cv():
         f'user=iUFJqVMAAAAJ&amp;citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" color="{LINK}">'
         "The DeepFaune initiative: automatic identification of European fauna</a>, peer-reviewed.",
         s["small"]))
+    section("OPEN SOURCE")
     story.append(Paragraph(
-        f'<b><a href="https://github.com/langchain-ai/langchain/pull/37008" color="{LINK}">LangChain'
-        f"</a></b>: merged contribution (Mistral integration) &nbsp;&middot;&nbsp; "
-        f'<b><a href="https://github.com/JulienRabault/LLMock" color="{LINK}">LLMock</a></b> (PyPI): '
-        f"LLM mock server, 10+ providers &nbsp;&middot;&nbsp; "
-        f'<b><a href="https://github.com/JulienRabault/DDPM-weather" color="{LINK}">DDPM-weather</a>'
-        "</b>: diffusion for weather images.", s["small"]))
+        f'<b><a href="https://github.com/langchain-ai/langchain/pull/37008" color="{LINK}">'
+        "LangChain</a></b>: merged contribution to the Mistral integration, surfacing citation "
+        "metadata.", s["small"]))
+    story.append(Paragraph(
+        f'<b><a href="https://github.com/JulienRabault/LLMock" color="{LINK}">LLMock</a></b> '
+        "(PyPI): LLM mock server for testing retries and fallbacks, 10+ providers.",
+        s["small"]))
+    story.append(Paragraph(
+        f'<b><a href="https://github.com/JulienRabault/DDPM-weather" color="{LINK}">'
+        "DDPM-weather</a></b>: diffusion model for weather image denoising.",
+        s["small"]))
+
     doc.build(story)
     print(f"CV (EN) generated: {output}")
 

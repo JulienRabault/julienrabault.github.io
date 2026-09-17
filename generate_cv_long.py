@@ -1,4 +1,4 @@
-"""Generate Julien Rabault's CV as a clean, ATS-friendly one-page PDF (FR). v9
+"""[VERSION LONGUE, 2 pages] Generate Julien Rabault's CV as a clean, ATS-friendly one-page PDF (FR). v9
 
 Layout follows the r/EngineeringResumes reference template: centred name and a
 single contact line, serif body text, bold reserved for job titles and skill
@@ -46,19 +46,24 @@ CONTACT = (
 )
 
 SUMMARY = (
-    "Conception et mise en production d'agents LLM et de systèmes RAG chez des clients, après "
-    "quatre ans de deep learning sur supercalculateur au CNRS (PyTorch, multi-GPU). "
-    "Deux publications peer-reviewed."
+    "Conception et mise en production d'agents LLM et de systèmes RAG chez des clients, "
+    "après quatre ans de recherche appliquée au CNRS : entraînement et fine-tuning de modèles deep "
+    "learning sur supercalculateur (PyTorch, multi-GPU). Deux publications peer-reviewed."
 )
 
 SKILLS = [
     ("Systèmes agentiques",
      "Agents LLM en production, RAG, evals (golden sets, LLM-as-judge), observabilité, sécurité "
-     "des agents, multimodal (OCR, vision, audio), MCP, LangChain / LangGraph, fine-tuning"),
+     "des agents, suivi des coûts d'inférence, multimodal (OCR, vision, audio), MCP, "
+     "LangChain / LangGraph, fine-tuning"),
     ("Langages &amp; données",
-     "Python, PyTorch, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, API Mistral et OpenAI"),
+     "Python, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, API Mistral et OpenAI"),
     ("Infrastructure",
-     "Docker, Kubernetes, Helm, GitLab CI, AWS, Celery, RabbitMQ, Airflow, Langfuse, Slurm, Linux"),
+     "Docker, Kubernetes, Helm, GitLab CI, AWS, Celery, RabbitMQ, S3, Airflow, MLflow, Langfuse, "
+     "Slurm, Linux"),
+    ("Machine learning",
+     "PyTorch, Transformers, entraînement multi-GPU (DDP), modèles de diffusion, computer vision, "
+     "U-Net, YOLO, GAN, VAE"),
 ]
 
 EXPERIENCE = [
@@ -69,23 +74,24 @@ EXPERIENCE = [
         "dates": "Janv. 2026 &ndash; présent",
         "context": (
             "Conception et développement d'Athena, la plateforme agentique de Berger-Levrault : "
-            "agents branchés sur les corpus documentaires et les APIs métier des clients "
-            "(collectivités, juridique, industrie, maintenance, RH publique). ~100k documents "
-            "indexés, ~70 utilisateurs pilotes, observabilité et suivi des coûts sous Langfuse, "
-            "ateliers clients."
+            "agents branchés sur les corpus documentaires et les APIs métier des clients du groupe "
+            "(collectivités, juridique, industrie, maintenance, RH publique). Corpus de ~100k documents "
+            "techniques, ~70 utilisateurs pilotes, observabilité, monitoring et suivi des coûts "
+            "(Langfuse), ateliers clients."
         ),
         "bullets": [
-            "<b>Architecture agentique d'Athena</b> (LangChain / LangGraph), refonte en équipe : passage "
-            "d'un "
+            "<b>Architecture agentique d'Athena</b> (LangGraph), refonte en équipe : passage d'un "
             "routeur (un agent par tâche : RAG, APIs MCP, rapports) à un agent réutilisable "
             "configuré par profil, avec gestion du contexte, skills générés automatiquement, "
             "orchestration de sous-agents et contrat d'événements unifié. Ajouter un outil ne "
             "demande plus de construire un graphe.",
 
-            "<b>Évaluation, fiabilité et sécurité des agents</b> : jeux de référence (golden sets), "
-            "scoring LLM-as-judge, bancs comparatifs entre architectures et suivi des régressions "
-            "via Langfuse ; cloisonnement des contenus récupérés contre l'injection de prompt "
-            "indirecte et bornes d'exécution des tools.",
+            "<b>Évaluation et fiabilité des agents</b> : jeux de référence (golden sets), scoring "
+            "LLM-as-judge, bancs comparatifs entre architectures et suivi des régressions via "
+            "Langfuse.",
+
+            "<b>Sécurité des agents</b> : cloisonnement des contenus récupérés (injection de prompt "
+            "indirecte), bornes d'exécution des tools (timeouts, restriction par profil d'agent).",
 
             "<b>MCP Builder</b> : transforme les APIs des BU en serveurs MCP. Un LLM sélectionne les "
             "endpoints utiles, audite leurs lacunes et génère des tools sur mesure (workflows ou "
@@ -96,14 +102,17 @@ EXPERIENCE = [
             "Mistral), architecture factory/registry extensible. Déployé, -50 % sur les coûts "
             "d'extraction.",
 
-            "<b>Agent de templates de documents</b> : tools d'extraction de templates depuis des "
-            "documents Word, puis second agent qui les remplit en langage naturel. Du prototype à "
-            "la production.",
+            "<b>Agent de templates de documents</b> : tools de lecture de documents Word pour en "
+            "extraire des templates, puis second agent et tools permettant de remplir ces templates "
+            "en langage naturel. Du prototype à la production.",
 
             "<b>Pipeline LLM de structuration de données métier</b> (RH du secteur public) : "
-            "transforme des comptes rendus d'entretiens en besoins normalisés, dédoublonnés et "
-            "rapprochés d'un catalogue. Également, enrichissement de la chaîne d'ingestion RAG "
-            "(Airflow) : chunking, embeddings, questions et mots-clés indexés.",
+            "transforme des comptes rendus d'entretiens en besoins de formation normalisés, "
+            "dédoublonnés et regroupés, puis rapprochés d'un catalogue.",
+
+            "<b>Chaîne d'ingestion RAG</b> (Airflow) : étapes d'enrichissement ajoutées (data "
+            "augmentation, chunking, embeddings, questions et mots-clés indexés, filtres "
+            "temporels). Un DAG par client en production.",
         ],
     },
     {
@@ -127,10 +136,20 @@ EXPERIENCE = [
             "gestion du déséquilibre de classes. 93 % de précision, inférence 3× plus rapide. "
             "Publication peer-reviewed.",
 
-            "<b>BIGSF (CNES), AUTOFILL (CEA), MORPHOGAN (Univ. Lorraine) :</b> tech lead sur la "
-            "refonte d'une librairie d'analyse d'images galactiques (U-Net, toolbox publique) ; "
-            "PairVAE pour la complétion de données de nanomatériaux (MAE 0,98) ; refonte d'un code "
-            "StyleGAN2. Formation « Introduction aux LLMs » dispensée à ~25 doctorants.",
+            "<b>BIGSF, CNES :</b> tech lead sur la refonte d'une librairie d'analyse d'images de "
+            "filaments galactiques (U-Net) : architecture modulaire, tests, documentation. "
+            "Toolbox publique.",
+
+            "<b>AUTOFILL, CEA :</b> implémentation du modèle PairVAE pour la génération et la "
+            "complétion de données de nanomatériaux, erreur moyenne absolue de 0,98. Librairie "
+            "paramétrable pour d'autres matériaux.",
+
+            "<b>MORPHOGAN, Univ. Lorraine :</b> refonte complète d'un code StyleGAN2 pour l'étude de "
+            "la variabilité morphologique d'ailes de papillons : pipeline automatisée, tests, "
+            "conteneurisation.",
+
+            "<b>Formation :</b> « Introduction aux LLMs » créée et dispensée à ~25 doctorants et "
+            "chercheurs.",
         ],
     },
     {
@@ -140,8 +159,8 @@ EXPERIENCE = [
         "dates": "Août 2020 &ndash; Sept. 2021 &middot; 1 an",
         "context": "",
         "bullets": [
-            "<b>Framework de supervision de machines de production</b> (semi-conducteurs) : C#, "
-            "architecture orientée objets, IHM, CI/CD. Équipe de 5 en Scrum.",
+            "<b>Framework de supervision de machines robotisées</b> (semi-conducteurs) : C#, "
+            "architecture orientée objets, IHM, CI/CD. Équipe de 5, Agile / Scrum.",
         ],
     },
 ]
@@ -152,8 +171,8 @@ EDUCATION = [
     ("Licence informatique", "Université Paul Sabatier Toulouse III", "2016 &ndash; 2019"),
 ]
 
-BODY_SIZE = 9.0
-BODY_LEAD = 11.4
+BODY_SIZE = 9.8
+BODY_LEAD = 12.9
 
 
 def styles():
@@ -172,7 +191,7 @@ def styles():
         "dates": S("dates", fontSize=9, leading=14, textColor=MUTED, alignment=TA_RIGHT),
         "context": S("context", fontName=FONT_ITALIC, textColor=MUTED,
                      spaceBefore=2.5, spaceAfter=3.5),
-        "bullet": S("bullet", leftIndent=11, bulletIndent=0, spaceAfter=1.3),
+        "bullet": S("bullet", leftIndent=11, bulletIndent=0, spaceAfter=2),
         "edu": S("edu",),
         "edu_date": S("edu_date", textColor=MUTED, alignment=TA_RIGHT),
         "small": S("small", spaceAfter=2.6),
@@ -180,15 +199,15 @@ def styles():
 
 
 def build_cv():
-    output = os.path.join(BASE, "CV_JULIEN_RABAULT.pdf")
+    output = os.path.join(BASE, "CV_JULIEN_RABAULT_LONG.pdf")
     doc = SimpleDocTemplate(
         output, pagesize=A4,
-        leftMargin=11 * mm, rightMargin=11 * mm,
-        topMargin=6.5 * mm, bottomMargin=6.5 * mm,
+        leftMargin=14 * mm, rightMargin=14 * mm,
+        topMargin=10 * mm, bottomMargin=10 * mm,
         title="CV - Julien Rabault", author="Julien Rabault",
     )
     s = styles()
-    W = 188 * mm
+    W = 182 * mm
     story = []
 
     def two_col(left_text, right_text, left_style, right_style, ratio=0.70):
@@ -204,7 +223,7 @@ def build_cv():
         story.append(t)
 
     def section(label):
-        story.append(Spacer(1, 1.4 * mm))
+        story.append(Spacer(1, 2.6 * mm))
         story.append(Paragraph(label, s["section"]))
         story.append(Spacer(1, 1.1 * mm))
         story.append(HRFlowable(width="100%", thickness=0.6, color=RULE,
@@ -234,7 +253,7 @@ def build_cv():
     section("EXPÉRIENCE PROFESSIONNELLE")
     for i, job in enumerate(EXPERIENCE):
         if i:
-            story.append(Spacer(1, 3.2 * mm))
+            story.append(Spacer(1, 5 * mm))
         two_col(f"<b>{job['title']}</b>, {job['org']} &mdash; {job['place']}",
                 job["dates"], s["job"], s["dates"])
         if job["context"]:
@@ -246,13 +265,11 @@ def build_cv():
 
     # ─── FORMATION ───
     section("FORMATION")
-    story.append(Paragraph(
-        "<b>Master intelligence artificielle et reconnaissance des formes</b>, Université Paul "
-        "Sabatier / IRIT (2021) &nbsp;&middot;&nbsp; <b>Licence informatique</b>, Université Paul "
-        "Sabatier (2019)", s["small"]))
+    for title, school, date in EDUCATION:
+        two_col(f"<b>{title}</b>, {school}", date, s["edu"], s["edu_date"], ratio=0.85)
 
     # ─── PUBLICATIONS ───
-    section("PUBLICATIONS &amp; OPEN SOURCE")
+    section("PUBLICATIONS")
     story.append(Paragraph(
         f'<a href="https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" '
         f'color="{LINK}">Enriching Operational High-Resolution Ensemble Forecasts with '
@@ -262,13 +279,20 @@ def build_cv():
         f'user=iUFJqVMAAAAJ&amp;citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" color="{LINK}">'
         "The DeepFaune initiative: automatic identification of European fauna</a>, peer-reviewed.",
         s["small"]))
+    section("PROJETS OPEN SOURCE")
     story.append(Paragraph(
-        f'<b><a href="https://github.com/langchain-ai/langchain/pull/37008" color="{LINK}">LangChain'
-        f"</a></b> : contribution mergée (intégration Mistral) &nbsp;&middot;&nbsp; "
-        f'<b><a href="https://github.com/JulienRabault/LLMock" color="{LINK}">LLMock</a></b> (PyPI) : '
-        f"serveur de mock LLM, 10+ fournisseurs &nbsp;&middot;&nbsp; "
-        f'<b><a href="https://github.com/JulienRabault/DDPM-weather" color="{LINK}">DDPM-weather</a>'
-        "</b> : diffusion pour images météo.", s["small"]))
+        f'<b><a href="https://github.com/langchain-ai/langchain/pull/37008" color="{LINK}">'
+        "LangChain</a></b> : contribution mergée sur l'intégration Mistral, remontée des "
+        "métadonnées de citation.", s["small"]))
+    story.append(Paragraph(
+        f'<b><a href="https://github.com/JulienRabault/LLMock" color="{LINK}">LLMock</a></b> '
+        "(PyPI) : serveur de mock LLM pour tester retries et fallbacks, plus de dix fournisseurs.",
+        s["small"]))
+    story.append(Paragraph(
+        f'<b><a href="https://github.com/JulienRabault/DDPM-weather" color="{LINK}">'
+        "DDPM-weather</a></b> : modèle de diffusion pour le débruitage d'images météorologiques.",
+        s["small"]))
+
     doc.build(story)
     print(f"CV generated: {output}")
 
