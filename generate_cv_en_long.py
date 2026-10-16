@@ -37,8 +37,8 @@ NAME = "JULIEN RABAULT"
 ROLE = "AI Engineer, LLM agents and RAG in production"
 
 CONTACT = (
-    f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;'
-    f'{_icon("phone")}&nbsp;+33 7 81 16 46 29<br/>'
+    f'{_icon("location")}&nbsp;Toulouse, open to Paris, remote, Canada<br/>'
+    f'{_icon("phone")}&nbsp;+33 7 81 16 46 29&nbsp;&nbsp;&nbsp;'
     f'{_icon("email")}&nbsp;<a href="mailto:julienrabault@icloud.com" color="{LINK}">julienrabault@icloud.com</a><br/>'
     f'{_icon("linkedin")}&nbsp;<a href="https://linkedin.com/in/julienrabault" color="{LINK}">linkedin.com/in/julienrabault</a><br/>'
     f'{_icon("github")}&nbsp;<a href="https://github.com/JulienRabault" color="{LINK}">github.com/JulienRabault</a><br/>'
@@ -54,8 +54,8 @@ SUMMARY = (
 
 SKILLS = [
     ("Agentic systems",
-     "Agent harnesses (agent loop, middleware, memory, human-in-the-loop), LangChain / "
-     "LangGraph / Deep Agents, agentic RAG, MCP, evals (datasets, golden sets, LLM-as-judge), "
+     "Agent harnesses (agent loop, tool calling, middleware, memory, human-in-the-loop), LangChain / "
+     "LangGraph / Deep Agents, agentic RAG, MCP, evals (datasets, golden sets, LLM-as-judge, A/B testing), "
      "observability, agent security, inference cost tracking, multimodal (OCR, vision, audio), "
      "fine-tuning"),
     ("Languages &amp; data",
@@ -77,11 +77,12 @@ EXPERIENCE = [
         "context": (
             "Design and delivery of Athena, Berger-Levrault's agentic platform: agents wired into "
             "the document corpora and business APIs of the group's clients (local government, legal, "
-            "industry, maintenance, public-sector HR). 100k technical documents indexed, 70 pilot "
-            "users, Langfuse observability, monitoring and cost tracking, client workshops."
+            "industry, maintenance, public-sector HR). 100k technical documents indexed, 6-month "
+            "pilot with 70 users, taken up by business units, production rollout under way, Langfuse observability, monitoring and cost tracking. Requirements gathered from "
+            "business units, client workshops."
         ),
         "bullets": [
-            "<b>Athena agent harness</b> (LangChain / LangGraph), architecture designed and led. "
+            "<b>Athena agent harness</b> (LangChain / LangGraph), architecture designed and owned. "
             "Moved from a router (one agent per task: RAG, MCP APIs, reports) to a single agent "
             "loop configured per profile and extended through middleware: persistent memory, human "
             "approval of sensitive actions, context management (summarisation, token budget), "
@@ -94,18 +95,18 @@ EXPERIENCE = [
 
             "<b>Agent evaluation and monitoring</b>: rebuilt monitoring on Langfuse v4 (actionable "
             "traces, dataset management, automated evaluations and scoring), golden sets, "
-            "LLM-as-judge scoring, comparative benchmarks between architectures and regression "
+            "LLM-as-judge scoring, model, prompt and architecture comparisons, regression "
             "tracking.",
 
             "<b>Agent security</b>: sandboxing of retrieved content against indirect prompt "
             "injection, execution bounds on tools (timeouts, per-profile restrictions).",
 
-            "<b>MCP Builder</b>: turns business-unit APIs into MCP servers. An LLM selects the "
+            "<b>MCP Builder</b>: turns internal business APIs into MCP servers. An LLM selects the "
             "useful endpoints, audits their gaps and generates purpose-built tools (workflows or "
             "Python code via FastMCP), human-in-the-loop.",
 
-            "<b>Content-extractor</b>, multimodal extraction (OCR / PDF / DOCX / audio): service "
-            "built from scratch, 7 extraction pipelines, async batch processing (Celery + Mistral "
+            "<b>Content-extractor</b>, multimodal extraction (OCR / PDF / DOCX / audio): FastAPI "
+            "service built from scratch, 7 extraction pipelines, async batch processing (Celery + Mistral "
             "batch API), extensible factory/registry architecture. Deployed, -50% on extraction "
             "costs.",
 
@@ -128,8 +129,9 @@ EXPERIENCE = [
         "place": "Toulouse",
         "dates": "Dec. 2021 - Jan. 2026 (4 yrs)",
         "context": (
-            "Network of AI engineers supporting research teams (weather, astrophysics, materials, "
-            "ethology, biology). 10+ projects supported, up to two in parallel (6-12 months), for "
+            "Engineer embedded in research teams (weather, astrophysics, materials, ethology, "
+            "biology): 10+ projects of 6-12 months, up to two in parallel, from requirements to "
+            "delivery, for "
             "Météo France, CNES, CEA and INEE. Training and fine-tuning on the Jean Zay "
             "supercomputer (multi-GPU DDP, 8 GPUs, Slurm)."
         ),

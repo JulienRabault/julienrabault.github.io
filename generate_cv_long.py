@@ -37,8 +37,8 @@ NAME = "JULIEN RABAULT"
 ROLE = "Ingénieur IA, agents LLM et RAG en production"
 
 CONTACT = (
-    f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;'
-    f'{_icon("phone")}&nbsp;+33 7 81 16 46 29<br/>'
+    f'{_icon("location")}&nbsp;Toulouse, ouvert à Paris, remote, Canada<br/>'
+    f'{_icon("phone")}&nbsp;+33 7 81 16 46 29&nbsp;&nbsp;&nbsp;'
     f'{_icon("email")}&nbsp;<a href="mailto:julienrabault@icloud.com" color="{LINK}">julienrabault@icloud.com</a><br/>'
     f'{_icon("linkedin")}&nbsp;<a href="https://linkedin.com/in/julienrabault" color="{LINK}">linkedin.com/in/julienrabault</a><br/>'
     f'{_icon("github")}&nbsp;<a href="https://github.com/JulienRabault" color="{LINK}">github.com/JulienRabault</a><br/>'
@@ -54,8 +54,8 @@ SUMMARY = (
 
 SKILLS = [
     ("Systèmes agentiques",
-     "Harnais d'agents (boucle agentique, middlewares, mémoire, human-in-the-loop), LangChain / "
-     "LangGraph / Deep Agents, RAG agentique, MCP, evals (datasets, golden sets, LLM-as-judge), "
+     "Harnais d'agents (boucle agentique, tool calling, middlewares, mémoire, human-in-the-loop), LangChain / "
+     "LangGraph / Deep Agents, RAG agentique, MCP, evals (datasets, golden sets, LLM-as-judge, A/B testing), "
      "observabilité, sécurité des agents, suivi des coûts d'inférence, multimodal (OCR, vision, "
      "audio), fine-tuning"),
     ("Langages &amp; données",
@@ -78,8 +78,9 @@ EXPERIENCE = [
             "Conception et développement d'Athena, la plateforme agentique de Berger-Levrault : "
             "agents branchés sur les corpus documentaires et les APIs métier des clients du groupe "
             "(collectivités, juridique, industrie, maintenance, RH publique). Corpus de 100k documents "
-            "techniques, 70 utilisateurs pilotes, observabilité, monitoring et suivi des coûts "
-            "(Langfuse), ateliers clients."
+            "techniques, pilote de 6 mois avec 70 utilisateurs, repris par des business units, mise en "
+            "production en cours, observabilité, monitoring et suivi des coûts "
+            "(Langfuse). Besoins recueillis auprès des business units, ateliers clients."
         ),
         "bullets": [
             "<b>Harnais agentique d'Athena</b> (LangChain / LangGraph), architecture conçue et "
@@ -95,18 +96,18 @@ EXPERIENCE = [
 
             "<b>Évaluation et monitoring des agents</b> : refonte du monitoring sous Langfuse v4 "
             "(traces exploitables, gestion des datasets, évaluations et scoring automatiques), jeux "
-            "de référence (golden sets), scoring LLM-as-judge, bancs comparatifs entre "
-            "architectures et suivi des régressions.",
+            "de référence (golden sets), scoring LLM-as-judge, comparaison de modèles, de prompts "
+            "et d'architectures, suivi des régressions.",
 
             "<b>Sécurité des agents</b> : cloisonnement des contenus récupérés (injection de prompt "
             "indirecte), bornes d'exécution des tools (timeouts, restriction par profil d'agent).",
 
-            "<b>MCP Builder</b> : transforme les APIs des BU en serveurs MCP. Un LLM sélectionne les "
+            "<b>MCP Builder</b> : transforme les APIs métier internes en serveurs MCP. Un LLM sélectionne les "
             "endpoints utiles, audite leurs lacunes et génère des tools sur mesure (workflows ou "
             "code Python via FastMCP), en human-in-the-loop.",
 
             "<b>Content-extractor</b>, extraction multimodale (OCR / PDF / DOCX / audio) : service "
-            "créé de zéro, 7 pipelines d'extraction, traitement batch asynchrone (Celery + API batch "
+            "FastAPI créé de zéro, 7 pipelines d'extraction, traitement batch asynchrone (Celery + API batch "
             "Mistral), architecture factory/registry extensible. Déployé, -50 % sur les coûts "
             "d'extraction.",
 
@@ -129,9 +130,9 @@ EXPERIENCE = [
         "place": "Toulouse",
         "dates": "Déc. 2021 - Janv. 2026 (4 ans)",
         "context": (
-            "Réseau d'ingénieurs IA en appui aux équipes de recherche (météo, astrophysique, "
-            "matériaux, éthologie, biologie). Plus de 10 projets accompagnés, jusqu'à 2 en parallèle "
-            "(6-12 mois), pour Météo France, CNES, CEA, INEE. Entraînement et fine-tuning sur Jean "
+            "Ingénieur intégré aux équipes de recherche (météo, astrophysique, matériaux, "
+            "éthologie, biologie) : plus de 10 projets de 6 à 12 mois, jusqu'à 2 en parallèle, du "
+            "recueil du besoin à la livraison, pour Météo France, CNES, CEA, INEE. Entraînement et fine-tuning sur Jean "
             "Zay (multi-GPU DDP, 8 GPU, Slurm)."
         ),
         "bullets": [

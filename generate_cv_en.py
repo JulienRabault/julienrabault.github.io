@@ -37,8 +37,8 @@ NAME = "JULIEN RABAULT"
 ROLE = "AI Engineer, LLM agents and RAG in production"
 
 CONTACT = (
-    f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;'
-    f'{_icon("phone")}&nbsp;+33 7 81 16 46 29<br/>'
+    f'{_icon("location")}&nbsp;Toulouse, open to Paris, remote, Canada<br/>'
+    f'{_icon("phone")}&nbsp;+33 7 81 16 46 29&nbsp;&nbsp;&nbsp;'
     f'{_icon("email")}&nbsp;<a href="mailto:julienrabault@icloud.com" color="{LINK}">julienrabault@icloud.com</a><br/>'
     f'{_icon("linkedin")}&nbsp;<a href="https://linkedin.com/in/julienrabault" color="{LINK}">linkedin.com/in/julienrabault</a><br/>'
     f'{_icon("github")}&nbsp;<a href="https://github.com/JulienRabault" color="{LINK}">github.com/JulienRabault</a><br/>'
@@ -54,9 +54,9 @@ SUMMARY = (
 
 SKILLS = [
     ("Agentic systems",
-     "Agent harnesses (agent loop, middleware, memory, human-in-the-loop), LangChain / "
-     "LangGraph / Deep Agents, RAG, MCP, evals (golden sets, LLM-as-judge), observability, "
-     "agent security, multimodal (OCR, vision, audio), fine-tuning"),
+     "Agent harnesses (agent loop, tool calling, middleware, memory, human-in-the-loop), "
+     "LangChain / LangGraph / Deep Agents, RAG, MCP, evals (golden sets, LLM-as-judge, A/B "
+     "testing), multimodal (OCR, vision, audio), fine-tuning"),
     ("Languages &amp; data",
      "Python, PyTorch, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, Mistral and OpenAI APIs"),
     ("Infrastructure",
@@ -70,17 +70,18 @@ EXPERIENCE = [
         "place": "Toulouse (AI R&amp;D team)",
         "dates": "Jan. 2026 - present",
         "context": (
-            "Athena, the group's agentic platform: agents wired into the document corpora and "
-            "business APIs of its clients (local government, legal, industry, maintenance, "
-            "public-sector HR). 100k documents indexed, 70 pilot users, client workshops."
+            "Athena, agentic platform wired into its clients' documents and business APIs (local "
+            "government, legal, industry, public-sector HR): 100k documents, 6-month pilot with 70 "
+            "users, production rollout under way. Needs gathered from business units, client "
+            "workshops."
         ),
         "groups": [
             ("Platform core", [
-                "<b>Agent harness</b> (LangChain / LangGraph), architecture designed and led. Moved "
+                "<b>Agent harness</b> (LangChain / LangGraph), architecture designed and owned. Moved "
                 "from a router (one agent per task) to a single agent loop configured per profile "
                 "and extended through middleware: persistent memory, human approval of sensitive "
                 "actions, context management (summarisation, token budget), guardrails, skills, "
-                "sub-agents. Migration to Deep Agents under way.",
+                "sub-agents. Now migrating to Deep Agents.",
 
                 "<b>Agent tools</b>: agentic RAG, web search, calculator and the matching MCP "
                 "servers, all plugged into the same loop. Adding a tool no longer means building a "
@@ -88,20 +89,20 @@ EXPERIENCE = [
 
                 "<b>Evaluation and monitoring</b>: rebuilt monitoring on Langfuse v4 (traces, "
                 "datasets, automated evaluations and scoring, LLM-as-judge), golden sets, "
-                "comparative benchmarks between architectures, regression and cost tracking; "
+                "model, prompt and architecture comparisons, regression and cost tracking; "
                 "sandboxing of retrieved content against indirect prompt injection.",
 
-                "<b>MCP Builder</b>: turns business-unit APIs into MCP servers. An LLM selects the "
+                "<b>MCP Builder</b>: turns internal business APIs into MCP servers. An LLM selects the "
                 "useful endpoints, audits their gaps and generates purpose-built tools (workflows "
                 "or Python code via FastMCP), human-in-the-loop.",
             ]),
             ("LLM services and pipelines", [
                 "<b>Content-extractor</b>, multimodal extraction (OCR / PDF / DOCX / audio): "
-                "service built from scratch, 7 pipelines, async batch processing (Celery + Mistral "
+                "FastAPI service built from scratch, 7 pipelines, async batch processing (Celery + Mistral "
                 "batch API), factory/registry architecture. Deployed, -50% on extraction costs.",
 
-                "<b>Document template agent</b>: extracts templates from Word documents, then a "
-                "second agent fills them from natural language. Shipped to production.",
+                "<b>Template agent</b>: extracts templates from Word documents that a second agent "
+                "fills from natural language. In production.",
 
                 "<b>Business data structuring</b> (public-sector HR): interview write-ups turned "
                 "into normalised, deduplicated needs matched against a catalogue. Enriched RAG "
@@ -115,8 +116,9 @@ EXPERIENCE = [
         "place": "Toulouse",
         "dates": "Dec. 2021 - Jan. 2026 (4 yrs)",
         "context": (
-            "Network of AI engineers supporting research labs (weather, astrophysics, materials, "
-            "ethology, biology): 10+ projects delivered, two in parallel (6-12 months each), for "
+            "Engineer embedded in research teams (weather, astrophysics, materials, ethology, "
+            "biology): 10+ projects of 6-12 months, two in parallel, from requirements to delivery, "
+            "for "
             "Météo France, CNES, CEA and INEE. Training and fine-tuning on the Jean Zay "
             "supercomputer (multi-GPU DDP, Slurm). Created and taught \"Introduction to LLMs\" to "
             "25 PhD students."

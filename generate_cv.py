@@ -37,8 +37,8 @@ NAME = "JULIEN RABAULT"
 ROLE = "Ingénieur IA, agents LLM et RAG en production"
 
 CONTACT = (
-    f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;'
-    f'{_icon("phone")}&nbsp;+33 7 81 16 46 29<br/>'
+    f'{_icon("location")}&nbsp;Toulouse, ouvert à Paris, remote, Canada<br/>'
+    f'{_icon("phone")}&nbsp;+33 7 81 16 46 29&nbsp;&nbsp;&nbsp;'
     f'{_icon("email")}&nbsp;<a href="mailto:julienrabault@icloud.com" color="{LINK}">julienrabault@icloud.com</a><br/>'
     f'{_icon("linkedin")}&nbsp;<a href="https://linkedin.com/in/julienrabault" color="{LINK}">linkedin.com/in/julienrabault</a><br/>'
     f'{_icon("github")}&nbsp;<a href="https://github.com/JulienRabault" color="{LINK}">github.com/JulienRabault</a><br/>'
@@ -54,9 +54,9 @@ SUMMARY = (
 
 SKILLS = [
     ("Systèmes agentiques",
-     "Harnais d'agents (boucle agentique, middlewares, mémoire, human-in-the-loop), LangChain / "
-     "LangGraph / Deep Agents, RAG, MCP, evals (golden sets, LLM-as-judge), sécurité des "
-     "agents, multimodal (OCR, vision, audio), fine-tuning"),
+     "Harnais d'agents (boucle agentique, tool calling, middlewares, mémoire, human-in-the-loop), "
+     "LangChain / LangGraph / Deep Agents, RAG, MCP, evals (golden sets, LLM-as-judge, A/B "
+     "testing), multimodal (OCR, vision, audio), fine-tuning"),
     ("Langages &amp; données",
      "Python, PyTorch, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, API Mistral et OpenAI"),
     ("Infrastructure",
@@ -70,10 +70,10 @@ EXPERIENCE = [
         "place": "Toulouse (équipe R&amp;D IA)",
         "dates": "Janv. 2026 - présent",
         "context": (
-            "Athena, la plateforme agentique du groupe : agents branchés sur les corpus "
-            "documentaires et les APIs métier des clients "
-            "(collectivités, juridique, industrie, maintenance, RH publique). 100k documents "
-            "indexés, 70 utilisateurs pilotes, ateliers clients."
+            "Athena, plateforme agentique branchée sur les documents et APIs métier de "
+            "ses clients (collectivités, juridique, industrie, RH publique) : 100k "
+            "documents, pilote de 6 mois avec 70 utilisateurs, mise en production en cours. "
+            "Besoins recueillis auprès des business units, ateliers clients."
         ),
         "groups": [
             ("Cœur de la plateforme", [
@@ -88,22 +88,21 @@ EXPERIENCE = [
                 "construire un graphe.",
 
                 "<b>Évaluation et monitoring</b> : refonte du monitoring sous Langfuse v4 (traces, "
-                "datasets, évaluations et scoring automatiques, LLM-as-judge), golden sets, bancs "
-                "comparatifs entre architectures, suivi des régressions et des coûts ; cloisonnement "
+                "datasets, évaluations et scoring automatiques, LLM-as-judge), golden sets, comparaison "
+                "de modèles, de prompts et d'architectures, suivi des régressions et des coûts ; cloisonnement "
                 "des contenus récupérés contre l'injection de prompt indirecte.",
 
-                "<b>MCP Builder</b> : transforme les APIs des BU en serveurs MCP. Un LLM sélectionne "
+                "<b>MCP Builder</b> : transforme les APIs métier internes en serveurs MCP. Un LLM sélectionne "
                 "les endpoints utiles, audite leurs lacunes et génère des tools sur mesure (workflows "
                 "ou code Python via FastMCP), en human-in-the-loop.",
             ]),
             ("Services et pipelines LLM", [
                 "<b>Content-extractor</b>, extraction multimodale (OCR / PDF / DOCX / audio) : "
-                "service créé de zéro, 7 pipelines, batch asynchrone (Celery + API batch Mistral), "
+                "service FastAPI créé de zéro, 7 pipelines, batch asynchrone (Celery + API batch Mistral), "
                 "architecture factory/registry. Déployé, -50 % sur les coûts d'extraction.",
 
-                "<b>Agent de templates de documents</b> : extraction de templates depuis des "
-                "documents Word, puis second agent qui les remplit en langage naturel. Mis en "
-                "production.",
+                "<b>Agent de templates</b> : extrait des templates de documents Word, qu'un second "
+                "agent remplit en langage naturel. En production.",
 
                 "<b>Structuration de données métier</b> (RH publique) : comptes rendus "
                 "d'entretiens transformés en besoins normalisés, dédoublonnés, rapprochés d'un "
@@ -118,9 +117,9 @@ EXPERIENCE = [
         "place": "Toulouse",
         "dates": "Déc. 2021 - Janv. 2026 (4 ans)",
         "context": (
-            "Réseau d'ingénieurs IA en appui aux laboratoires (météo, astrophysique, matériaux, "
-            "éthologie, biologie) : plus de 10 projets livrés, 2 en parallèle (6-12 mois chacun), "
-            "pour Météo France, CNES, CEA, INEE. Entraînement et fine-tuning sur le supercalculateur "
+            "Ingénieur intégré aux équipes de recherche (météo, astrophysique, matériaux, "
+            "éthologie, biologie) : plus de 10 projets de 6 à 12 mois, 2 en parallèle, du recueil "
+            "du besoin à la livraison, pour Météo France, CNES, CEA, INEE. Entraînement et fine-tuning sur le supercalculateur "
             "Jean Zay (multi-GPU DDP, Slurm). Formation d'introduction aux LLMs pour 25 doctorants."
         ),
         "groups": [
