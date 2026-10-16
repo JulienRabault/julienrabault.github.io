@@ -89,7 +89,8 @@ EXPERIENCE = [
             "persistante, approbation humaine des actions sensibles, gestion du contexte (résumé, "
             "budget de tokens), garde-fous, gestion des skills, orchestration de sous-agents et "
             "contrat d'événements unifié. Ajouter un outil ne demande plus de construire un graphe. "
-            "Migration en cours vers Deep Agents (LangChain).",
+            "Prompt caching partagé entre conversations, tenants et clients : -40 à -50 % "
+            "de coûts d'inférence (estimé). Migration en cours vers Deep Agents (LangChain).",
 
             "<b>Outils de l'agent</b> : RAG agentique, recherche web, calcul et serveurs MCP "
             "associés, branchés sur la même boucle.",

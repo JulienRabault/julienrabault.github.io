@@ -81,11 +81,10 @@ EXPERIENCE = [
                 "Passage d'un routeur d'agents à une boucle agentique configurée par "
                 "profil, étendue par middlewares : mémoire persistante, validation humaine des "
                 "actions sensibles, gestion du contexte (résumé, budget de tokens), garde-fous, "
-                "skills, sous-agents. Migration en cours vers Deep Agents.",
+                "skills, sous-agents. Prompt caching partagé entre conversations, tenants et clients : -40 à -50 % de coûts d'inférence (estimé). Migration en cours vers Deep Agents.",
 
-                "<b>Outils de l'agent</b> : RAG agentique, recherche web, calcul et serveurs MCP "
-                "associés, branchés sur la même boucle. Ajouter un outil ne demande plus de "
-                "construire un graphe.",
+                "<b>Outils de l'agent</b> : RAG agentique, recherche web, calcul et serveurs MCP, "
+                "sur la même boucle, sans graphe par outil.",
 
                 "<b>Évaluation et monitoring</b> : refonte du monitoring sous Langfuse v4 (traces, "
                 "datasets, évaluations et scoring automatiques, LLM-as-judge), golden sets, comparaison "

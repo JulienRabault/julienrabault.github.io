@@ -87,7 +87,9 @@ EXPERIENCE = [
             "loop configured per profile and extended through middleware: persistent memory, human "
             "approval of sensitive actions, context management (summarisation, token budget), "
             "guardrails, skill management, sub-agent orchestration and a unified event contract. "
-            "Adding a tool no longer means building a new graph. Migration to Deep Agents "
+            "Adding a tool no longer means building a new graph. Prompt caching shared across "
+            "conversations, tenants and clients: inference costs cut by an estimated 40-50%. "
+            "Migration to Deep Agents "
             "(LangChain) under way.",
 
             "<b>Agent tools</b>: agentic RAG, web search, calculator and the matching MCP servers, "

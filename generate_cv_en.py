@@ -81,7 +81,7 @@ EXPERIENCE = [
                 "from a router (one agent per task) to a single agent loop configured per profile "
                 "and extended through middleware: persistent memory, human approval of sensitive "
                 "actions, context management (summarisation, token budget), guardrails, skills, "
-                "sub-agents. Now migrating to Deep Agents.",
+                "sub-agents. Prompt caching shared across conversations, tenants and clients: inference costs cut by an estimated 40-50%. Now migrating to Deep Agents.",
 
                 "<b>Agent tools</b>: agentic RAG, web search, calculator and the matching MCP "
                 "servers, all plugged into the same loop. Adding a tool no longer means building a "
