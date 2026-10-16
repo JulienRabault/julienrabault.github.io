@@ -34,7 +34,7 @@ def _icon(name: str) -> str:
 
 
 NAME = "JULIEN RABAULT"
-ROLE = "AI Engineer &middot; LLM agents &amp; RAG in production"
+ROLE = "AI Engineer, LLM agents and RAG in production"
 
 CONTACT = (
     f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;'
@@ -46,20 +46,22 @@ CONTACT = (
 )
 
 SUMMARY = (
-    "I design and ship LLM agents and RAG systems that run in production at customer sites, after "
+    "I design agent harnesses and ship LLM agents and RAG systems that run in production at "
+    "customer sites, after "
     "four years of applied research at CNRS training and fine-tuning deep learning models on a "
     "national supercomputer (PyTorch, multi-GPU). Two peer-reviewed publications."
 )
 
 SKILLS = [
     ("Agentic systems",
-     "LLM agents in production, RAG, evals (golden sets, LLM-as-judge), observability, agent "
-     "security, inference cost tracking, multimodal (OCR, vision, audio), MCP, "
-     "LangChain / LangGraph, fine-tuning"),
+     "Agent harnesses (agent loop, middleware, memory, human-in-the-loop), LangChain / "
+     "LangGraph / Deep Agents, agentic RAG, MCP, evals (datasets, golden sets, LLM-as-judge), "
+     "observability, agent security, inference cost tracking, multimodal (OCR, vision, audio), "
+     "fine-tuning"),
     ("Languages &amp; data",
      "Python, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, Mistral and OpenAI APIs"),
     ("Infrastructure",
-     "Docker, Kubernetes, Helm, GitLab CI, AWS, Celery, RabbitMQ, S3, Airflow, MLflow, Langfuse, "
+     "Docker, GitLab CI, AWS, Celery, RabbitMQ, S3, Airflow, MLflow, Langfuse, "
      "Slurm, Linux"),
     ("Machine learning",
      "PyTorch, Transformers, multi-GPU training (DDP), diffusion models, computer vision, "
@@ -70,24 +72,30 @@ EXPERIENCE = [
     {
         "title": "AI Engineer",
         "org": "Berger-Levrault",
-        "place": "Toulouse &middot; AI R&amp;D team",
-        "dates": "Jan. 2026 &ndash; present",
+        "place": "Toulouse (AI R&amp;D team)",
+        "dates": "Jan. 2026 - present",
         "context": (
             "Design and delivery of Athena, Berger-Levrault's agentic platform: agents wired into "
             "the document corpora and business APIs of the group's clients (local government, legal, "
-            "industry, maintenance, public-sector HR). ~100k technical documents indexed, ~70 pilot "
+            "industry, maintenance, public-sector HR). 100k technical documents indexed, 70 pilot "
             "users, Langfuse observability, monitoring and cost tracking, client workshops."
         ),
         "bullets": [
-            "<b>Athena agentic architecture</b> (LangGraph), rebuilt with the team: moved from a "
-            "router (one agent per task: RAG, MCP APIs, reports) to a reusable agent configured per "
-            "profile, with context management, automatically generated skills, sub-agent "
-            "orchestration and a unified event contract. Adding a tool no longer means building a "
-            "new graph.",
+            "<b>Athena agent harness</b> (LangChain / LangGraph), architecture designed and led. "
+            "Moved from a router (one agent per task: RAG, MCP APIs, reports) to a single agent "
+            "loop configured per profile and extended through middleware: persistent memory, human "
+            "approval of sensitive actions, context management (summarisation, token budget), "
+            "guardrails, skill management, sub-agent orchestration and a unified event contract. "
+            "Adding a tool no longer means building a new graph. Migration to Deep Agents "
+            "(LangChain) under way.",
 
-            "<b>Agent evaluation and reliability</b>: golden sets, LLM-as-judge scoring, "
-            "comparative benchmarks between architectures and regression tracking through "
-            "Langfuse.",
+            "<b>Agent tools</b>: agentic RAG, web search, calculator and the matching MCP servers, "
+            "all plugged into the same loop.",
+
+            "<b>Agent evaluation and monitoring</b>: rebuilt monitoring on Langfuse v4 (actionable "
+            "traces, dataset management, automated evaluations and scoring), golden sets, "
+            "LLM-as-judge scoring, comparative benchmarks between architectures and regression "
+            "tracking.",
 
             "<b>Agent security</b>: sandboxing of retrieved content against indirect prompt "
             "injection, execution bounds on tools (timeouts, per-profile restrictions).",
@@ -102,8 +110,8 @@ EXPERIENCE = [
             "costs.",
 
             "<b>Document template agent</b>: tools that extract templates from Word documents, then "
-            "a second agent and tools that fill those templates from natural language. From "
-            "prototype to production.",
+            "a second agent and tools that fill those templates from natural language. "
+            "Shipped to production.",
 
             "<b>LLM pipeline for business data structuring</b> (public-sector HR): turns interview "
             "write-ups into normalised, deduplicated and clustered training needs, then matches them "
@@ -116,9 +124,9 @@ EXPERIENCE = [
     },
     {
         "title": "Machine Learning Engineer",
-        "org": "CNRS &middot; PNRIA",
+        "org": "CNRS (PNRIA)",
         "place": "Toulouse",
-        "dates": "Dec. 2021 &ndash; Jan. 2026 &middot; 4 yrs",
+        "dates": "Dec. 2021 - Jan. 2026 (4 yrs)",
         "context": (
             "Network of AI engineers supporting research teams (weather, astrophysics, materials, "
             "ethology, biology). 10+ projects supported, up to two in parallel (6-12 months), for "
@@ -131,7 +139,7 @@ EXPERIENCE = [
             "production. Diffusion POC at -20% compute for equivalent quality. Co-author, AIES 2025.",
 
             "<b>DeepFaune, CNRS / INEE:</b> fine-tuned YOLOv8 on 1.5M images (24 classes) with "
-            "class-imbalance handling. 93% accuracy, 3× faster inference. Peer-reviewed publication.",
+            "class-imbalance handling. 93% accuracy, 3x faster inference. Peer-reviewed publication.",
 
             "<b>BIGSF, CNES:</b> tech lead on the rebuild of a galactic-filament image analysis "
             "library (U-Net): modular architecture, tests, documentation. Public toolbox.",
@@ -142,7 +150,7 @@ EXPERIENCE = [
             "<b>MORPHOGAN, Univ. Lorraine:</b> full rebuild of a StyleGAN2 codebase to study the "
             "morphological variability of butterfly wings: automated pipeline, tests, containerisation.",
 
-            "<b>Teaching:</b> created and delivered \"Introduction to LLMs\" to ~25 PhD students and "
+            "<b>Teaching:</b> created and delivered \"Introduction to LLMs\" to 25 PhD students and "
             "researchers.",
         ],
     },
@@ -150,7 +158,7 @@ EXPERIENCE = [
         "title": "Software Engineer",
         "org": "Agileo Automation",
         "place": "Montauban",
-        "dates": "Aug. 2020 &ndash; Sept. 2021 &middot; 1 yr",
+        "dates": "Aug. 2020 - Sept. 2021 (1 yr)",
         "context": "",
         "bullets": [
             "<b>Supervision framework for robotic manufacturing equipment</b> (semiconductors): C#, "
@@ -161,8 +169,8 @@ EXPERIENCE = [
 
 EDUCATION = [
     ("MSc Artificial Intelligence &amp; Pattern Recognition",
-     "Université Paul Sabatier / IRIT", "2019 &ndash; 2021"),
-    ("BSc Computer Science", "Université Paul Sabatier Toulouse III", "2016 &ndash; 2019"),
+     "Université Paul Sabatier / IRIT", "2019 - 2021"),
+    ("BSc Computer Science", "Université Paul Sabatier Toulouse III", "2016 - 2019"),
 ]
 
 BODY_SIZE = 9.8
@@ -248,7 +256,7 @@ def build_cv():
     for i, job in enumerate(EXPERIENCE):
         if i:
             story.append(Spacer(1, 5 * mm))
-        two_col(f"<b>{job['title']}</b>, {job['org']} &mdash; {job['place']}",
+        two_col(f"<b>{job['title']}</b>, {job['org']}, {job['place']}",
                 job["dates"], s["job"], s["dates"])
         if job["context"]:
             story.append(Paragraph(job["context"], s["context"]))

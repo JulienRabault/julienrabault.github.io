@@ -34,7 +34,7 @@ def _icon(name: str) -> str:
 
 
 NAME = "JULIEN RABAULT"
-ROLE = "Ingénieur IA &middot; agents LLM &amp; RAG en production"
+ROLE = "Ingénieur IA, agents LLM et RAG en production"
 
 CONTACT = (
     f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;'
@@ -46,114 +46,127 @@ CONTACT = (
 )
 
 SUMMARY = (
-    "Conception et mise en production d'agents LLM et de systèmes RAG chez des clients, après "
+    "Conception de harnais agentiques et mise en production d'agents LLM et de systèmes RAG chez "
+    "des clients, après "
     "quatre ans de deep learning sur supercalculateur au CNRS (PyTorch, multi-GPU). "
     "Deux publications peer-reviewed."
 )
 
 SKILLS = [
     ("Systèmes agentiques",
-     "Agents LLM en production, RAG, evals (golden sets, LLM-as-judge), observabilité, sécurité "
-     "des agents, multimodal (OCR, vision, audio), MCP, LangChain / LangGraph, fine-tuning"),
+     "Harnais d'agents (boucle agentique, middlewares, mémoire, human-in-the-loop), LangChain / "
+     "LangGraph / Deep Agents, RAG, MCP, evals (golden sets, LLM-as-judge), sécurité des "
+     "agents, multimodal (OCR, vision, audio), fine-tuning"),
     ("Langages &amp; données",
      "Python, PyTorch, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, API Mistral et OpenAI"),
     ("Infrastructure",
-     "Docker, Kubernetes, Helm, GitLab CI, AWS, Celery, RabbitMQ, Airflow, Langfuse, Slurm, Linux"),
+     "Docker, GitLab CI, AWS, Celery, RabbitMQ, Airflow, Langfuse, Slurm, Linux"),
 ]
 
 EXPERIENCE = [
     {
         "title": "AI Engineer",
         "org": "Berger-Levrault",
-        "place": "Toulouse &middot; Équipe R&amp;D IA",
-        "dates": "Janv. 2026 &ndash; présent",
+        "place": "Toulouse (équipe R&amp;D IA)",
+        "dates": "Janv. 2026 - présent",
         "context": (
-            "Conception et développement d'Athena, la plateforme agentique de Berger-Levrault : "
-            "agents branchés sur les corpus documentaires et les APIs métier des clients "
-            "(collectivités, juridique, industrie, maintenance, RH publique). ~100k documents "
-            "indexés, ~70 utilisateurs pilotes, observabilité et suivi des coûts sous Langfuse, "
-            "ateliers clients."
+            "Athena, la plateforme agentique du groupe : agents branchés sur les corpus "
+            "documentaires et les APIs métier des clients "
+            "(collectivités, juridique, industrie, maintenance, RH publique). 100k documents "
+            "indexés, 70 utilisateurs pilotes, ateliers clients."
         ),
-        "bullets": [
-            "<b>Architecture agentique d'Athena</b> (LangChain / LangGraph), refonte en équipe : passage "
-            "d'un "
-            "routeur (un agent par tâche : RAG, APIs MCP, rapports) à un agent réutilisable "
-            "configuré par profil, avec gestion du contexte, skills générés automatiquement, "
-            "orchestration de sous-agents et contrat d'événements unifié. Ajouter un outil ne "
-            "demande plus de construire un graphe.",
+        "groups": [
+            ("Cœur de la plateforme", [
+                "<b>Harnais agentique</b> (LangChain / LangGraph), architecture conçue et portée. "
+                "Passage d'un routeur d'agents à une boucle agentique configurée par "
+                "profil, étendue par middlewares : mémoire persistante, validation humaine des "
+                "actions sensibles, gestion du contexte (résumé, budget de tokens), garde-fous, "
+                "skills, sous-agents. Migration en cours vers Deep Agents.",
 
-            "<b>Évaluation, fiabilité et sécurité des agents</b> : jeux de référence (golden sets), "
-            "scoring LLM-as-judge, bancs comparatifs entre architectures et suivi des régressions "
-            "via Langfuse ; cloisonnement des contenus récupérés contre l'injection de prompt "
-            "indirecte et bornes d'exécution des tools.",
+                "<b>Outils de l'agent</b> : RAG agentique, recherche web, calcul et serveurs MCP "
+                "associés, branchés sur la même boucle. Ajouter un outil ne demande plus de "
+                "construire un graphe.",
 
-            "<b>MCP Builder</b> : transforme les APIs des BU en serveurs MCP. Un LLM sélectionne les "
-            "endpoints utiles, audite leurs lacunes et génère des tools sur mesure (workflows ou "
-            "code Python via FastMCP), en human-in-the-loop.",
+                "<b>Évaluation et monitoring</b> : refonte du monitoring sous Langfuse v4 (traces, "
+                "datasets, évaluations et scoring automatiques, LLM-as-judge), golden sets, bancs "
+                "comparatifs entre architectures, suivi des régressions et des coûts ; cloisonnement "
+                "des contenus récupérés contre l'injection de prompt indirecte.",
 
-            "<b>Content-extractor</b>, extraction multimodale (OCR / PDF / DOCX / audio) : service "
-            "créé de zéro, 7 pipelines d'extraction, traitement batch asynchrone (Celery + API batch "
-            "Mistral), architecture factory/registry extensible. Déployé, -50 % sur les coûts "
-            "d'extraction.",
+                "<b>MCP Builder</b> : transforme les APIs des BU en serveurs MCP. Un LLM sélectionne "
+                "les endpoints utiles, audite leurs lacunes et génère des tools sur mesure (workflows "
+                "ou code Python via FastMCP), en human-in-the-loop.",
+            ]),
+            ("Services et pipelines LLM", [
+                "<b>Content-extractor</b>, extraction multimodale (OCR / PDF / DOCX / audio) : "
+                "service créé de zéro, 7 pipelines, batch asynchrone (Celery + API batch Mistral), "
+                "architecture factory/registry. Déployé, -50 % sur les coûts d'extraction.",
 
-            "<b>Agent de templates de documents</b> : tools d'extraction de templates depuis des "
-            "documents Word, puis second agent qui les remplit en langage naturel. Du prototype à "
-            "la production.",
+                "<b>Agent de templates de documents</b> : extraction de templates depuis des "
+                "documents Word, puis second agent qui les remplit en langage naturel. Mis en "
+                "production.",
 
-            "<b>Pipeline LLM de structuration de données métier</b> (RH du secteur public) : "
-            "transforme des comptes rendus d'entretiens en besoins normalisés, dédoublonnés et "
-            "rapprochés d'un catalogue. Également, enrichissement de la chaîne d'ingestion RAG "
-            "(Airflow) : chunking, embeddings, questions et mots-clés indexés.",
+                "<b>Structuration de données métier</b> (RH publique) : comptes rendus "
+                "d'entretiens transformés en besoins normalisés, dédoublonnés, rapprochés d'un "
+                "catalogue. Ingestion RAG enrichie (Airflow) : chunking, embeddings, "
+                "questions indexées.",
+            ]),
         ],
     },
     {
         "title": "Machine Learning Engineer",
-        "org": "CNRS &middot; PNRIA",
+        "org": "CNRS (PNRIA)",
         "place": "Toulouse",
-        "dates": "Déc. 2021 &ndash; Janv. 2026 &middot; 4 ans",
+        "dates": "Déc. 2021 - Janv. 2026 (4 ans)",
         "context": (
-            "Réseau d'ingénieurs IA en appui aux équipes de recherche (météo, astrophysique, "
-            "matériaux, éthologie, biologie). Plus de 10 projets accompagnés, jusqu'à 2 en parallèle "
-            "(6-12 mois), pour Météo France, CNES, CEA, INEE. Entraînement et fine-tuning sur Jean "
-            "Zay (multi-GPU DDP, 8 GPU, Slurm)."
+            "Réseau d'ingénieurs IA en appui aux laboratoires (météo, astrophysique, matériaux, "
+            "éthologie, biologie) : plus de 10 projets livrés, 2 en parallèle (6-12 mois chacun), "
+            "pour Météo France, CNES, CEA, INEE. Entraînement et fine-tuning sur le supercalculateur "
+            "Jean Zay (multi-GPU DDP, Slurm). Formation d'introduction aux LLMs pour 25 doctorants."
         ),
-        "bullets": [
-            "<b>GENS / MetScore, Météo France :</b> optimisation multi-GPU et fine-tuning d'un "
-            "modèle de diffusion (DDPM) en PyTorch ; conception de MetScore (librairie de métriques), "
-            "toujours en production. POC diffusion à -20 % de calcul à qualité équivalente. "
-            "Co-auteur du papier AIES 2025.",
+        "groups": [
+            ("Sélection de projets", [
+                "<b>GENS / MetScore, Météo France :</b> entraînement multi-GPU et fine-tuning d'un "
+                "modèle de diffusion (DDPM) en PyTorch ; conception de MetScore (métriques), "
+                "toujours en production. POC : -20 % de calcul, qualité équivalente. "
+                "Co-auteur, AIES 2025.",
 
-            "<b>DeepFaune, CNRS / INEE :</b> fine-tuning YOLOv8 sur 1,5 M d'images (24 classes), "
-            "gestion du déséquilibre de classes. 93 % de précision, inférence 3× plus rapide. "
-            "Publication peer-reviewed.",
+                "<b>DeepFaune, CNRS / INEE :</b> fine-tuning YOLOv8 sur 1,5 M d'images (24 classes), "
+                "gestion du déséquilibre de classes. 93 % de précision, inférence 3 fois plus rapide. "
+                "Publication peer-reviewed.",
 
-            "<b>BIGSF (CNES), AUTOFILL (CEA), MORPHOGAN (Univ. Lorraine) :</b> tech lead sur la "
-            "refonte d'une librairie d'analyse d'images galactiques (U-Net, toolbox publique) ; "
-            "PairVAE pour la complétion de données de nanomatériaux (MAE 0,98) ; refonte d'un code "
-            "StyleGAN2. Formation « Introduction aux LLMs » dispensée à ~25 doctorants.",
+                "<b>BIGSF, CNES :</b> tech lead sur la refonte d'une librairie U-Net d'analyse "
+                "d'images galactiques, toolbox publique.",
+
+                "<b>AUTOFILL, CEA :</b> PairVAE pour la complétion de données de nanomatériaux "
+                "(MAE 0,98). <b>MORPHOGAN, Univ. Lorraine :</b> refonte d'un code StyleGAN2, "
+                "pipeline automatisée et conteneurisée.",
+            ]),
         ],
     },
     {
         "title": "Ingénieur logiciel",
         "org": "Agileo Automation",
         "place": "Montauban",
-        "dates": "Août 2020 &ndash; Sept. 2021 &middot; 1 an",
+        "dates": "Août 2020 - Sept. 2021 (1 an)",
         "context": "",
-        "bullets": [
-            "<b>Framework de supervision de machines de production</b> (semi-conducteurs) : C#, "
-            "architecture orientée objets, IHM, CI/CD. Équipe de 5 en Scrum.",
+        "groups": [
+            ("", [
+                "<b>Framework de supervision de machines de production</b> (semi-conducteurs) : "
+                "C#, IHM, CI/CD, équipe de 5 en Scrum.",
+            ]),
         ],
     },
 ]
 
 EDUCATION = [
     ("Master intelligence artificielle et reconnaissance des formes",
-     "Université Paul Sabatier / IRIT", "2019 &ndash; 2021"),
-    ("Licence informatique", "Université Paul Sabatier Toulouse III", "2016 &ndash; 2019"),
+     "Université Paul Sabatier / IRIT", "2019 - 2021"),
+    ("Licence informatique", "Université Paul Sabatier Toulouse III", "2016 - 2019"),
 ]
 
 BODY_SIZE = 9.0
 BODY_LEAD = 11.4
+BULLET_GAP = 2.5
 
 
 def styles():
@@ -172,7 +185,9 @@ def styles():
         "dates": S("dates", fontSize=9, leading=14, textColor=MUTED, alignment=TA_RIGHT),
         "context": S("context", fontName=FONT_ITALIC, textColor=MUTED,
                      spaceBefore=2.5, spaceAfter=3.5),
-        "bullet": S("bullet", leftIndent=11, bulletIndent=0, spaceAfter=1.3),
+        "group": S("group", fontName=FONT_BOLD, fontSize=8.4, leading=10.5, textColor=MUTED,
+                   spaceBefore=3.0, spaceAfter=1.8),
+        "bullet": S("bullet", leftIndent=11, bulletIndent=0, spaceAfter=BULLET_GAP),
         "edu": S("edu",),
         "edu_date": S("edu_date", textColor=MUTED, alignment=TA_RIGHT),
         "small": S("small", spaceAfter=2.6),
@@ -234,21 +249,24 @@ def build_cv():
     section("EXPÉRIENCE PROFESSIONNELLE")
     for i, job in enumerate(EXPERIENCE):
         if i:
-            story.append(Spacer(1, 3.2 * mm))
-        two_col(f"<b>{job['title']}</b>, {job['org']} &mdash; {job['place']}",
+            story.append(Spacer(1, 4.2 * mm))
+        two_col(f"<b>{job['title']}</b>, {job['org']}, {job['place']}",
                 job["dates"], s["job"], s["dates"])
         if job["context"]:
             story.append(Paragraph(job["context"], s["context"]))
         else:
             story.append(Spacer(1, 2.2 * mm))
-        for b in job["bullets"]:
-            story.append(Paragraph(b, s["bullet"], bulletText="•"))
+        for label, bullets in job["groups"]:
+            if label:
+                story.append(Paragraph(label, s["group"]))
+            for b in bullets:
+                story.append(Paragraph(b, s["bullet"], bulletText="•"))
 
     # ─── FORMATION ───
     section("FORMATION")
     story.append(Paragraph(
         "<b>Master intelligence artificielle et reconnaissance des formes</b>, Université Paul "
-        "Sabatier / IRIT (2021) &nbsp;&middot;&nbsp; <b>Licence informatique</b>, Université Paul "
+        "Sabatier / IRIT (2021) ; <b>Licence informatique</b>, Université Paul "
         "Sabatier (2019)", s["small"]))
 
     # ─── PUBLICATIONS ───
@@ -264,11 +282,11 @@ def build_cv():
         s["small"]))
     story.append(Paragraph(
         f'<b><a href="https://github.com/langchain-ai/langchain/pull/37008" color="{LINK}">LangChain'
-        f"</a></b> : contribution mergée (intégration Mistral) &nbsp;&middot;&nbsp; "
+        f"</a></b> : contribution mergée (intégration Mistral) ; "
         f'<b><a href="https://github.com/JulienRabault/LLMock" color="{LINK}">LLMock</a></b> (PyPI) : '
-        f"serveur de mock LLM, 10+ fournisseurs &nbsp;&middot;&nbsp; "
+        f"serveur de mock LLM, 10+ fournisseurs ; "
         f'<b><a href="https://github.com/JulienRabault/DDPM-weather" color="{LINK}">DDPM-weather</a>'
-        "</b> : diffusion pour images météo.", s["small"]))
+        "</b>&nbsp;: diffusion pour images météo.", s["small"]))
     doc.build(story)
     print(f"CV generated: {output}")
 

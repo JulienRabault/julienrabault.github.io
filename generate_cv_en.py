@@ -34,7 +34,7 @@ def _icon(name: str) -> str:
 
 
 NAME = "JULIEN RABAULT"
-ROLE = "AI Engineer &middot; LLM agents &amp; RAG in production"
+ROLE = "AI Engineer, LLM agents and RAG in production"
 
 CONTACT = (
     f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;'
@@ -46,110 +46,124 @@ CONTACT = (
 )
 
 SUMMARY = (
-    "I design and ship LLM agents and RAG systems that run in production at customer sites, after "
+    "I design agent harnesses and ship LLM agents and RAG systems that run in production at "
+    "customer sites, after "
     "four years of deep learning on a national supercomputer at CNRS (PyTorch, multi-GPU). "
     "Two peer-reviewed publications."
 )
 
 SKILLS = [
     ("Agentic systems",
-     "LLM agents in production, RAG, evals (golden sets, LLM-as-judge), observability, agent "
-     "security, multimodal (OCR, vision, audio), MCP, LangChain / LangGraph, fine-tuning"),
+     "Agent harnesses (agent loop, middleware, memory, human-in-the-loop), LangChain / "
+     "LangGraph / Deep Agents, RAG, MCP, evals (golden sets, LLM-as-judge), observability, "
+     "agent security, multimodal (OCR, vision, audio), fine-tuning"),
     ("Languages &amp; data",
      "Python, PyTorch, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, Mistral and OpenAI APIs"),
     ("Infrastructure",
-     "Docker, Kubernetes, Helm, GitLab CI, AWS, Celery, RabbitMQ, Airflow, Langfuse, Slurm, Linux"),
+     "Docker, GitLab CI, AWS, Celery, RabbitMQ, Airflow, Langfuse, Slurm, Linux"),
 ]
 
 EXPERIENCE = [
     {
         "title": "AI Engineer",
         "org": "Berger-Levrault",
-        "place": "Toulouse &middot; AI R&amp;D team",
-        "dates": "Jan. 2026 &ndash; present",
+        "place": "Toulouse (AI R&amp;D team)",
+        "dates": "Jan. 2026 - present",
         "context": (
-            "Design and delivery of Athena, Berger-Levrault's agentic platform: agents wired into "
-            "the document corpora and business APIs of the group's clients (local government, legal, "
-            "industry, maintenance, public-sector HR). ~100k documents indexed, ~70 pilot users, "
-            "observability and cost tracking under Langfuse, client workshops."
+            "Athena, the group's agentic platform: agents wired into the document corpora and "
+            "business APIs of its clients (local government, legal, industry, maintenance, "
+            "public-sector HR). 100k documents indexed, 70 pilot users, client workshops."
         ),
-        "bullets": [
-            "<b>Athena agentic architecture</b> (LangChain / LangGraph), rebuilt with the team: moved "
-            "from a "
-            "router (one agent per task: RAG, MCP APIs, reports) to a reusable agent configured per "
-            "profile, with context management, automatically generated skills, sub-agent "
-            "orchestration and a unified event contract. Adding a tool no longer means building a "
-            "new graph.",
+        "groups": [
+            ("Platform core", [
+                "<b>Agent harness</b> (LangChain / LangGraph), architecture designed and led. Moved "
+                "from a router (one agent per task) to a single agent loop configured per profile "
+                "and extended through middleware: persistent memory, human approval of sensitive "
+                "actions, context management (summarisation, token budget), guardrails, skills, "
+                "sub-agents. Migration to Deep Agents under way.",
 
-            "<b>Agent evaluation, reliability and security</b>: golden sets, LLM-as-judge scoring, "
-            "comparative benchmarks between architectures and regression tracking through Langfuse; "
-            "sandboxing of retrieved content against indirect prompt injection and execution bounds "
-            "on tools.",
+                "<b>Agent tools</b>: agentic RAG, web search, calculator and the matching MCP "
+                "servers, all plugged into the same loop. Adding a tool no longer means building a "
+                "new graph.",
 
-            "<b>MCP Builder</b>: turns business-unit APIs into MCP servers. An LLM selects the "
-            "useful endpoints, audits their gaps and generates purpose-built tools (workflows or "
-            "Python code via FastMCP), human-in-the-loop.",
+                "<b>Evaluation and monitoring</b>: rebuilt monitoring on Langfuse v4 (traces, "
+                "datasets, automated evaluations and scoring, LLM-as-judge), golden sets, "
+                "comparative benchmarks between architectures, regression and cost tracking; "
+                "sandboxing of retrieved content against indirect prompt injection.",
 
-            "<b>Content-extractor</b>, multimodal extraction (OCR / PDF / DOCX / audio): service "
-            "built from scratch, 7 extraction pipelines, async batch processing (Celery + Mistral "
-            "batch API), extensible factory/registry architecture. Deployed, -50% on extraction "
-            "costs.",
+                "<b>MCP Builder</b>: turns business-unit APIs into MCP servers. An LLM selects the "
+                "useful endpoints, audits their gaps and generates purpose-built tools (workflows "
+                "or Python code via FastMCP), human-in-the-loop.",
+            ]),
+            ("LLM services and pipelines", [
+                "<b>Content-extractor</b>, multimodal extraction (OCR / PDF / DOCX / audio): "
+                "service built from scratch, 7 pipelines, async batch processing (Celery + Mistral "
+                "batch API), factory/registry architecture. Deployed, -50% on extraction costs.",
 
-            "<b>Document template agent</b>: tools that extract templates from Word documents, then "
-            "a second agent that fills them from natural language. From prototype to production.",
+                "<b>Document template agent</b>: extracts templates from Word documents, then a "
+                "second agent fills them from natural language. Shipped to production.",
 
-            "<b>LLM pipeline for business data structuring</b> (public-sector HR): turns interview "
-            "write-ups into normalised, deduplicated needs matched against a catalogue. Also "
-            "enrichment of the RAG ingestion chain (Airflow): chunking, embeddings, indexed "
-            "questions and keywords.",
+                "<b>Business data structuring</b> (public-sector HR): interview write-ups turned "
+                "into normalised, deduplicated needs matched against a catalogue. Enriched RAG "
+                "ingestion (Airflow): chunking, embeddings, indexed questions.",
+            ]),
         ],
     },
     {
         "title": "Machine Learning Engineer",
-        "org": "CNRS &middot; PNRIA",
+        "org": "CNRS (PNRIA)",
         "place": "Toulouse",
-        "dates": "Dec. 2021 &ndash; Jan. 2026 &middot; 4 yrs",
+        "dates": "Dec. 2021 - Jan. 2026 (4 yrs)",
         "context": (
-            "Network of AI engineers supporting research teams (weather, astrophysics, materials, "
-            "ethology, biology). 10+ projects supported, up to two in parallel (6-12 months), for "
+            "Network of AI engineers supporting research labs (weather, astrophysics, materials, "
+            "ethology, biology): 10+ projects delivered, two in parallel (6-12 months each), for "
             "Météo France, CNES, CEA and INEE. Training and fine-tuning on the Jean Zay "
-            "supercomputer (multi-GPU DDP, 8 GPUs, Slurm)."
+            "supercomputer (multi-GPU DDP, Slurm). Created and taught \"Introduction to LLMs\" to "
+            "25 PhD students."
         ),
-        "bullets": [
-            "<b>GENS / MetScore, Météo France:</b> multi-GPU optimisation and fine-tuning of a "
-            "diffusion model (DDPM) in PyTorch; designed MetScore (metrics library), still in "
-            "production. Diffusion POC at -20% compute for equivalent quality. Co-author, AIES 2025.",
+        "groups": [
+            ("Selected projects", [
+                "<b>GENS / MetScore, Météo France:</b> multi-GPU training and fine-tuning of a "
+                "diffusion model (DDPM) in PyTorch; designed MetScore (metrics library), still in "
+                "production. POC: -20% compute, equivalent quality. Co-author, AIES 2025.",
 
-            "<b>DeepFaune, CNRS / INEE:</b> fine-tuned YOLOv8 on 1.5M images (24 classes) with "
-            "class-imbalance handling. 93% accuracy, 3× faster inference. Peer-reviewed publication.",
+                "<b>DeepFaune, CNRS / INEE:</b> fine-tuned YOLOv8 on 1.5M images (24 classes) with "
+                "class-imbalance handling. 93% accuracy, 3x faster inference. Peer-reviewed "
+                "publication.",
 
-            "<b>BIGSF (CNES), AUTOFILL (CEA), MORPHOGAN (Univ. Lorraine):</b> tech lead on the "
-            "rebuild of a galactic image analysis library (U-Net, public toolbox); PairVAE for "
-            "nanomaterial data completion (0.98 MAE); StyleGAN2 rebuild. Created and delivered "
-            "\"Introduction to LLMs\" to ~25 PhD students.",
+                "<b>BIGSF, CNES:</b> tech lead on the rebuild of a U-Net galactic image analysis "
+                "library, public toolbox.",
+
+                "<b>AUTOFILL, CEA:</b> PairVAE for nanomaterial data completion (0.98 MAE). "
+                "<b>MORPHOGAN, Univ. Lorraine:</b> StyleGAN2 codebase rebuild, automated and "
+                "containerised pipeline.",
+            ]),
         ],
     },
     {
         "title": "Software Engineer",
         "org": "Agileo Automation",
         "place": "Montauban",
-        "dates": "Aug. 2020 &ndash; Sept. 2021 &middot; 1 yr",
+        "dates": "Aug. 2020 - Sept. 2021 (1 yr)",
         "context": "",
-        "bullets": [
-            "<b>Supervision framework for manufacturing equipment</b> (semiconductors): C#, "
-            "object-oriented architecture, HMI, CI/CD. Team of 5 in Scrum.",
+        "groups": [
+            ("", [
+                "<b>Supervision framework for manufacturing equipment</b> (semiconductors): C#, "
+                "HMI, CI/CD, team of 5 in Scrum.",
+            ]),
         ],
     },
 ]
 
 EDUCATION = [
     ("MSc Artificial Intelligence &amp; Pattern Recognition",
-     "Université Paul Sabatier / IRIT", "2019 &ndash; 2021"),
-    ("BSc Computer Science", "Université Paul Sabatier Toulouse III", "2016 &ndash; 2019"),
+     "Université Paul Sabatier / IRIT", "2019 - 2021"),
+    ("BSc Computer Science", "Université Paul Sabatier Toulouse III", "2016 - 2019"),
 ]
 
 BODY_SIZE = 9.0
 BODY_LEAD = 11.4
+BULLET_GAP = 2.5
 
 
 def styles():
@@ -168,7 +182,9 @@ def styles():
         "dates": S("dates", fontSize=9, leading=14, textColor=MUTED, alignment=TA_RIGHT),
         "context": S("context", fontName=FONT_ITALIC, textColor=MUTED,
                      spaceBefore=2.5, spaceAfter=3.5),
-        "bullet": S("bullet", leftIndent=11, bulletIndent=0, spaceAfter=2),
+        "group": S("group", fontName=FONT_BOLD, fontSize=8.4, leading=10.5, textColor=MUTED,
+                   spaceBefore=3.0, spaceAfter=1.8),
+        "bullet": S("bullet", leftIndent=11, bulletIndent=0, spaceAfter=BULLET_GAP),
         "edu": S("edu",),
         "edu_date": S("edu_date", textColor=MUTED, alignment=TA_RIGHT),
         "small": S("small", spaceAfter=2.6),
@@ -230,21 +246,24 @@ def build_cv():
     section("PROFESSIONAL EXPERIENCE")
     for i, job in enumerate(EXPERIENCE):
         if i:
-            story.append(Spacer(1, 3.2 * mm))
-        two_col(f"<b>{job['title']}</b>, {job['org']} &mdash; {job['place']}",
+            story.append(Spacer(1, 4.2 * mm))
+        two_col(f"<b>{job['title']}</b>, {job['org']}, {job['place']}",
                 job["dates"], s["job"], s["dates"])
         if job["context"]:
             story.append(Paragraph(job["context"], s["context"]))
         else:
             story.append(Spacer(1, 2.2 * mm))
-        for b in job["bullets"]:
-            story.append(Paragraph(b, s["bullet"], bulletText="•"))
+        for label, bullets in job["groups"]:
+            if label:
+                story.append(Paragraph(label, s["group"]))
+            for b in bullets:
+                story.append(Paragraph(b, s["bullet"], bulletText="•"))
 
     # ─── FORMATION ───
     section("EDUCATION")
     story.append(Paragraph(
         "<b>MSc Artificial Intelligence &amp; Pattern Recognition</b>, Université Paul Sabatier / "
-        "IRIT (2021) &nbsp;&middot;&nbsp; <b>BSc Computer Science</b>, Université Paul Sabatier "
+        "IRIT (2021); <b>BSc Computer Science</b>, Université Paul Sabatier "
         "(2019)", s["small"]))
 
     # ─── PUBLICATIONS ───
@@ -260,9 +279,9 @@ def build_cv():
         s["small"]))
     story.append(Paragraph(
         f'<b><a href="https://github.com/langchain-ai/langchain/pull/37008" color="{LINK}">LangChain'
-        f"</a></b>: merged contribution (Mistral integration) &nbsp;&middot;&nbsp; "
+        f"</a></b>: merged contribution (Mistral integration); "
         f'<b><a href="https://github.com/JulienRabault/LLMock" color="{LINK}">LLMock</a></b> (PyPI): '
-        f"LLM mock server, 10+ providers &nbsp;&middot;&nbsp; "
+        f"LLM mock server, 10+ providers; "
         f'<b><a href="https://github.com/JulienRabault/DDPM-weather" color="{LINK}">DDPM-weather</a>'
         "</b>: diffusion for weather images.", s["small"]))
     doc.build(story)

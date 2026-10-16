@@ -34,7 +34,7 @@ def _icon(name: str) -> str:
 
 
 NAME = "JULIEN RABAULT"
-ROLE = "Ingénieur IA &middot; agents LLM &amp; RAG en production"
+ROLE = "Ingénieur IA, agents LLM et RAG en production"
 
 CONTACT = (
     f'{_icon("location")}&nbsp;Toulouse, France&nbsp;&nbsp;&nbsp;'
@@ -46,20 +46,22 @@ CONTACT = (
 )
 
 SUMMARY = (
-    "Conception et mise en production d'agents LLM et de systèmes RAG chez des clients, "
+    "Conception de harnais agentiques et mise en production d'agents LLM et de systèmes RAG chez "
+    "des clients, "
     "après quatre ans de recherche appliquée au CNRS : entraînement et fine-tuning de modèles deep "
     "learning sur supercalculateur (PyTorch, multi-GPU). Deux publications peer-reviewed."
 )
 
 SKILLS = [
     ("Systèmes agentiques",
-     "Agents LLM en production, RAG, evals (golden sets, LLM-as-judge), observabilité, sécurité "
-     "des agents, suivi des coûts d'inférence, multimodal (OCR, vision, audio), MCP, "
-     "LangChain / LangGraph, fine-tuning"),
+     "Harnais d'agents (boucle agentique, middlewares, mémoire, human-in-the-loop), LangChain / "
+     "LangGraph / Deep Agents, RAG agentique, MCP, evals (datasets, golden sets, LLM-as-judge), "
+     "observabilité, sécurité des agents, suivi des coûts d'inférence, multimodal (OCR, vision, "
+     "audio), fine-tuning"),
     ("Langages &amp; données",
      "Python, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, API Mistral et OpenAI"),
     ("Infrastructure",
-     "Docker, Kubernetes, Helm, GitLab CI, AWS, Celery, RabbitMQ, S3, Airflow, MLflow, Langfuse, "
+     "Docker, GitLab CI, AWS, Celery, RabbitMQ, S3, Airflow, MLflow, Langfuse, "
      "Slurm, Linux"),
     ("Machine learning",
      "PyTorch, Transformers, entraînement multi-GPU (DDP), modèles de diffusion, computer vision, "
@@ -70,25 +72,31 @@ EXPERIENCE = [
     {
         "title": "AI Engineer",
         "org": "Berger-Levrault",
-        "place": "Toulouse &middot; Équipe R&amp;D IA",
-        "dates": "Janv. 2026 &ndash; présent",
+        "place": "Toulouse (équipe R&amp;D IA)",
+        "dates": "Janv. 2026 - présent",
         "context": (
             "Conception et développement d'Athena, la plateforme agentique de Berger-Levrault : "
             "agents branchés sur les corpus documentaires et les APIs métier des clients du groupe "
-            "(collectivités, juridique, industrie, maintenance, RH publique). Corpus de ~100k documents "
-            "techniques, ~70 utilisateurs pilotes, observabilité, monitoring et suivi des coûts "
+            "(collectivités, juridique, industrie, maintenance, RH publique). Corpus de 100k documents "
+            "techniques, 70 utilisateurs pilotes, observabilité, monitoring et suivi des coûts "
             "(Langfuse), ateliers clients."
         ),
         "bullets": [
-            "<b>Architecture agentique d'Athena</b> (LangGraph), refonte en équipe : passage d'un "
-            "routeur (un agent par tâche : RAG, APIs MCP, rapports) à un agent réutilisable "
-            "configuré par profil, avec gestion du contexte, skills générés automatiquement, "
-            "orchestration de sous-agents et contrat d'événements unifié. Ajouter un outil ne "
-            "demande plus de construire un graphe.",
+            "<b>Harnais agentique d'Athena</b> (LangChain / LangGraph), architecture conçue et "
+            "portée. Passage d'un routeur (un agent par tâche : RAG, APIs MCP, rapports) à une "
+            "boucle agentique unique configurée par profil et étendue par middlewares : mémoire "
+            "persistante, approbation humaine des actions sensibles, gestion du contexte (résumé, "
+            "budget de tokens), garde-fous, gestion des skills, orchestration de sous-agents et "
+            "contrat d'événements unifié. Ajouter un outil ne demande plus de construire un graphe. "
+            "Migration en cours vers Deep Agents (LangChain).",
 
-            "<b>Évaluation et fiabilité des agents</b> : jeux de référence (golden sets), scoring "
-            "LLM-as-judge, bancs comparatifs entre architectures et suivi des régressions via "
-            "Langfuse.",
+            "<b>Outils de l'agent</b> : RAG agentique, recherche web, calcul et serveurs MCP "
+            "associés, branchés sur la même boucle.",
+
+            "<b>Évaluation et monitoring des agents</b> : refonte du monitoring sous Langfuse v4 "
+            "(traces exploitables, gestion des datasets, évaluations et scoring automatiques), jeux "
+            "de référence (golden sets), scoring LLM-as-judge, bancs comparatifs entre "
+            "architectures et suivi des régressions.",
 
             "<b>Sécurité des agents</b> : cloisonnement des contenus récupérés (injection de prompt "
             "indirecte), bornes d'exécution des tools (timeouts, restriction par profil d'agent).",
@@ -104,7 +112,7 @@ EXPERIENCE = [
 
             "<b>Agent de templates de documents</b> : tools de lecture de documents Word pour en "
             "extraire des templates, puis second agent et tools permettant de remplir ces templates "
-            "en langage naturel. Du prototype à la production.",
+            "en langage naturel. Mis en production.",
 
             "<b>Pipeline LLM de structuration de données métier</b> (RH du secteur public) : "
             "transforme des comptes rendus d'entretiens en besoins de formation normalisés, "
@@ -117,9 +125,9 @@ EXPERIENCE = [
     },
     {
         "title": "Machine Learning Engineer",
-        "org": "CNRS &middot; PNRIA",
+        "org": "CNRS (PNRIA)",
         "place": "Toulouse",
-        "dates": "Déc. 2021 &ndash; Janv. 2026 &middot; 4 ans",
+        "dates": "Déc. 2021 - Janv. 2026 (4 ans)",
         "context": (
             "Réseau d'ingénieurs IA en appui aux équipes de recherche (météo, astrophysique, "
             "matériaux, éthologie, biologie). Plus de 10 projets accompagnés, jusqu'à 2 en parallèle "
@@ -133,7 +141,7 @@ EXPERIENCE = [
             "Co-auteur du papier AIES 2025.",
 
             "<b>DeepFaune, CNRS / INEE :</b> fine-tuning YOLOv8 sur 1,5 M d'images (24 classes), "
-            "gestion du déséquilibre de classes. 93 % de précision, inférence 3× plus rapide. "
+            "gestion du déséquilibre de classes. 93 % de précision, inférence 3 fois plus rapide. "
             "Publication peer-reviewed.",
 
             "<b>BIGSF, CNES :</b> tech lead sur la refonte d'une librairie d'analyse d'images de "
@@ -148,7 +156,7 @@ EXPERIENCE = [
             "la variabilité morphologique d'ailes de papillons : pipeline automatisée, tests, "
             "conteneurisation.",
 
-            "<b>Formation :</b> « Introduction aux LLMs » créée et dispensée à ~25 doctorants et "
+            "<b>Formation :</b> introduction aux LLMs, créée et dispensée à 25 doctorants et "
             "chercheurs.",
         ],
     },
@@ -156,7 +164,7 @@ EXPERIENCE = [
         "title": "Ingénieur logiciel",
         "org": "Agileo Automation",
         "place": "Montauban",
-        "dates": "Août 2020 &ndash; Sept. 2021 &middot; 1 an",
+        "dates": "Août 2020 - Sept. 2021 (1 an)",
         "context": "",
         "bullets": [
             "<b>Framework de supervision de machines robotisées</b> (semi-conducteurs) : C#, "
@@ -167,8 +175,8 @@ EXPERIENCE = [
 
 EDUCATION = [
     ("Master intelligence artificielle et reconnaissance des formes",
-     "Université Paul Sabatier / IRIT", "2019 &ndash; 2021"),
-    ("Licence informatique", "Université Paul Sabatier Toulouse III", "2016 &ndash; 2019"),
+     "Université Paul Sabatier / IRIT", "2019 - 2021"),
+    ("Licence informatique", "Université Paul Sabatier Toulouse III", "2016 - 2019"),
 ]
 
 BODY_SIZE = 9.8
@@ -254,7 +262,7 @@ def build_cv():
     for i, job in enumerate(EXPERIENCE):
         if i:
             story.append(Spacer(1, 5 * mm))
-        two_col(f"<b>{job['title']}</b>, {job['org']} &mdash; {job['place']}",
+        two_col(f"<b>{job['title']}</b>, {job['org']}, {job['place']}",
                 job["dates"], s["job"], s["dates"])
         if job["context"]:
             story.append(Paragraph(job["context"], s["context"]))
