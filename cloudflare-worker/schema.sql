@@ -29,3 +29,11 @@ CREATE INDEX IF NOT EXISTS idx_analytics_events_event_type_created_at
 
 CREATE INDEX IF NOT EXISTS idx_analytics_events_visitor_id
   ON analytics_events (visitor_id);
+
+-- Quota du chat v2 : une ligne par visiteur et par jour. Le visiteur est un hash (jour, IP, sel), jamais l'IP.
+CREATE TABLE IF NOT EXISTS chat_usage (
+  day TEXT NOT NULL,
+  visitor TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, visitor)
+);

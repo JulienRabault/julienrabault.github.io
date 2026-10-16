@@ -1,0 +1,130 @@
+import { careerFr, harnessFr } from "./career.fr";
+import { knowledgeFr } from "./knowledge.fr";
+import type { SiteContent } from "./types";
+import { frenchSpacing } from "./typography";
+
+// Faits repris de generate_cv.py (source de référence). Ne pas ajouter de chiffre absent du CV.
+export const fr: SiteContent = frenchSpacing({
+  locale: "fr",
+  profile: {
+    name: "Julien Rabault",
+    initials: "JR",
+    role: "Ingénieur IA, Toulouse",
+    intro:
+      "Je conçois des harnais agentiques et je mets en production des agents LLM et des systèmes RAG, après quatre ans de deep learning sur supercalculateur au CNRS.",
+    availability: "Je cherche mon prochain poste à Toulouse, à Paris, en remote ou au Canada.",
+    email: "julienrabault@icloud.com",
+    linkedin: "https://linkedin.com/in/julienrabault",
+    github: "https://github.com/JulienRabault",
+    cvUrl: "/CV_JULIEN_RABAULT.pdf",
+    otherLocaleUrl: "/en/",
+    otherLocaleLabel: "EN",
+  },
+  ui: {
+    askLead: "Posez votre question à l'agent du site. Il répond à partir de mon parcours et cite ses sources.",
+    placeholder: "Posez une question sur mon parcours",
+    downloadCv: "Télécharger le CV",
+    downloadCvShort: "CV",
+    contact: "Me contacter",
+    chatTab: "Chat",
+    careerTab: "Parcours",
+    careerInline: "Le parcours en une page",
+    cvInline: "le CV",
+    reading: "Lecture du parcours",
+    readDone: (n) => `${n} passage${n > 1 ? "s" : ""} lu${n > 1 ? "s" : ""} dans le parcours`,
+    quota: (n) => `Encore ${n} question${n > 1 ? "s" : ""} possible${n > 1 ? "s" : ""} aujourd'hui`,
+    quotaReached: "C'est tout pour aujourd'hui. Le CV et l'email restent là.",
+    copy: "Copier la réponse",
+    copied: "Copié",
+    sourcesCount: (n) => `${n} source${n > 1 ? "s" : ""}`,
+    dockTitle: "L'agent du site",
+    dockSubtitle: "Il répond à partir du parcours",
+    dockTeaser: "Une question sur un projet ? Je réponds à partir du parcours, sources à l'appui.",
+    expand: "Ouvrir en plein écran",
+    close: "Fermer",
+    noTime: "Pas le temps de discuter ?",
+    or: "ou",
+    newChat: "Nouvelle conversation",
+    themeToggle: "Changer de thème",
+    footnote: "Réponses générées à partir du parcours, à vérifier dans les sources.",
+    errorUnavailable: "L'agent ne répond pas pour l'instant. Le CV et l'email restent là.",
+    errorBudget: "L'agent a épuisé son budget du jour. Le CV et l'email restent là.",
+    timelineHint: "Cliquez une période pour l'ouvrir dans le parcours.",
+  },
+  suggestions: [
+    "Sur quoi travaille Julien en ce moment ?",
+    "Résume son parcours",
+    "Comment ce chat est-il construit ?",
+    "Peut-il travailler depuis Paris ou le Canada ?",
+  ],
+  sources: knowledgeFr,
+  links: {
+    "cv": { label: "le CV en PDF", href: "/CV_JULIEN_RABAULT.pdf", download: true },
+    "email": { label: "julienrabault@icloud.com", href: "mailto:julienrabault@icloud.com" },
+    "linkedin": { label: "LinkedIn", href: "https://linkedin.com/in/julienrabault" },
+    "github": { label: "GitHub", href: "https://github.com/JulienRabault" },
+    "career": { label: "la page Parcours", href: "#parcours", career: "" },
+    "career-bl": { label: "le chapitre Berger-Levrault", href: "#parcours", career: "bl" },
+    "career-cnrs": { label: "le chapitre CNRS", href: "#parcours", career: "cnrs" },
+    "career-agileo": { label: "le chapitre Agileo", href: "#parcours", career: "agileo" },
+    "aies": { label: "l'article AIES 2025", href: "https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml" },
+    "deepfaune-paper": { label: "l'article DeepFaune", href: "https://scholar.google.fr/citations?view_op=view_citation&hl=fr&user=iUFJqVMAAAAJ&citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C" },
+    "langchain-pr": { label: "sa contribution à LangChain", href: "https://github.com/langchain-ai/langchain/pull/37008" },
+    "llmock": { label: "LLMock", href: "https://github.com/JulienRabault/LLMock" },
+    "ddpm-weather": { label: "DDPM-weather", href: "https://github.com/JulienRabault/DDPM-weather" },
+  },
+  // L'ordre compte : la première réponse dont un mot apparaît dans la question gagne.
+  answers: [
+    {
+      match: ["paris", "canada", "remote", "mobilité", "mobilite", "déménager", "montréal"],
+      read: ["mobility"],
+      text: "Oui. Il est basé à Toulouse et ouvert à Paris, au remote et au Canada [[mobility]]. Le plus simple pour en parler est de lui écrire.\n\n{{contact}}",
+    },
+    {
+      match: ["contact", "joindre", "email", "mail", "écrire"],
+      read: ["mobility"],
+      text: "Le plus direct est l'email, il répond lui-même. Le CV et ses profils sont là aussi [[mobility]].\n\n{{contact}}",
+    },
+    {
+      match: ["chat", "site", "construit", "marche"],
+      read: ["site", "bl-harness"],
+      text: "Simplement, et c'est voulu : un worker Cloudflare, un seul appel à un modèle Claude, tout le parcours en contexte et mis en cache. Pas de RAG ni d'outils : le parcours tient en quelques milliers de tokens, un index vectoriel coûterait plus qu'il ne rapporterait [[site]].\n\nLa sécurité se joue autour du modèle. Chaque fait doit citer un passage, et le worker retire avant votre navigateur les citations inventées, les liens bruts et les widgets inconnus. L'historique est signé : on ne peut pas lui prêter des réponses qu'il n'a pas données [[site]].\n\nLes agents que Julien construit au travail sont plus lourds : une boucle agentique entourée de middlewares, chacun ajoutant un comportement sans toucher à la boucle [[bl-harness]]. Cliquez une couche pour voir ce qu'elle fait.\n\n{{harness}}",
+    },
+    {
+      match: ["parcours", "résume", "resume", "carrière", "carriere"],
+      read: ["agileo", "cnrs", "bl"],
+      text: "En dix ans : une licence puis un master en IA à Toulouse, un an d'alternance en génie logiciel chez Agileo [[agileo]], quatre ans de deep learning au CNRS sur plus de 10 projets de recherche [[cnrs]], et depuis janvier 2026 des agents LLM en production chez Berger-Levrault [[bl]].\n\n{{timeline}}\n\nLa version longue, avec les résultats chiffrés, est sur {{link:career}}. Le PDF : {{link:cv}}.",
+    },
+    {
+      match: ["open source", "github", "dépôt", "depot", "code", "llmock", "langchain"],
+      read: ["open-source"],
+      text: "Son code public le plus utile est LLMock, publié sur PyPI : un serveur qui imite plus de 10 fournisseurs de LLM avec une API compatible OpenAI, pour tester une application sans payer d'appels [[open-source]].\n\n{{repo:llmock}}\n\nIl a aussi une contribution fusionnée dans LangChain, l'intégration Mistral [[open-source]].\n\n{{repo:langchain-pr}}",
+    },
+    {
+      match: ["mcp", "api", "outil"],
+      read: ["bl-mcp", "bl-tools"],
+      text: "Chez Berger-Levrault, les APIs métier existent déjà, mais un agent ne sait pas s'en servir telles quelles. MCP Builder les transforme en serveurs MCP : un LLM choisit les endpoints utiles, relève ce qui leur manque et génère les tools, puis une personne de la business unit valide [[bl-mcp]].\n\n{{project:mcp-builder}}\n\nCes serveurs tournent sur la même boucle que le RAG agentique et la recherche web : ajouter un outil ne demande plus de construire un graphe [[bl-tools]].",
+    },
+    {
+      match: ["évalue", "evalue", "évaluation", "qualité", "eval"],
+      read: ["bl-eval", "cnrs-gens"],
+      text: "Avec des golden sets et du scoring automatique en LLM-as-judge, sous Langfuse v4. Chaque changement de modèle, de prompt ou d'architecture passe sur le même banc, avec le suivi des régressions et des coûts [[bl-eval]].\n\nIl cloisonne aussi les contenus récupérés par l'agent, pour qu'un document ne puisse pas lui donner d'instructions (injection de prompt indirecte) [[bl-eval]].\n\nL'habitude vient du CNRS : pour Météo France, il avait conçu MetScore, une librairie de métriques toujours en production [[cnrs-gens]].",
+    },
+    {
+      match: ["jean zay", "entraîné", "entraine", "gpu", "supercalculateur"],
+      read: ["cnrs", "cnrs-gens", "cnrs-deepfaune"],
+      text: "Au CNRS, il a mené plus de 10 projets avec des équipes de recherche, avec de l'entraînement multi-GPU sur Jean Zay (DDP, Slurm) [[cnrs]].\n\nPour Météo France, un modèle de diffusion (DDPM) en PyTorch. La preuve de concept réduisait le calcul de 20 % à qualité équivalente, et le travail a donné un article dans AIES en 2025 [[cnrs-gens]].\n\n{{project:gens}}\n\nPour DeepFaune, un YOLOv8 fine-tuné sur 1,5 million d'images de pièges photo : 93 % de précision sur 24 classes, et une inférence trois fois plus rapide [[cnrs-deepfaune]].\n\n{{project:deepfaune}}",
+    },
+    {
+      match: ["moment", "actuel", "travaille"],
+      read: ["bl", "bl-harness", "bl-eval"],
+      text: "Sur Athena, la plateforme agentique de Berger-Levrault, branchée sur 100k documents et sur les APIs métier des clients. Un pilote de six mois a réuni 70 utilisateurs et la mise en production est en cours [[bl]].\n\nIl en a conçu le harnais : une seule boucle agentique, configurée par profil et étendue par middlewares. Le prompt caching partagé entre conversations, tenants et clients réduirait les coûts d'inférence de 40 à 50 %, d'après son estimation. Il migre en ce moment vers Deep Agents [[bl-harness]].\n\n{{harness}}\n\nIl a aussi refait le monitoring sous Langfuse v4, pour comparer modèles, prompts et architectures sur les mêmes golden sets [[bl-eval]]. Le détail est dans {{link:career-bl}}.",
+    },
+  ],
+  fallback: {
+    read: [],
+    text: "Ce prototype ne répond qu'aux questions proposées. Une fois branché au worker, l'agent répondra à toute question sur le parcours.\n\nEn attendant, tout est sur {{link:career}}.",
+  },
+  career: careerFr,
+  harness: harnessFr,
+});

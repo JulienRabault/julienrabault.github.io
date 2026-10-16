@@ -7,6 +7,11 @@ ALLOWED_ORIGIN = "https://julienrabault.github.io"
 MAX_REQUESTS_PER_MINUTE = "10"
 MAX_ANALYTICS_EVENTS_PER_MINUTE = "60"
 MAX_TOKENS = "250"
+# Chat v2 (/v2/chat). Secrets à poser avec `wrangler secret put` : ANTHROPIC_API_KEY, HISTORY_SECRET, IP_SALT, ADMIN_TOKEN.
+MODEL = "claude-haiku-5-5"
+CHAT_MAX_TOKENS = "900"
+CHAT_PER_VISITOR_PER_DAY = "10"
+CHAT_PER_DAY = "400"
 
 [[d1_databases]]
 binding = "ANALYTICS_DB"

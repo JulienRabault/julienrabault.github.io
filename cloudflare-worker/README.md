@@ -90,3 +90,33 @@ Exemple:
 ```text
 https://julienrabault.github.io/?src=linkedin&utm_source=linkedin&utm_medium=dm&utm_campaign=mistral-2026
 ```
+
+## Chat v2 (site React, `/v2/chat`)
+
+Le nouveau site appelle `POST /v2/chat` (code dans `chat.js`) et reçoit la réponse en flux SSE :
+`quota`, `read` (passage cité), `text`, puis `done` (trace et signature) ou `error` (`quota`, `budget`, `unavailable`).
+
+- La connaissance et le contrat (liens, widgets, filtre) sont importés depuis `site/src/content/` : modifier le site suffit, `wrangler deploy` les embarque.
+- Le prompt système est mis en cache (prompt caching) : seules la question et l'historique changent d'un appel à l'autre.
+- Quota : `CHAT_PER_VISITOR_PER_DAY` questions par visiteur et par jour, `CHAT_PER_DAY` pour tout le site. Le visiteur est un hash (jour, IP, `IP_SALT`), l'IP n'est pas stockée.
+- Historique : seules les réponses signées par le worker (`HISTORY_SECRET`) sont renvoyées au modèle, une réponse forgée par le client est écartée avec sa question.
+- Sortie filtrée côté worker puis côté navigateur : pas d'URL, pas de HTML, citations et widgets sur liste blanche.
+
+Mise en place (une fois) :
+
+```powershell
+wrangler d1 execute jr_portfolio_analytics --file schema.sql --remote   # ajoute la table chat_usage
+wrangler secret put HISTORY_SECRET   # chaîne aléatoire longue
+wrangler secret put IP_SALT          # chaîne aléatoire
+wrangler deploy
+```
+
+Tests : `node --test cloudflare-worker/` depuis la racine du dépôt (Node 24).
+
+L'ancien endpoint `/chat` reste en place pour l'ancien site tant que le nouveau n'est pas en ligne.
+
+## Accès discret au dashboard
+
+Sur le nouveau site, `/#admin` redirige vers `/admin` du worker. Le dashboard reste protégé par `ADMIN_TOKEN`.
+Le générateur de liens propose la page d'arrivée (chat ou parcours, FR ou EN) en plus de la source.
+Événement ajouté : `career_open` (ouverture de la page Parcours).

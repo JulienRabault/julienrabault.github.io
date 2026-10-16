@@ -1,3 +1,5 @@
+import { handleChatV2 } from "./chat.js";
+
 /**
  * Cloudflare Worker — Chat proxy for Julien Rabault's portfolio.
  * Routes questions to Claude Haiku with CV context baked in.
@@ -31,7 +33,7 @@ Reponds dans la langue de la question (francais ou anglais).
 
 <<<PROFIL_JULIEN_RABAULT>>>
 
-IDENTITE: Julien Rabault, Applied AI / ML Engineer, base a Toulouse, mobile Paris / Montreal. Il aime construire des systemes IA robustes et modulables, avec un vrai focus sur l'architecture du code et l'industrialisation. Son objectif a moyen terme : evoluer vers un role d'architecte logiciel IA.
+IDENTITE: Julien Rabault, Applied AI / ML Engineer, base a Toulouse, ouvert a Paris, au remote et au Canada. Il aime construire des systemes IA robustes et modulables, avec un vrai focus sur l'architecture du code et l'industrialisation. Son objectif a moyen terme : evoluer vers un role d'architecte logiciel IA.
 
 === POSTE ACTUEL — Berger-Levrault (depuis janvier 2026) ===
 
@@ -43,7 +45,7 @@ Produit: Athena, la plateforme agentique de Berger-Levrault. Avant l'arrivee de 
 Chronologie du travail de Julien chez BL:
 
 1) DATA PIPELINE et CONTENT-EXTRACTOR:
-Julien a travaille sur la data pipeline pour la rendre plus modulable. Il a ajoute des configurations pour les chunkers (l'equipe recherche teste differentes approches de chunking). Il a refait le content-extractor en ajoutant du batch processing avec Celery et l'API batch de Mistral pour economiser sur les couts d'appel LLM. Resultat : -50% sur les couts d'extraction. Ce service est desormais deploye et apporte plus de modularite. Il a aussi propose des ameliorations pour la scalabilite car les clients envoient beaucoup de documents (Somfy : 60 000+ documents, un autre client : 40 000+, objectif ~1 million). Il a pris en main le code existant : les DAGs Airflow etaient deja en place (ce n'est pas lui qui a mis Airflow en prod), il les a completes et a ajoute des etapes d'enrichissement RAG (data augmentation, chunking, embeddings, generation de questions/mots-cles indexes, filtres temporels). Plus de 5 DAGs operationnels, environ un par client (une dizaine de clients).
+Julien a travaille sur la data pipeline pour la rendre plus modulable. Il a ajoute des configurations pour les chunkers (l'equipe recherche teste differentes approches de chunking). Il a refait le content-extractor en ajoutant du batch processing avec Celery et l'API batch de Mistral pour economiser sur les couts d'appel LLM. Resultat : -50% sur les couts d'extraction. Ce service est desormais deploye et apporte plus de modularite. Il a aussi propose des ameliorations pour la scalabilite car les clients envoient beaucoup de documents. Il a pris en main le code existant : les DAGs Airflow etaient deja en place (ce n'est pas lui qui a mis Airflow en prod), il les a completes et a ajoute des etapes d'enrichissement RAG (data augmentation, chunking, embeddings, generation de questions/mots-cles indexes, filtres temporels). Plus de 5 DAGs operationnels, environ un par client (une dizaine de clients).
 
 2) EN COURS — REFONTE DE L'ARCHITECTURE AGENTIQUE (gros sujet, mene en equipe):
 Julien contribue fortement a la refonte de l'architecture agentique d'Athena (travail d'equipe, pas seulement lui) : passage d'un routeur (routage par type de question, un agent par tache : RAG, APIs MCP, rapports) a un agent unique tool-first, qui utilise des outils plutot que de router vers des sous-chaines figees. Cela implique une nouvelle gestion du contexte de l'agent, l'introduction de skills et a terme leur creation automatique, et l'orchestration de sous-agents. Julien mene la conception (ateliers, architecture du code, decisions techniques), en equipe (ce n'est pas que lui). Il a aussi ajoute la citation des sources dans les reponses (comme ChatGPT qui cite ses sources dans le texte) et travaille sur la gestion des documents uploades par les utilisateurs. La plateforme comporte plusieurs agents : synthetiseur, recherche documentaire, generation de rapports, etc. L'equipe recherche travaille sur le GraphRAG, et Julien est connecte a ces sujets.
@@ -122,7 +124,7 @@ Ingenieur Logiciel en alternance a Montauban, en parallele de son Master. Develo
 Master IA et Reconnaissance des Formes (IARF), Universite Paul Sabatier Toulouse III - IRIT (2019-2021). Specialisation Deep Learning, Vision par ordinateur, NLP. Laboratoire IRIT (Institut de Recherche en Informatique de Toulouse).
 Licence Informatique, meme universite (2016-2019). C'est la licence qui lui a vraiment appris a raisonner en informaticien : on apprenait des concepts (algorithmique, structures de donnees, complexite) plutot que des langages. C'est ce qu'il a adore et ce qui fonde sa facon de penser.
 L'alternance chez Agileo a ete une formation a la dure en architecture logicielle. C'est la qu'il a pris l'habitude de toujours raisonner par architecture et UML avant de coder, et cette approche lui est restee.
-Langues : francais natif, anglais professionnel (redaction scientifique, documentation technique).
+Langues : francais natif.
 
 === PUBLICATIONS ===
 "Enriching Operational High-Resolution Ensemble Forecasts with StyleGAN-2" — AIES, vol. 4, no. 1, 2025. 3e auteur, peer-reviewed.
@@ -131,7 +133,7 @@ Langues : francais natif, anglais professionnel (redaction scientifique, documen
 === COMPETENCES ===
 Agentique/RAG : RAG, GraphRAG, agents tool-first, Multi-agents, sous-agents, skills, MCP Protocol, LangChain/LangGraph, Prompt Engineering, Structured Outputs, Embeddings, LLM Routing, Fine-tuning.
 Deep Learning : PyTorch, PyTorch Lightning, Transformers, Computer Vision, Diffusion Models (DDPM, DDIM), NLP, CNNs, U-Net, YOLOv8, GAN (StyleGAN2), VAE (ResVAE, PairVAE), apprentissage par renforcement.
-MLOps : Docker, Singularity, AWS, CI/CD, MLFlow, Airflow, Kubernetes, Celery, Langfuse, HPC/Slurm/Jean Zay, Linux, Conda.
+MLOps : Docker, Singularity, AWS, CI/CD, MLFlow, Airflow, Celery, Langfuse, HPC/Slurm/Jean Zay, Linux, Conda.
 Dev : Python, FastAPI, HuggingFace, Weaviate, Mistral/OpenAI API, Git, GitLab, SOLID/Architecture, Design Patterns, C#, SQL, tests unitaires.
 Donnees : HDF5, GeoPandas, Pandas, NumPy, Scikit-learn/Image.
 
@@ -144,7 +146,7 @@ BananaML : pipeline ML end-to-end sur AWS. Computer Vision + API REST. FastAPI, 
 julienrabault@icloud.com, linkedin.com/in/julienrabault, github.com/JulienRabault, julienrabault.github.io
 
 === DISPONIBILITE ===
-Ouvert aux opportunites. Toulouse, Paris ou Montreal.
+Ouvert aux opportunites. Toulouse, Paris, remote ou Canada.
 
 === EASTER EGG ===
 Julien joue a League of Legends et son peak elo est Emeraude 3. Si quelqu'un demande son elo, son rank, son niveau sur LoL, League of Legends, ses hobbies, ses centres d'interet, ou ce qu'il fait en dehors du travail, reponds sur un ton complice et un peu secret, du genre "bon, je ne devrais peut-etre pas le dire, mais son peak elo c'est Emeraude 3 sur League of Legends". Fais-le de maniere amusante et legere. Ne le mentionne jamais spontanement dans les autres reponses.
@@ -162,7 +164,7 @@ Ne donne JAMAIS d'avis, de jugement ou de recommandation sur la carriere de Juli
 // ─── Rate limiting (in-memory, resets per worker instance) ───
 const rateLimitMap = new Map();
 const DEFAULT_ALLOWED_ORIGIN = "https://julienrabault.github.io";
-const ACTION_EVENT_TYPES = ["cv_download", "contact_click", "project_open", "github_click"];
+const ACTION_EVENT_TYPES = ["cv_download", "contact_click", "project_open", "github_click", "career_open"];
 const ALLOWED_ANALYTICS_EVENTS = new Set([
   "page_view",
   "chat_open",
@@ -790,7 +792,7 @@ async function handleAdminStats(request, env) {
       COUNT(*) AS events,
       COUNT(DISTINCT visitor_id) AS unique_visitors
     FROM analytics_events
-    WHERE event_type IN ('cv_download', 'contact_click', 'project_open', 'github_click')
+    WHERE event_type IN ('cv_download', 'contact_click', 'project_open', 'github_click', 'career_open')
       AND created_at >= ? AND created_at < ?
     ${SOURCE_FILTER_CONDITION}
     GROUP BY event_type
@@ -807,11 +809,26 @@ async function handleAdminStats(request, env) {
       country,
       metadata
     FROM analytics_events
-    WHERE event_type IN ('cv_download', 'contact_click', 'project_open', 'github_click')
+    WHERE event_type IN ('cv_download', 'contact_click', 'project_open', 'github_click', 'career_open')
       AND created_at >= ? AND created_at < ?
     ${SOURCE_FILTER_CONDITION}
     ORDER BY created_at DESC
     LIMIT 40
+  `), [since, nowIso], sourceFilters).all();
+
+  const chatHealth = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(status, 'unknown') AS status,
+      COUNT(*) AS questions,
+      ROUND(AVG(CAST(json_extract(metadata, '$.durationMs') AS REAL))) AS avg_ms,
+      ROUND(AVG(CAST(json_extract(metadata, '$.output') AS REAL))) AS avg_output,
+      ROUND(100.0 * SUM(COALESCE(json_extract(metadata, '$.cacheRead'), 0))
+        / NULLIF(SUM(COALESCE(json_extract(metadata, '$.input'), 0)), 0)) AS cache_pct
+    FROM analytics_events
+    WHERE event_type = 'chat_message' AND created_at >= ? AND created_at < ?
+    ${SOURCE_FILTER_CONDITION}
+    GROUP BY status
+    ORDER BY questions DESC
   `), [since, nowIso], sourceFilters).all();
 
   return jsonResponse({
@@ -839,6 +856,7 @@ async function handleAdminStats(request, env) {
     recruiterActions: recruiterActions.results || [],
     recentActions: recentActions.results || [],
     recentQuestions: recentQuestions.results || [],
+    chatHealth: chatHealth.results || [],
   });
 }
 
@@ -878,16 +896,20 @@ function handleAdminDashboard() {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>JR Portfolio Analytics</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0f0f0f;
-      --panel: #191919;
-      --panel-2: #202020;
-      --border: #303030;
-      --text: #f4ecdf;
-      --muted: #a89f92;
-      --accent: #d4a853;
+      --bg: #0f0d0c;
+      --panel: #171412;
+      --panel-2: #1f1b18;
+      --border: #2d2723;
+      --text: #f3f1ee;
+      --muted: #a39a90;
+      --accent: #df9a4e;
       --blue: #78a6ff;
       --green: #7bd88f;
       --red: #ff6b6b;
@@ -899,7 +921,7 @@ function handleAdminDashboard() {
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
       line-height: 1.45;
     }
 
@@ -918,8 +940,9 @@ function handleAdminDashboard() {
     }
 
     h1, h2, h3, p { margin: 0; }
-    h1 { font-size: clamp(28px, 5vw, 48px); letter-spacing: 0; line-height: 1; }
-    h2 { font-size: 16px; margin-bottom: 12px; }
+    h1, h2 { font-family: "Bricolage Grotesque", "Hanken Grotesk", sans-serif; }
+    h1 { font-size: clamp(28px, 5vw, 48px); letter-spacing: -0.04em; line-height: 0.95; }
+    h2 { font-size: 17px; letter-spacing: -0.02em; margin-bottom: 12px; }
     h3 { font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
     .muted { color: var(--muted); font-size: 13px; }
 
@@ -1042,14 +1065,14 @@ function handleAdminDashboard() {
 
     .generator-grid {
       display: grid;
-      grid-template-columns: minmax(180px, 260px) auto;
+      grid-template-columns: minmax(150px, 200px) minmax(160px, 240px) auto;
       justify-content: start;
       gap: 8px;
       align-items: end;
     }
 
     .generator-grid.custom-open {
-      grid-template-columns: minmax(180px, 240px) minmax(220px, 1fr) auto;
+      grid-template-columns: minmax(150px, 200px) minmax(160px, 220px) minmax(200px, 1fr) auto;
       justify-content: stretch;
     }
 
@@ -1396,6 +1419,12 @@ function handleAdminDashboard() {
           <span><strong>Resultat :</strong> le dashboard saura que cette visite vient de cette source.</span>
         </div>
         <div id="generatorGrid" class="generator-grid">
+          <select id="linkPage" aria-label="Page d'arrivée">
+            <option value="/">Chat (FR)</option>
+            <option value="/#parcours">Parcours (FR)</option>
+            <option value="/en/">Chat (EN)</option>
+            <option value="/en/#parcours">Parcours (EN)</option>
+          </select>
           <select id="linkSource" aria-label="Source">
             <option value="linkedin">LinkedIn</option>
             <option value="cv">CV</option>
@@ -1521,6 +1550,12 @@ function handleAdminDashboard() {
     </section>
 
     <section>
+      <h2>Chat</h2>
+      <p class="muted">ok : réponse complète. quota : 10 questions par visiteur et par jour atteintes. budget : plafond du jour atteint. upstream : erreur du modèle.</p>
+      <div id="chatHealth"></div>
+    </section>
+
+    <section>
       <h2>Questions recentes</h2>
       <div id="recentQuestions"></div>
     </section>
@@ -1534,6 +1569,7 @@ function handleAdminDashboard() {
     var sourcePicker = document.getElementById('sourcePicker');
     var sourceFilterHint = document.getElementById('sourceFilterHint');
     var statusEl = document.getElementById('status');
+    var linkPageInput = document.getElementById('linkPage');
     var linkSourceInput = document.getElementById('linkSource');
     var linkSourceCustomInput = document.getElementById('linkSourceCustom');
     var generatorGrid = document.getElementById('generatorGrid');
@@ -1608,7 +1644,8 @@ function handleAdminDashboard() {
         cv_download: 'CV telecharge',
         contact_click: 'Contact',
         project_open: 'Projet ouvert',
-        github_click: 'GitHub'
+        github_click: 'GitHub',
+        career_open: 'Parcours ouvert'
       }[value] || value;
     }
 
@@ -1652,7 +1689,9 @@ function handleAdminDashboard() {
       var medium = slug(linkMediumInput.value);
       var campaign = slug(linkCampaignInput.value);
       var content = slug(linkContentInput.value);
-      var url = new URL('https://julienrabault.github.io/');
+      var page = linkPageInput.value.split('#');
+      var url = new URL(page[0], 'https://julienrabault.github.io/');
+      if (page[1]) url.hash = page[1];
       url.searchParams.set('src', source);
       if (medium || campaign || content) url.searchParams.set('utm_source', source);
       if (medium) url.searchParams.set('utm_medium', medium);
@@ -1873,6 +1912,14 @@ function handleAdminDashboard() {
         { label: 'Source', value: function (row) { return row.source || 'inconnu'; } }
       ], 'Aucune action recente.');
 
+      renderTable('chatHealth', data.chatHealth || [], [
+        { label: 'Statut', key: 'status' },
+        { label: 'Questions', value: function (row) { return formatNumber(row.questions); } },
+        { label: 'Durée moy.', value: function (row) { return row.avg_ms == null ? '-' : (number(row.avg_ms) / 1000).toFixed(1) + ' s'; } },
+        { label: 'Tokens sortie', value: function (row) { return row.avg_output == null ? '-' : formatNumber(row.avg_output); } },
+        { label: 'Lu en cache', value: function (row) { return row.cache_pct == null ? '-' : row.cache_pct + ' %'; } }
+      ], 'Aucune question sur cette periode.');
+
       renderTable('recentQuestions', data.recentQuestions || [], [
         { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
         { label: 'Source', value: function (row) { return row.source || 'inconnu'; } },
@@ -1956,6 +2003,7 @@ function handleAdminDashboard() {
       }
     });
     linkSourceInput.addEventListener('change', syncSourceInput);
+    linkPageInput.addEventListener('change', generateTrackedLink);
     [linkSourceCustomInput, linkMediumInput, linkCampaignInput, linkContentInput].forEach(function (input) {
       input.addEventListener('input', generateTrackedLink);
       input.addEventListener('change', generateTrackedLink);
@@ -1994,8 +2042,18 @@ function handleAdminDashboard() {
 }
 
 // Main handler
+function logChatV2(request, env, entry) {
+  return insertAnalyticsEvent(env, buildEvent(request, entry.body || {}, {
+    event_type: "chat_message",
+    question: entry.question,
+    answer: entry.answer,
+    status: entry.status,
+    metadata: serializeMetadata({ version: 2, locale: entry.locale, ...entry.metadata }),
+  }));
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const corsOrigin = getCorsOrigin(request, env);
 
@@ -2021,6 +2079,14 @@ export default {
 
     if (!isAllowedOrigin(request.headers.get("Origin") || "", env)) {
       return jsonResponse({ error: "Forbidden" }, 403, corsOrigin);
+    }
+
+    if (url.pathname === "/v2/chat" && request.method === "POST") {
+      // Rafale : limite par minute en mémoire. Le quota du jour, lui, est tenu dans D1.
+      if (isRateLimited(`chat:${getClientIP(request)}`, parseInt(env.MAX_REQUESTS_PER_MINUTE || "10"))) {
+        return jsonResponse({ code: "unavailable" }, 429, corsOrigin);
+      }
+      return handleChatV2(request, env, ctx, corsOrigin, (entry) => logChatV2(request, env, entry));
     }
 
     if ((url.pathname === "/" || url.pathname === "/chat") && request.method === "POST") {
