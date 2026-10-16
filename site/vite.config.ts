@@ -53,6 +53,8 @@ function contentSecurityPolicy(chatUrl: string | undefined): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, import.meta.dirname, 'VITE_')
   return {
+    // Racine du site par défaut ; VITE_BASE=/v2/ pour une préversion servie dans un sous-dossier.
+    base: env.VITE_BASE || '/',
     plugins: [react(), tailwindcss(), contentSecurityPolicy(env.VITE_CHAT_URL)],
     resolve: {
       alias: { '@': path.resolve(import.meta.dirname, './src') },

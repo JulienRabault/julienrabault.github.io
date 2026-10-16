@@ -16,8 +16,8 @@ export const fr: SiteContent = frenchSpacing({
     email: "julienrabault@icloud.com",
     linkedin: "https://linkedin.com/in/julienrabault",
     github: "https://github.com/JulienRabault",
-    cvUrl: "/CV_JULIEN_RABAULT.pdf",
-    otherLocaleUrl: "/en/",
+    cvUrl: `${import.meta.env.BASE_URL}CV_JULIEN_RABAULT.pdf`,
+    otherLocaleUrl: `${import.meta.env.BASE_URL}en/`,
     otherLocaleLabel: "EN",
   },
   ui: {
@@ -60,7 +60,7 @@ export const fr: SiteContent = frenchSpacing({
   ],
   sources: knowledgeFr,
   links: {
-    "cv": { label: "le CV en PDF", href: "/CV_JULIEN_RABAULT.pdf", download: true },
+    "cv": { label: "le CV en PDF", href: `${import.meta.env.BASE_URL}CV_JULIEN_RABAULT.pdf`, download: true },
     "email": { label: "julienrabault@icloud.com", href: "mailto:julienrabault@icloud.com" },
     "linkedin": { label: "LinkedIn", href: "https://linkedin.com/in/julienrabault" },
     "github": { label: "GitHub", href: "https://github.com/JulienRabault" },

@@ -15,8 +15,8 @@ export const en: SiteContent = {
     email: "julienrabault@icloud.com",
     linkedin: "https://linkedin.com/in/julienrabault",
     github: "https://github.com/JulienRabault",
-    cvUrl: "/CV_JULIEN_RABAULT_EN.pdf",
-    otherLocaleUrl: "/",
+    cvUrl: `${import.meta.env.BASE_URL}CV_JULIEN_RABAULT_EN.pdf`,
+    otherLocaleUrl: import.meta.env.BASE_URL,
     otherLocaleLabel: "FR",
   },
   ui: {
@@ -59,7 +59,7 @@ export const en: SiteContent = {
   ],
   sources: knowledgeEn,
   links: {
-    "cv": { label: "the PDF CV", href: "/CV_JULIEN_RABAULT_EN.pdf", download: true },
+    "cv": { label: "the PDF CV", href: `${import.meta.env.BASE_URL}CV_JULIEN_RABAULT_EN.pdf`, download: true },
     "email": { label: "julienrabault@icloud.com", href: "mailto:julienrabault@icloud.com" },
     "linkedin": { label: "LinkedIn", href: "https://linkedin.com/in/julienrabault" },
     "github": { label: "GitHub", href: "https://github.com/JulienRabault" },
