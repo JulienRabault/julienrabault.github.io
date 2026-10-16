@@ -198,7 +198,7 @@ describe("handleChatV2", () => {
     assert.equal(wrapped.match(/<\/?question/gi).length, 2, "la balise ne peut pas être fermée par le visiteur");
     assert.ok(wrapped.includes("&lt;/question &gt;"));
 
-    assert.deepEqual(events[0], { type: "quota", remaining: 9 });
+    assert.deepEqual(events[0], { type: "quota", remaining: 19 });
     assert.deepEqual(events.filter((e) => e.type === "read"), [{ type: "read", sourceId: "bl" }]);
     const text = events.filter((e) => e.type === "text").map((e) => e.delta).join("");
     assert.equal(text, "Julien travaille chez Berger-Levrault [[bl]]. Voir  et  {{link:cv}}\n\n{{harness}}");

@@ -1569,7 +1569,7 @@ function handleAdminDashboard() {
 
     <section>
       <h2>Chat</h2>
-      <p class="muted">ok : réponse complète. quota : 10 questions par visiteur et par jour atteintes. budget : plafond du jour atteint. upstream : erreur du modèle.</p>
+      <p class="muted">ok : réponse complète. quota : limite par visiteur et par jour atteinte. budget : plafond du jour atteint. upstream : erreur du modèle.</p>
       <div id="chatHealth"></div>
     </section>
 

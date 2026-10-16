@@ -4,7 +4,7 @@ import type { AgentErrorCode, HistoryTurn, Trace } from "@/lib/agent-events";
 import { track } from "@/lib/analytics";
 import { useCallback, useRef, useState } from "react";
 
-export const DAILY_QUESTION_LIMIT = 10;
+export const DAILY_QUESTION_LIMIT = 20;
 const QUOTA_KEY = "chat-quota";
 /** Tours renvoyés au worker pour le contexte : trois échanges suffisent pour une relance. */
 const HISTORY_TURNS = 6;
@@ -31,7 +31,8 @@ export type ChatStatus = "ready" | "submitted" | "streaming";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-// Compteur côté navigateur, pour l'affichage. La limite qui compte est celle du worker, qui renvoie le restant.
+// Compteur côté navigateur : il bloque la saisie une fois la limite atteinte, sans jamais l'afficher avant.
+// La limite qui compte est celle du worker, qui renvoie le restant.
 function readUsed(): number {
   try {
     const saved = JSON.parse(localStorage.getItem(QUOTA_KEY) ?? "null") as { day: string; used: number } | null;

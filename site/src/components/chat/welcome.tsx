@@ -63,7 +63,7 @@ export function Welcome({ content, status, remaining, onSend, onStop, onOpenCare
 
         <motion.div className="mt-12 w-full text-left" variants={rise}>
           <motion.div layoutId="composer">
-            <Composer autoFocus content={content} onSend={onSend} onStop={onStop} remaining={remaining} status={status} />
+            <Composer autoFocus content={content} onSend={onSend} onStop={onStop} remaining={remaining} rotate status={status} />
           </motion.div>
         </motion.div>
 

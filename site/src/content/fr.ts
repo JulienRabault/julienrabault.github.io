@@ -32,7 +32,6 @@ export const fr: SiteContent = frenchSpacing({
     cvInline: "le CV",
     reading: "Lecture du parcours",
     readDone: (n) => `${n} passage${n > 1 ? "s" : ""} lu${n > 1 ? "s" : ""} dans le parcours`,
-    quota: (n) => `Encore ${n} question${n > 1 ? "s" : ""} possible${n > 1 ? "s" : ""} aujourd'hui`,
     quotaReached: "C'est tout pour aujourd'hui. Le CV et l'email restent là.",
     copy: "Copier la réponse",
     copied: "Copié",
@@ -57,6 +56,14 @@ export const fr: SiteContent = frenchSpacing({
     "Résume son parcours",
     "Comment ce chat est-il construit ?",
     "Peut-il travailler depuis Paris ou le Canada ?",
+  ],
+  examples: [
+    "Comment évalue-t-il un agent ?",
+    "Son rôle chez Berger-Levrault ?",
+    "C'est quoi DeepFaune ?",
+    "Comment réduit-il les coûts ?",
+    "Qu'a-t-il publié au CNRS ?",
+    "Quelle est sa stack ?",
   ],
   sources: knowledgeFr,
   links: {

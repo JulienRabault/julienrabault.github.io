@@ -28,7 +28,7 @@ export const LIMITS = {
   // 900 tokens de sortie font environ 4 000 caractères en français, plus les marqueurs : de la marge.
   historyTurnChars: 6000,
   maxTokens: 900,
-  perVisitorPerDay: 10,
+  perVisitorPerDay: 20,
   perDay: 400,
 };
 

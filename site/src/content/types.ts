@@ -26,7 +26,6 @@ export interface UiStrings {
   cvInline: string;
   reading: string;
   readDone: (count: number) => string;
-  quota: (remaining: number) => string;
   quotaReached: string;
   copy: string;
   copied: string;
@@ -177,6 +176,8 @@ export interface SiteContent {
   profile: Profile;
   ui: UiStrings;
   suggestions: string[];
+  /** Questions qui défilent dans la zone de saisie de l'accueil, en plus des suggestions. */
+  examples: string[];
   sources: Record<string, Source>;
   links: Record<LinkId, ChatLink>;
   answers: CannedAnswer[];

@@ -31,7 +31,6 @@ export const en: SiteContent = {
     cvInline: "the CV",
     reading: "Reading the background",
     readDone: (n) => `Read ${n} passage${n > 1 ? "s" : ""} from the background`,
-    quota: (n) => `${n} question${n > 1 ? "s" : ""} left today`,
     quotaReached: "That's it for today. The CV and email are still here.",
     copy: "Copy answer",
     copied: "Copied",
@@ -56,6 +55,14 @@ export const en: SiteContent = {
     "Sum up his background",
     "How is this chat built?",
     "Can he work from Paris or Canada?",
+  ],
+  examples: [
+    "How does he evaluate an agent?",
+    "His role at Berger-Levrault?",
+    "What is DeepFaune?",
+    "How does he cut agent costs?",
+    "What did he publish at CNRS?",
+    "What is his stack?",
   ],
   sources: knowledgeEn,
   links: {
