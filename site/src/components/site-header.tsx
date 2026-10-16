@@ -21,7 +21,7 @@ interface SiteHeaderProps {
   onHome: () => void;
   /** L'agent lit ou écrit : la petite sphère s'anime. */
   active: boolean;
-  /** Accueil : le nom et la sphère sont déjà en grand dans la page. */
+  /** Accueil : pas de filet sous l'en-tête, la page n'a pas encore défilé. */
   compact: boolean;
 }
 
@@ -102,17 +102,8 @@ export function SiteHeader({ content, view, onViewChange, onHome, active, compac
   return (
     <header className={cn("sticky top-0 z-20 border-b bg-background transition-colors duration-300", compact && "border-transparent")}>
       <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 sm:px-6">
-        {/* Toujours là, même masqué à l'accueil : les onglets ne bougent pas quand on change de vue. */}
-        <button
-          aria-hidden={compact}
-          className={cn(
-            "flex items-center gap-2.5 rounded-lg text-left transition-opacity duration-300",
-            compact && "pointer-events-none opacity-0",
-          )}
-          onClick={onHome}
-          tabIndex={compact ? -1 : undefined}
-          type="button"
-        >
+        {/* Toujours visible, sur toutes les vues : l'en-tête est le même partout, rien ne se décale ni n'apparaît. */}
+        <button className="flex items-center gap-2.5 rounded-lg text-left" onClick={onHome} type="button">
           <AgentOrb active={active} dot={1.5} size={30} />
           <span className="hidden leading-tight min-[480px]:block">
             <span className="block font-display font-semibold tracking-[-0.02em]">{profile.name}</span>

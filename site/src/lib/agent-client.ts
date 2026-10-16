@@ -2,9 +2,20 @@ import type { SiteContent } from "@/content/types";
 import { type AgentEvent, type HistoryTurn, parseAgentEvent } from "@/lib/agent-events";
 import { visitContext } from "@/lib/analytics";
 import { askMockAgent } from "@/lib/mock-agent";
+import { ChallengeError, challengeEnabled, challengeToken, readPass, savePass } from "@/lib/turnstile";
 
 // Sans URL de worker (développement, prototype), l'agent simulé répond avec le même contrat d'événements.
 const CHAT_URL: string | undefined = import.meta.env.VITE_CHAT_URL;
+
+const isPass = (value: unknown): value is { type: "pass"; token: string } =>
+  typeof value === "object" && value !== null && (value as { type?: unknown }).type === "pass" && typeof (value as { token?: unknown }).token === "string";
+
+/** Code d'erreur d'une réponse refusée. Un laissez-passer peut l'accompagner (défi réussi, mais quota atteint). */
+async function errorCode(response: Response): Promise<unknown> {
+  const payload = (await response.json().catch(() => null)) as { code?: unknown; pass?: unknown } | null;
+  if (typeof payload?.pass === "string") savePass(payload.pass);
+  return payload?.code;
+}
 
 async function* readEvents(body: ReadableStream<Uint8Array>): AsyncGenerator<AgentEvent> {
   const reader = body.getReader();
@@ -26,7 +37,13 @@ async function* readEvents(body: ReadableStream<Uint8Array>): AsyncGenerator<Age
         .join("");
       if (!data) continue;
       try {
-        const event = parseAgentEvent(JSON.parse(data));
+        const raw: unknown = JSON.parse(data);
+        // Le laissez-passer anti-robot est pour le client, pas pour la conversation.
+        if (isPass(raw)) {
+          savePass(raw.token);
+          continue;
+        }
+        const event = parseAgentEvent(raw);
         if (event) yield event;
       } catch {
         // Trame illisible : ignorée, la suite du flux reste valable.
@@ -46,27 +63,33 @@ export async function* askAgent(
     return;
   }
 
-  let response: Response;
-  try {
-    response = await fetch(`${CHAT_URL.replace(/\/$/, "")}/v2/chat`, {
+  const post = (challenge: { pass?: string; turnstile?: string }) =>
+    fetch(`${CHAT_URL.replace(/\/$/, "")}/v2/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // La visite (visiteur, source du lien) accompagne la question pour le tableau de bord.
-      body: JSON.stringify({ question, history, locale: content.locale, ...visitContext() }),
+      body: JSON.stringify({ question, history, locale: content.locale, ...visitContext(), ...challenge }),
       signal,
     });
+  // Sans laissez-passer, le défi se passe avant la question ; un laissez-passer refusé (expiré, autre réseau) en déclenche un nouveau.
+  const challenged = async () => ({ turnstile: await challengeToken(content.locale, signal) });
+
+  let response: Response;
+  try {
+    const pass = challengeEnabled ? readPass() : undefined;
+    response = await post(challengeEnabled && !pass ? await challenged() : { pass });
+    if (challengeEnabled && response.status === 403 && (await errorCode(response.clone())) === "challenge") {
+      savePass(undefined);
+      response = await post(await challenged());
+    }
   } catch (error: unknown) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
-    yield { type: "error", code: "unavailable" };
+    yield { type: "error", code: error instanceof ChallengeError ? "challenge" : "unavailable" };
     return;
   }
 
   if (!response.ok || !response.body) {
-    const payload: unknown = await response.json().catch(() => null);
-    yield parseAgentEvent({ type: "error", code: (payload as { code?: unknown } | null)?.code }) ?? {
-      type: "error",
-      code: "unavailable",
-    };
+    yield parseAgentEvent({ type: "error", code: await errorCode(response) }) ?? { type: "error", code: "unavailable" };
     return;
   }
 

@@ -49,7 +49,8 @@ export const fr: SiteContent = frenchSpacing({
     footnote: "Réponses générées à partir du parcours, à vérifier dans les sources.",
     errorUnavailable: "L'agent ne répond pas pour l'instant. Le CV et l'email restent là.",
     errorBudget: "L'agent a épuisé son budget du jour. Le CV et l'email restent là.",
-    timelineHint: "Cliquez une période pour l'ouvrir dans le parcours.",
+    errorChallenge: "La vérification anti-robot n'a pas abouti. Rechargez la page pour réessayer.",
+    timelineHint: "Cliquez une ligne pour l'ouvrir dans le parcours.",
   },
   suggestions: [
     "Sur quoi travaille Julien en ce moment ?",

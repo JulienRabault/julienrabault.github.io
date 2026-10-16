@@ -144,3 +144,17 @@
     scrollbar-gutter: stable;
     }
 }
+
+/* Le défi anti-robot, quand Cloudflare demande une interaction : centré en bas, au-dessus de la page. */
+.turnstile-host {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 1rem;
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.turnstile-host > * {
+  pointer-events: auto;
+}

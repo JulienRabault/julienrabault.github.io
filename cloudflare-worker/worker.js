@@ -1,4 +1,15 @@
-import { handleChatV2 } from "./chat.js";
+import { handleChatV2, takeQuota } from "./chat.js";
+import {
+  BODY_LIMITS,
+  BodyError,
+  clientKey,
+  memoryCount,
+  memoryLimited,
+  overBurst,
+  readBoundedJson,
+  switchedOff,
+  tokenMatches,
+} from "./guard.js";
 
 /**
  * Cloudflare Worker — Chat proxy for Julien Rabault's portfolio.
@@ -161,8 +172,6 @@ Si on te demande des pretentions salariales, invite a contacter Julien directeme
 Ne donne JAMAIS d'avis, de jugement ou de recommandation sur la carriere de Julien.
 <<<FIN_SYSTEM_INSTRUCTIONS>>>`;
 
-// ─── Rate limiting (in-memory, resets per worker instance) ───
-const rateLimitMap = new Map();
 const DEFAULT_ALLOWED_ORIGIN = "https://julienrabault.github.io";
 const ACTION_EVENT_TYPES = ["cv_download", "contact_click", "project_open", "github_click", "career_open"];
 const ALLOWED_ANALYTICS_EVENTS = new Set([
@@ -189,8 +198,22 @@ function htmlResponse(html, status = 200) {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "no-store",
+      // Le tableau de bord ne s'affiche dans aucun cadre et ne parle qu'à ce worker.
+      "Content-Security-Policy":
+        "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "X-Frame-Options": "DENY",
     },
   });
+}
+
+/** En-têtes posés sur toute réponse du worker. L'origine CORS varie selon la requête : les caches doivent le savoir. */
+function withSecurityHeaders(response) {
+  const secured = new Response(response.body, response);
+  secured.headers.set("X-Content-Type-Options", "nosniff");
+  secured.headers.set("Referrer-Policy", "no-referrer");
+  if (!secured.headers.has("Cache-Control")) secured.headers.set("Cache-Control", "no-store");
+  if (secured.headers.has("Access-Control-Allow-Origin")) secured.headers.append("Vary", "Origin");
+  return secured;
 }
 
 function getAllowedOrigins(env) {
@@ -225,30 +248,13 @@ function createPreflightResponse(corsOrigin) {
     headers: {
       "Access-Control-Allow-Origin": corsOrigin,
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Max-Age": "86400",
     },
   });
 }
 
-function isRateLimited(key, maxPerMinute) {
-  const now = Date.now();
-  const windowMs = 60_000;
-
-  if (!rateLimitMap.has(key)) {
-    rateLimitMap.set(key, []);
-  }
-
-  const timestamps = rateLimitMap.get(key).filter(t => now - t < windowMs);
-  rateLimitMap.set(key, timestamps);
-
-  if (timestamps.length >= maxPerMinute) {
-    return true;
-  }
-
-  timestamps.push(now);
-  return false;
-}
+const isRateLimited = (key, maxPerMinute) => memoryLimited(key, maxPerMinute);
 
 function truncateText(value, maxLength) {
   if (typeof value !== "string") return null;
@@ -257,10 +263,14 @@ function truncateText(value, maxLength) {
   return trimmed.slice(0, maxLength);
 }
 
-async function readJson(request) {
-  const rawBody = await request.text();
-  if (!rawBody) return {};
-  return JSON.parse(rawBody);
+/** Corps JSON borné ; une erreur de taille ou de format devient une réponse. */
+async function readJson(request, maxBytes, corsOrigin) {
+  try {
+    return { body: await readBoundedJson(request, maxBytes) };
+  } catch (error) {
+    const status = error instanceof BodyError ? error.status : 400;
+    return { response: jsonResponse({ error: status === 413 ? "Payload too large" : "Invalid JSON" }, status, corsOrigin) };
+  }
 }
 
 function serializeMetadata(metadata) {
@@ -359,9 +369,8 @@ async function insertAnalyticsEvent(env, event) {
   }
 }
 
-function getClientIP(request) {
-  return request.headers.get("CF-Connecting-IP") || "unknown";
-}
+// Une IPv6 compte pour son /64 : changer d'adresse dans son bloc ne remet pas les compteurs à zéro.
+const getClientIP = clientKey;
 
 async function handleAnalytics(request, env, corsOrigin) {
   const maxAnalyticsEventsPerMinute = parseInt(env.MAX_ANALYTICS_EVENTS_PER_MINUTE || "60");
@@ -371,12 +380,8 @@ async function handleAnalytics(request, env, corsOrigin) {
     return jsonResponse({ error: "Too many analytics events." }, 429, corsOrigin);
   }
 
-  let body;
-  try {
-    body = await readJson(request);
-  } catch {
-    return jsonResponse({ error: "Invalid JSON" }, 400, corsOrigin);
-  }
+  const { body, response } = await readJson(request, BODY_LIMITS.events, corsOrigin);
+  if (response) return response;
 
   const eventType = truncateText(body.eventType, 64);
   if (!ALLOWED_ANALYTICS_EVENTS.has(eventType)) {
@@ -391,21 +396,16 @@ async function handleAnalytics(request, env, corsOrigin) {
   return jsonResponse({ ok: true }, 202, corsOrigin);
 }
 
+/** Ancien chat (site d'origine). Mêmes garde-fous que la v2 : rafales (dans le routeur), quota du jour partagé, interrupteur. */
 async function handleChat(request, env, corsOrigin) {
-  const maxReqPerMin = parseInt(env.MAX_REQUESTS_PER_MINUTE || "10");
-  const maxTokens = parseInt(env.MAX_TOKENS || "300");
-  const rateLimitKey = `chat:${getClientIP(request)}`;
+  const maxTokens = Math.min(parseInt(env.MAX_TOKENS || "300"), 600);
 
-  if (isRateLimited(rateLimitKey, maxReqPerMin)) {
-    return jsonResponse({ error: "Too many requests. Please wait a moment." }, 429, corsOrigin);
+  if (switchedOff(env.CHAT_DISABLED) || switchedOff(env.LEGACY_CHAT_DISABLED)) {
+    return jsonResponse({ error: "AI service unavailable" }, 503, corsOrigin);
   }
 
-  let body;
-  try {
-    body = await readJson(request);
-  } catch {
-    return jsonResponse({ error: "Invalid JSON" }, 400, corsOrigin);
-  }
+  const { body, response } = await readJson(request, BODY_LIMITS.legacyChat, corsOrigin);
+  if (response) return response;
 
   const userMessage = typeof body.message === "string" ? body.message.trim() : "";
   if (!userMessage || userMessage.length > 500) {
@@ -420,6 +420,17 @@ async function handleChat(request, env, corsOrigin) {
     }));
 
     return jsonResponse({ error: "AI service unavailable" }, 502, corsOrigin);
+  }
+
+  let quota;
+  try {
+    quota = await takeQuota(env, getClientIP(request), new Date().toISOString().slice(0, 10));
+  } catch (err) {
+    console.error("Quota check failed:", err);
+    return jsonResponse({ error: "AI service unavailable" }, 503, corsOrigin);
+  }
+  if (!quota.ok) {
+    return jsonResponse({ error: "Daily limit reached. Please write to Julien directly." }, 429, corsOrigin);
   }
 
   try {
@@ -440,7 +451,8 @@ async function handleChat(request, env, corsOrigin) {
 
     if (!anthropicResponse.ok) {
       const errText = await anthropicResponse.text();
-      console.error("Anthropic API error:", anthropicResponse.status, errText);
+      console.error("Anthropic API error:", anthropicResponse.status, errText.slice(0, 500));
+      await quota.refund();
 
       await insertAnalyticsEvent(env, buildEvent(request, body, {
         event_type: "chat_message",
@@ -464,6 +476,7 @@ async function handleChat(request, env, corsOrigin) {
     return jsonResponse({ reply }, 200, corsOrigin);
   } catch (err) {
     console.error("Worker error:", err);
+    await quota.refund();
 
     await insertAnalyticsEvent(env, buildEvent(request, body, {
       event_type: "chat_message",
@@ -475,13 +488,28 @@ async function handleChat(request, env, corsOrigin) {
   }
 }
 
+/** Le jeton ne passe que par l'en-tête : dans l'URL, il finirait dans les journaux et l'historique. */
 function getAdminTokenFromRequest(request) {
   const authHeader = request.headers.get("Authorization") || "";
-  if (authHeader.startsWith("Bearer ")) {
-    return authHeader.slice("Bearer ".length).trim();
-  }
+  return authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
+}
 
-  return new URL(request.url).searchParams.get("token") || "";
+const ADMIN_FAILURES_PER_MINUTE = 10;
+
+/** Renvoie une réponse de refus, ou null si le jeton est bon. Les essais ratés sont limités par réseau. */
+async function rejectAdmin(request, env) {
+  if (!env.ADMIN_TOKEN) {
+    return jsonResponse({ error: "ADMIN_TOKEN is not configured" }, 503);
+  }
+  const failures = `admin-fail:${getClientIP(request)}`;
+  if (memoryCount(failures) >= ADMIN_FAILURES_PER_MINUTE) {
+    return jsonResponse({ error: "Too many attempts" }, 429);
+  }
+  if (!(await tokenMatches(getAdminTokenFromRequest(request), env.ADMIN_TOKEN))) {
+    memoryLimited(failures, ADMIN_FAILURES_PER_MINUTE);
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+  return null;
 }
 
 function normalizeStatsRow(row) {
@@ -564,13 +592,8 @@ async function loadSummary(env, start, end, sourceFilters) {
 }
 
 async function handleAdminStats(request, env) {
-  if (!env.ADMIN_TOKEN) {
-    return jsonResponse({ error: "ADMIN_TOKEN is not configured" }, 503);
-  }
-
-  if (getAdminTokenFromRequest(request) !== env.ADMIN_TOKEN) {
-    return jsonResponse({ error: "Unauthorized" }, 401);
-  }
+  const rejected = await rejectAdmin(request, env);
+  if (rejected) return rejected;
 
   if (!env.ANALYTICS_DB) {
     return jsonResponse({ error: "ANALYTICS_DB is not configured" }, 503);
@@ -861,13 +884,8 @@ async function handleAdminStats(request, env) {
 }
 
 async function handleAdminDeleteEvent(request, env) {
-  if (!env.ADMIN_TOKEN) {
-    return jsonResponse({ error: "ADMIN_TOKEN is not configured" }, 503);
-  }
-
-  if (getAdminTokenFromRequest(request) !== env.ADMIN_TOKEN) {
-    return jsonResponse({ error: "Unauthorized" }, 401);
-  }
+  const rejected = await rejectAdmin(request, env);
+  if (rejected) return rejected;
 
   if (!env.ANALYTICS_DB) {
     return jsonResponse({ error: "ANALYTICS_DB is not configured" }, 503);
@@ -2052,47 +2070,71 @@ function logChatV2(request, env, entry) {
   }));
 }
 
+/** Domaines servant le site : un jeton Turnstile émis sur une autre page est refusé. */
+function allowedHosts(env) {
+  return [...getAllowedOrigins(env), "http://localhost", "http://127.0.0.1"]
+    .map((origin) => {
+      try {
+        return new URL(origin).hostname;
+      } catch {
+        return "";
+      }
+    })
+    .filter(Boolean);
+}
+
+async function route(request, env, ctx) {
+  const url = new URL(request.url);
+  const corsOrigin = getCorsOrigin(request, env);
+
+  if (request.method === "OPTIONS") {
+    return createPreflightResponse(corsOrigin);
+  }
+
+  // Le tableau de bord et son API se protègent par jeton, sans CORS : seule la page /admin du worker les appelle.
+  if (url.pathname === "/admin/stats" && request.method === "GET") {
+    return handleAdminStats(request, env);
+  }
+
+  if (url.pathname === "/admin/events" && request.method === "DELETE") {
+    return handleAdminDeleteEvent(request, env);
+  }
+
+  if (url.pathname === "/admin" && request.method === "GET") {
+    return handleAdminDashboard();
+  }
+
+  // Le reste ne répond qu'aux pages du site. Un robot peut forger l'en-tête, pas un navigateur sur un autre site.
+  if (!isAllowedOrigin(request.headers.get("Origin") || "", env)) {
+    return jsonResponse({ error: "Forbidden" }, 403, corsOrigin);
+  }
+
+  if ((url.pathname === "/events" || url.pathname === "/analytics") && request.method === "POST") {
+    return handleAnalytics(request, env, corsOrigin);
+  }
+
+  const isChat = request.method === "POST" && ["/v2/chat", "/", "/chat"].includes(url.pathname);
+  if (!isChat) {
+    return jsonResponse({ error: "Method not allowed" }, 405, corsOrigin);
+  }
+
+  // Rafale : limite par minute (binding Cloudflare si présent). Le quota du jour, lui, est tenu dans D1.
+  const v2 = url.pathname === "/v2/chat";
+  // Sans binding, la limite en mémoire reprend la même valeur que celle de wrangler.toml (6 par minute).
+  if (await overBurst(env.CHAT_LIMITER, `chat:${getClientIP(request)}`, parseInt(env.MAX_REQUESTS_PER_MINUTE || "6"))) {
+    return jsonResponse(v2 ? { code: "unavailable" } : { error: "Too many requests. Please wait a moment." }, 429, corsOrigin);
+  }
+
+  if (v2) {
+    return handleChatV2(request, env, ctx, corsOrigin, (entry) => logChatV2(request, env, entry), {
+      allowedHosts: allowedHosts(env),
+    });
+  }
+  return handleChat(request, env, corsOrigin);
+}
+
 export default {
   async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const corsOrigin = getCorsOrigin(request, env);
-
-    if (request.method === "OPTIONS") {
-      return createPreflightResponse(corsOrigin);
-    }
-
-    if (url.pathname === "/admin/stats" && request.method === "GET") {
-      return handleAdminStats(request, env);
-    }
-
-    if (url.pathname === "/admin/events" && request.method === "DELETE") {
-      return handleAdminDeleteEvent(request, env);
-    }
-
-    if (url.pathname === "/admin" && request.method === "GET") {
-      return handleAdminDashboard();
-    }
-
-    if ((url.pathname === "/events" || url.pathname === "/analytics") && request.method === "POST") {
-      return handleAnalytics(request, env, corsOrigin);
-    }
-
-    if (!isAllowedOrigin(request.headers.get("Origin") || "", env)) {
-      return jsonResponse({ error: "Forbidden" }, 403, corsOrigin);
-    }
-
-    if (url.pathname === "/v2/chat" && request.method === "POST") {
-      // Rafale : limite par minute en mémoire. Le quota du jour, lui, est tenu dans D1.
-      if (isRateLimited(`chat:${getClientIP(request)}`, parseInt(env.MAX_REQUESTS_PER_MINUTE || "10"))) {
-        return jsonResponse({ code: "unavailable" }, 429, corsOrigin);
-      }
-      return handleChatV2(request, env, ctx, corsOrigin, (entry) => logChatV2(request, env, entry));
-    }
-
-    if ((url.pathname === "/" || url.pathname === "/chat") && request.method === "POST") {
-      return handleChat(request, env, corsOrigin);
-    }
-
-    return jsonResponse({ error: "Method not allowed" }, 405, corsOrigin);
+    return withSecurityHeaders(await route(request, env, ctx));
   },
 };

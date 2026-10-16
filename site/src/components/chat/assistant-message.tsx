@@ -148,7 +148,14 @@ export function AssistantMessage({ message, content, live, onOpenCareer }: Assis
         {message.status === "error" && (
           <p className="flex items-start gap-2 text-[15px] text-muted-foreground">
             <CircleAlertIcon className="mt-1 size-4 shrink-0" />
-            {message.error === "budget" ? ui.errorBudget : message.error === "quota" ? ui.quotaReached : ui.errorUnavailable}
+            {
+              {
+                budget: ui.errorBudget,
+                quota: ui.quotaReached,
+                challenge: ui.errorChallenge,
+                unavailable: ui.errorUnavailable,
+              }[message.error ?? "unavailable"]
+            }
           </p>
         )}
 

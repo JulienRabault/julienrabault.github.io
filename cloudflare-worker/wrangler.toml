@@ -4,7 +4,8 @@ compatibility_date = "2024-01-01"
 
 [vars]
 ALLOWED_ORIGIN = "https://julienrabault.github.io"
-MAX_REQUESTS_PER_MINUTE = "10"
+# Repli de CHAT_LIMITER (plus bas) quand le binding manque : garder les deux valeurs égales.
+MAX_REQUESTS_PER_MINUTE = "6"
 MAX_ANALYTICS_EVENTS_PER_MINUTE = "60"
 MAX_TOKENS = "250"
 # Chat v2 (/v2/chat). Secrets à poser avec `wrangler secret put` : ANTHROPIC_API_KEY, HISTORY_SECRET, IP_SALT, ADMIN_TOKEN.
@@ -12,6 +13,16 @@ MODEL = "claude-haiku-5-5"
 CHAT_MAX_TOKENS = "900"
 CHAT_PER_VISITOR_PER_DAY = "10"
 CHAT_PER_DAY = "400"
+# Interrupteurs : "true" coupe tout le chat, ou seulement l'ancien (/ et /chat, site d'origine).
+CHAT_DISABLED = "false"
+LEGACY_CHAT_DISABLED = "false"
+# Défi anti-robot : actif dès que le secret TURNSTILE_SECRET est posé (et VITE_TURNSTILE_SITE_KEY côté site).
+
+# Limite de rafale partagée par Cloudflare (sinon, limite en mémoire par instance).
+[[ratelimits]]
+name = "CHAT_LIMITER"
+namespace_id = "1001"
+simple = { limit = 6, period = 60 }
 
 [[d1_databases]]
 binding = "ANALYTICS_DB"

@@ -7,13 +7,13 @@ export const knowledgeEn: Record<string, Source> = {
     org: "Berger-Levrault",
     period: "since Jan. 2026",
     title: "AI Engineer, Athena platform",
-    text: "AI Engineer in Berger-Levrault's AI R&D team, in Toulouse. Athena is the group's agentic platform, wired into its clients' documents and business APIs (local government, healthcare, legal, industry, maintenance, public-sector HR): 100k documents, 6-month pilot with 70 users, production rollout under way. Athena went from POC to product and targets all of the group's clients. Needs gathered from business units and client workshops.",
+    text: "AI Engineer in Berger-Levrault's AI R&D team, in Toulouse. Athena is the group's agentic platform, wired into its clients' documents and business APIs (local government, healthcare, legal, industry, maintenance, public-sector HR): 100k documents, 6-month pilot with 70 users, production rollout under way. Athena went from POC to product and targets all of the group's clients. Needs gathered from business units and client workshops, iterations on field feedback. Julien works across the whole chain, from agent architecture to deployment at the client, often in domains he did not know the day before.",
   },
   "bl-harness": {
     org: "Berger-Levrault",
     period: "since Jan. 2026",
     title: "Agent harness",
-    text: "Architecture designed and owned by Julien (LangChain, LangGraph). Moved from a router (one agent per task) to a single agent loop configured per profile and extended through middleware: persistent memory, human approval of sensitive actions, context management (summarisation, token budget), guardrails, skills, sub-agents. Prompt caching shared across conversations, tenants and clients: inference costs cut by an estimated 40-50%. Julien led the redesign in workshops, but it was a team effort: skills, sub-agents, source citations, handling of documents uploaded by the user. Now migrating to Deep Agents.",
+    text: "Architecture designed and owned by Julien (LangChain, LangGraph). Moved from a router (one agent per task) to a single agent loop configured per profile and extended through middleware: persistent memory, human approval of sensitive actions, context management (summarisation, token budget), guardrails, skills, sub-agents. Prompt caching shared across conversations, tenants and clients: inference costs cut by an estimated 40-50%. Shared event contract and explicit context management. Both architectures run side by side in production, compared on the same evaluation bench. Julien led the redesign in workshops, but it was a team effort: skills, sub-agents, source citations, handling of documents uploaded by the user. Now migrating to Deep Agents.",
   },
   "bl-tools": {
     org: "Berger-Levrault",
@@ -25,7 +25,7 @@ export const knowledgeEn: Record<string, Source> = {
     org: "Berger-Levrault",
     period: "since Jan. 2026",
     title: "Evaluation and monitoring",
-    text: "Rebuilt monitoring on Langfuse v4 (traces, datasets, automated evaluations and scoring, LLM-as-judge), golden sets, model, prompt and architecture comparisons, regression and cost tracking. Sandboxing of retrieved content against indirect prompt injection. The goal: measure quality, catch hallucinations and avoid regressions as the architecture changes.",
+    text: "Rebuilt monitoring on Langfuse v4 (traces, datasets, automated evaluations and scoring, LLM-as-judge), golden sets, model, prompt and architecture comparisons, regression and cost tracking. Sandboxing of retrieved content against indirect prompt injection, execution bounds on tools (timeouts, per-profile restrictions). Result: regressions are caught before going to production. The goal: measure quality, catch hallucinations and avoid regressions as the architecture changes.",
   },
   "bl-mcp": {
     org: "Berger-Levrault",
@@ -37,7 +37,7 @@ export const knowledgeEn: Record<string, Source> = {
     org: "Berger-Levrault",
     period: "since Jan. 2026",
     title: "Content-extractor",
-    text: "Multimodal extraction (OCR, PDF, DOCX, audio): FastAPI service built from scratch, 7 pipelines, async batch processing (Celery and the Mistral batch API), factory/registry architecture. Deployed, -50% on extraction costs. Julien also made the data pipeline more modular (configurable chunkers for the research team).",
+    text: "It started as a simple image-extraction service that was hard to extend. Julien rebuilt it entirely for OCR, images, PDF and DOCX, then added audio transcription. Multimodal extraction: FastAPI service redesigned from scratch, 7 pipelines, async batch processing (Celery and the Mistral batch API), factory/registry architecture. Deployed, -50% on extraction costs. Julien also made the data pipeline more modular (configurable chunkers for the research team).",
   },
   "bl-templates": {
     org: "Berger-Levrault",
@@ -49,13 +49,13 @@ export const knowledgeEn: Record<string, Source> = {
     org: "Berger-Levrault",
     period: "since Jan. 2026",
     title: "Business data structuring",
-    text: "For public-sector HR: interview write-ups turned into normalised, deduplicated needs matched against a training catalogue. Demonstrator shown to stakeholders, industrialisation under way. Enriched RAG ingestion on Airflow: existing DAGs extended (chunking, embeddings, indexed questions), more than 5 DAGs, roughly one per client, across about ten clients.",
+    text: "Automating public-sector training plans, a field Julien did not know: needs extracted from annual reviews, normalised, deduplicated, grouped across employees and matched against a training catalogue (structured outputs). Pipeline designed from scratch; demonstrator shown to stakeholders, industrialisation under way. Enriched RAG ingestion on Airflow, as a team: per-client pipelines (PDFs, manuals, work orders, machine documentation) extended with data augmentation, chunking, embeddings and generated questions and keywords that get indexed, more than 5 DAGs, roughly one per client, across about ten clients.",
   },
   "bl-team": {
     org: "Berger-Levrault",
     period: "since Jan. 2026",
     title: "The team and the role",
-    text: "On the applied side of the AI R&D team: 3 AI engineers including Julien, 1 designer, 1 DevOps. Working closely with the research team (1 manager, 1 researcher, 3 PhD students, one of them on hallucination reduction; GraphRAG). Tracked in Jira. Julien also worked on a voice API. What Julien likes about the role: R&D, touching everything (data, platform, agents, MCP) and seeing his services go to production.",
+    text: "An AI R&D team of about twelve people. On the applied side: 3 AI engineers including Julien, 1 designer, 1 DevOps. Working closely with the research team (1 manager, 1 researcher, 3 PhD students, one of them on hallucination reduction; GraphRAG). Tracked in Jira. Julien also worked on a voice API. What Julien likes about the role: R&D, touching everything (data, platform, agents, MCP) and seeing his services go to production.",
   },
   "cnrs": {
     org: "CNRS (PNRIA)",
@@ -121,7 +121,7 @@ export const knowledgeEn: Record<string, Source> = {
     org: "Université Paul Sabatier",
     period: "2016 to 2021",
     title: "Education",
-    text: "MSc Artificial Intelligence and Pattern Recognition, Université Paul Sabatier and IRIT (2019 to 2021): deep learning, vision, NLP. BSc Computer Science, same university (2016 to 2019), which taught him to reason as a computer scientist (algorithms, data structures, complexity) rather than to learn languages.",
+    text: "MSc Artificial Intelligence and Pattern Recognition, Université Paul Sabatier and IRIT (2019 to 2021): deep learning, vision, NLP. BSc Computer Science, same university (2016 to 2019), which taught him to reason as a computer scientist (algorithms, data structures, complexity) rather than to learn languages. Alongside his studies, a student job as front-desk lead at Carrefour (2017 to 2020).",
   },
   "publications": {
     org: "Publications",
@@ -133,13 +133,13 @@ export const knowledgeEn: Record<string, Source> = {
     org: "Open source",
     period: "",
     title: "LangChain, LLMock, uniqpath, BananaML, DDPM-weather",
-    text: "Merged contribution to LangChain (Mistral integration). Four personal projects, three of them on PyPI. LLMock: LLM mock server, 10+ providers, OpenAI-compatible, to test retries, fallbacks and rate limiting without spending tokens. uniqpath: unique file paths (incremental suffixes, UUID, timestamps). BananaML: end-to-end ML pipeline on AWS, computer vision and REST API (FastAPI, Docker, CI/CD). DDPM-weather: diffusion to denoise weather images, -20% resources.",
+    text: "Merged contribution to LangChain (Mistral integration). Four personal projects, three of them on PyPI (LLMock, uniqpath, configurable-cl). LLMock: LLM mock server, 10+ providers, OpenAI-compatible, to test retries, fallbacks and rate limiting without spending tokens. uniqpath: unique file paths (incremental suffixes, UUID, timestamps). BananaML: end-to-end ML pipeline on AWS, computer vision and REST API (FastAPI, Docker, CI/CD). DDPM-weather: diffusion to denoise weather images, -20% resources.",
   },
   "skills": {
     org: "Skills",
     period: "",
     title: "Stack",
-    text: "Agentic systems: agent harnesses (agent loop, tool calling, middleware, memory, human-in-the-loop), LangChain, LangGraph, Deep Agents, RAG, GraphRAG, MCP, Structured Outputs, evals (golden sets, LLM-as-judge, A/B testing), multimodal (OCR, vision, audio), fine-tuning. Languages and data: Python, PyTorch, PyTorch Lightning, scikit-learn, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, GeoPandas, HDF5, Hugging Face, Mistral and OpenAI APIs, C#. Infrastructure: Docker, Singularity, Conda, GitLab CI, AWS, Celery, RabbitMQ, Airflow, MLFlow, Langfuse, Slurm, Linux.",
+    text: "Agentic systems: agent harnesses (agent loop, tool calling, middleware, memory, human-in-the-loop), LangChain, LangGraph, Deep Agents, RAG, GraphRAG, MCP (client and server, FastMCP), Structured Outputs, agent security (prompt injection), evals (golden sets, LLM-as-judge, A/B testing), multimodal (OCR, vision, audio), fine-tuning. Languages and data: Python, PyTorch, PyTorch Lightning, scikit-learn, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, GeoPandas, HDF5, Hugging Face, Mistral and OpenAI APIs, C#. Infrastructure: Docker, Singularity, Conda, GitLab CI, AWS, Celery, RabbitMQ, S3 and MinIO, Airflow, MLFlow, Langfuse, Slurm, Linux.",
   },
   "mobility": {
     org: "Availability",

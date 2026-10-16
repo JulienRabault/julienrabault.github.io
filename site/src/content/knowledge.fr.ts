@@ -8,13 +8,13 @@ export const knowledgeFr: Record<string, Source> = {
     org: "Berger-Levrault",
     period: "depuis janv. 2026",
     title: "AI Engineer, plateforme Athena",
-    text: "AI Engineer dans l'équipe R&D IA de Berger-Levrault, à Toulouse. Athena est la plateforme agentique du groupe, branchée sur les documents et APIs métier de ses clients (collectivités, santé, juridique, industrie, maintenance, RH publique) : 100k documents, pilote de 6 mois avec 70 utilisateurs, mise en production en cours. Athena est passée du POC au produit et vise l'ensemble des clients du groupe. Besoins recueillis auprès des business units et en ateliers clients.",
+    text: "AI Engineer dans l'équipe R&D IA de Berger-Levrault, à Toulouse. Athena est la plateforme agentique du groupe, branchée sur les documents et APIs métier de ses clients (collectivités, santé, juridique, industrie, maintenance, RH publique) : 100k documents, pilote de 6 mois avec 70 utilisateurs, mise en production en cours. Athena est passée du POC au produit et vise l'ensemble des clients du groupe. Besoins recueillis auprès des business units et en ateliers clients, itérations sur les retours terrain. Julien travaille sur toute la chaîne, de l'architecture agentique au déploiement chez le client, souvent sur des métiers qu'il ne connaissait pas la veille.",
   },
   "bl-harness": {
     org: "Berger-Levrault",
     period: "depuis janv. 2026",
     title: "Harnais agentique",
-    text: "Architecture conçue et portée par Julien (LangChain, LangGraph). Passage d'un routeur d'agents (un agent par tâche) à une boucle agentique unique, configurée par profil et étendue par middlewares : mémoire persistante, validation humaine des actions sensibles, gestion du contexte (résumé, budget de tokens), garde-fous, skills, sous-agents. Prompt caching partagé entre conversations, tenants et clients : -40 à -50 % de coûts d'inférence (estimé). Refonte menée par Julien en ateliers, mais travail d'équipe : skills, sous-agents, citation des sources, prise en charge des documents déposés par l'utilisateur. Migration en cours vers Deep Agents.",
+    text: "Architecture conçue et portée par Julien (LangChain, LangGraph). Passage d'un routeur d'agents (un agent par tâche) à une boucle agentique unique, configurée par profil et étendue par middlewares : mémoire persistante, validation humaine des actions sensibles, gestion du contexte (résumé, budget de tokens), garde-fous, skills, sous-agents. Prompt caching partagé entre conversations, tenants et clients : -40 à -50 % de coûts d'inférence (estimé). Contrat d'événements commun et gestion explicite du contexte. Les deux architectures tournent en parallèle en production, comparées sur le même banc d'évaluation. Refonte menée par Julien en ateliers, mais travail d'équipe : skills, sous-agents, citation des sources, prise en charge des documents déposés par l'utilisateur. Migration en cours vers Deep Agents.",
   },
   "bl-tools": {
     org: "Berger-Levrault",
@@ -26,7 +26,7 @@ export const knowledgeFr: Record<string, Source> = {
     org: "Berger-Levrault",
     period: "depuis janv. 2026",
     title: "Évaluation et monitoring",
-    text: "Refonte du monitoring sous Langfuse v4 (traces, datasets, évaluations et scoring automatiques, LLM-as-judge), golden sets, comparaison de modèles, de prompts et d'architectures, suivi des régressions et des coûts. Cloisonnement des contenus récupérés contre l'injection de prompt indirecte. L'objectif : mesurer la qualité, repérer les hallucinations et ne pas régresser quand l'architecture évolue.",
+    text: "Refonte du monitoring sous Langfuse v4 (traces, datasets, évaluations et scoring automatiques, LLM-as-judge), golden sets, comparaison de modèles, de prompts et d'architectures, suivi des régressions et des coûts. Cloisonnement des contenus récupérés contre l'injection de prompt indirecte, bornes d'exécution des outils (timeouts, restriction par profil d'agent). Résultat : les régressions sont détectées avant la mise en production. L'objectif : mesurer la qualité, repérer les hallucinations et ne pas régresser quand l'architecture évolue.",
   },
   "bl-mcp": {
     org: "Berger-Levrault",
@@ -38,7 +38,7 @@ export const knowledgeFr: Record<string, Source> = {
     org: "Berger-Levrault",
     period: "depuis janv. 2026",
     title: "Content-extractor",
-    text: "Extraction multimodale (OCR, PDF, DOCX, audio) : service FastAPI créé de zéro, 7 pipelines, batch asynchrone (Celery et API batch de Mistral), architecture factory/registry. Déployé, -50 % sur les coûts d'extraction. Julien a aussi rendu la pipeline de données plus modulable (chunkers configurables pour l'équipe de recherche).",
+    text: "Au départ, un service d'extraction d'images simple et peu modulable. Julien l'a refait entièrement pour l'OCR, les images, le PDF et le DOCX, puis a ajouté la transcription audio. Extraction multimodale : service FastAPI repensé de zéro, 7 pipelines, batch asynchrone (Celery et API batch de Mistral), architecture factory/registry. Déployé, -50 % sur les coûts d'extraction. Julien a aussi rendu la pipeline de données plus modulable (chunkers configurables pour l'équipe de recherche).",
   },
   "bl-templates": {
     org: "Berger-Levrault",
@@ -50,13 +50,13 @@ export const knowledgeFr: Record<string, Source> = {
     org: "Berger-Levrault",
     period: "depuis janv. 2026",
     title: "Structuration de données métier",
-    text: "Pour la RH publique : comptes rendus d'entretiens transformés en besoins normalisés, dédoublonnés, rapprochés d'un catalogue de formations. Démonstrateur présenté aux parties prenantes, industrialisation en cours. Ingestion RAG enrichie sous Airflow : DAGs existants complétés (chunking, embeddings, questions indexées), plus de 5 DAGs, à peu près un par client, sur une dizaine de clients.",
+    text: "Automatiser les plans de formation du secteur public, un métier que Julien ne connaissait pas : extraction des besoins depuis les entretiens annuels, normalisation, dédoublonnage, regroupement des besoins entre collaborateurs, rapprochement avec un catalogue de formations (structured outputs). Chaîne conçue de zéro ; démonstrateur présenté aux parties prenantes, industrialisation en cours. Ingestion RAG enrichie sous Airflow, en équipe : pipelines par client (PDF, notices, ordres de travail, documentation machine) complétés par de la data augmentation, du chunking, des embeddings et des questions et mots-clés générés puis indexés, plus de 5 DAGs, à peu près un par client, sur une dizaine de clients.",
   },
   "bl-team": {
     org: "Berger-Levrault",
     period: "depuis janv. 2026",
     title: "L'équipe et le poste",
-    text: "Côté applicatif de l'équipe R&D IA : 3 AI engineers dont Julien, 1 designer, 1 DevOps. En lien étroit avec l'équipe de recherche (1 manager, 1 chercheur, 3 doctorants, dont un sur la réduction des hallucinations ; GraphRAG). Suivi sur Jira. Julien a aussi travaillé sur une API vocale. Ce que Julien aime dans ce poste : la R&D, toucher à tout (données, plateforme, agents, MCP) et voir ses services partir en production.",
+    text: "Équipe R&D IA d'une douzaine de personnes. Côté applicatif : 3 AI engineers dont Julien, 1 designer, 1 DevOps. En lien étroit avec l'équipe de recherche (1 manager, 1 chercheur, 3 doctorants, dont un sur la réduction des hallucinations ; GraphRAG). Suivi sur Jira. Julien a aussi travaillé sur une API vocale. Ce que Julien aime dans ce poste : la R&D, toucher à tout (données, plateforme, agents, MCP) et voir ses services partir en production.",
   },
   "cnrs": {
     org: "CNRS (PNRIA)",
@@ -122,7 +122,7 @@ export const knowledgeFr: Record<string, Source> = {
     org: "Université Paul Sabatier",
     period: "2016 à 2021",
     title: "Formation",
-    text: "Master intelligence artificielle et reconnaissance des formes, Université Paul Sabatier et IRIT (2019 à 2021) : deep learning, vision, NLP. Licence informatique, même université (2016 à 2019), qui lui a appris à raisonner en informaticien (algorithmique, structures de données, complexité) plutôt qu'à apprendre des langages.",
+    text: "Master intelligence artificielle et reconnaissance des formes, Université Paul Sabatier et IRIT (2019 à 2021) : deep learning, vision, NLP. Licence informatique, même université (2016 à 2019), qui lui a appris à raisonner en informaticien (algorithmique, structures de données, complexité) plutôt qu'à apprendre des langages. En parallèle des études, job étudiant de responsable accueil chez Carrefour (2017 à 2020).",
   },
   "publications": {
     org: "Publications",
@@ -134,13 +134,13 @@ export const knowledgeFr: Record<string, Source> = {
     org: "Open source",
     period: "",
     title: "LangChain, LLMock, uniqpath, BananaML, DDPM-weather",
-    text: "Contribution mergée dans LangChain (intégration Mistral). Quatre projets personnels, dont trois publiés sur PyPI. LLMock : serveur de mock LLM, plus de 10 fournisseurs, compatible OpenAI, pour tester retries, fallbacks et rate limiting sans consommer de tokens. uniqpath : chemins de fichiers uniques (suffixes incrémentaux, UUID, horodatage). BananaML : pipeline ML de bout en bout sur AWS, vision et API REST (FastAPI, Docker, CI/CD). DDPM-weather : diffusion pour débruiter des images météo, -20 % de ressources.",
+    text: "Contribution mergée dans LangChain (intégration Mistral). Quatre projets personnels, dont trois publiés sur PyPI (LLMock, uniqpath, configurable-cl). LLMock : serveur de mock LLM, plus de 10 fournisseurs, compatible OpenAI, pour tester retries, fallbacks et rate limiting sans consommer de tokens. uniqpath : chemins de fichiers uniques (suffixes incrémentaux, UUID, horodatage). BananaML : pipeline ML de bout en bout sur AWS, vision et API REST (FastAPI, Docker, CI/CD). DDPM-weather : diffusion pour débruiter des images météo, -20 % de ressources.",
   },
   "skills": {
     org: "Compétences",
     period: "",
     title: "Stack",
-    text: "Systèmes agentiques : harnais d'agents (boucle agentique, tool calling, middlewares, mémoire, human-in-the-loop), LangChain, LangGraph, Deep Agents, RAG, GraphRAG, MCP, Structured Outputs, evals (golden sets, LLM-as-judge, A/B testing), multimodal (OCR, vision, audio), fine-tuning. Langages et données : Python, PyTorch, PyTorch Lightning, scikit-learn, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, GeoPandas, HDF5, Hugging Face, API Mistral et OpenAI, C#. Infrastructure : Docker, Singularity, Conda, GitLab CI, AWS, Celery, RabbitMQ, Airflow, MLFlow, Langfuse, Slurm, Linux.",
+    text: "Systèmes agentiques : harnais d'agents (boucle agentique, tool calling, middlewares, mémoire, human-in-the-loop), LangChain, LangGraph, Deep Agents, RAG, GraphRAG, MCP (client et serveur, FastMCP), Structured Outputs, sécurité des agents (prompt injection), evals (golden sets, LLM-as-judge, A/B testing), multimodal (OCR, vision, audio), fine-tuning. Langages et données : Python, PyTorch, PyTorch Lightning, scikit-learn, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, GeoPandas, HDF5, Hugging Face, API Mistral et OpenAI, C#. Infrastructure : Docker, Singularity, Conda, GitLab CI, AWS, Celery, RabbitMQ, S3 et MinIO, Airflow, MLFlow, Langfuse, Slurm, Linux.",
   },
   "mobility": {
     org: "Disponibilité",

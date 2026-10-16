@@ -1,8 +1,6 @@
 import { AgentOrb } from "@/components/agent-orb";
 import type { HarnessLayer } from "@/content/types";
 import { useElementWidth } from "@/lib/use-element-width";
-import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "motion/react";
 import { useRef } from "react";
 
 // Géométrie en unités du viewBox (600 × 600) : la boucle au centre, les middlewares en anneaux, l'évaluation autour.
@@ -12,6 +10,7 @@ const CORE_R = 64;
 const BAND = 30;
 const GAP = 3;
 const LABEL_PX = 11;
+const MIN_WIDTH_ALL_LABELS = 400;
 const ringRadius = (i: number) => CORE_R + GAP + BAND / 2 + i * (BAND + GAP);
 
 /** Arc supérieur de rayon r, de gauche à droite, pour poser une étiquette dessus. */
@@ -30,8 +29,10 @@ export function HarnessDiagram({ layers, active, onSelect, live = true }: Harnes
   const width = useElementWidth(ref);
   const [core, ...rings] = layers;
   const orbSize = Math.round((width * (CORE_R * 2 - 8)) / VIEW);
-  // Le schéma change de taille : les étiquettes sont calculées pour rester autour de 11 px à l'écran.
-  const labelSize = width > 0 ? Math.min(22, Math.max(13, (LABEL_PX * VIEW) / width)) : 13;
+  // Le schéma change de taille : les étiquettes restent autour de 11 px à l'écran, dans la limite de l'épaisseur d'un anneau.
+  const labelSize = width > 0 ? Math.min(27, Math.max(13, (LABEL_PX * VIEW) / width)) : 13;
+  // En petit, les sept étiquettes se chevauchent en haut du schéma : seule celle de la couche choisie reste, la liste donne les autres.
+  const allLabels = width >= MIN_WIDTH_ALL_LABELS;
 
   return (
     <div className="relative aspect-square w-full" ref={ref}>
@@ -64,17 +65,19 @@ export function HarnessDiagram({ layers, active, onSelect, live = true }: Harnes
                 />
               )}
               <path d={topArc(r)} fill="none" id={`arc-${layer.id}`} stroke="none" />
-              <text
-                className="select-none font-medium transition-[fill] duration-300"
-                dy={labelSize / 3}
-                fill={on ? "var(--ochre)" : "var(--muted-foreground)"}
-                fontSize={labelSize}
-                letterSpacing={0.4}
-              >
-                <textPath href={`#arc-${layer.id}`} startOffset="50%" textAnchor="middle">
-                  {layer.name}
-                </textPath>
-              </text>
+              {(allLabels || on) && (
+                <text
+                  className="select-none font-medium transition-[fill] duration-300"
+                  dy={labelSize / 3}
+                  fill={on ? "var(--ochre)" : "var(--muted-foreground)"}
+                  fontSize={labelSize}
+                  letterSpacing={0.4}
+                >
+                  <textPath href={`#arc-${layer.id}`} startOffset="50%" textAnchor="middle">
+                    {layer.name}
+                  </textPath>
+                </text>
+              )}
             </g>
           );
         })}
@@ -100,53 +103,5 @@ export function HarnessDiagram({ layers, active, onSelect, live = true }: Harnes
         </div>
       )}
     </div>
-  );
-}
-
-interface LayerListProps {
-  layers: HarnessLayer[];
-  active: string;
-  onSelect: (id: string) => void;
-}
-
-/** Liste accessible au clavier, synchronisée avec le schéma. */
-export function LayerList({ layers, active, onSelect }: LayerListProps) {
-  return (
-    <ul className="divide-y border-y">
-      {layers.map((layer) => {
-        const on = layer.id === active;
-        return (
-          <li key={layer.id}>
-            <button
-              aria-expanded={on}
-              className="flex w-full items-center gap-3 py-3 text-left"
-              onClick={() => onSelect(layer.id)}
-              type="button"
-            >
-              <span
-                aria-hidden
-                className={cn("size-2 rounded-full transition-colors", on ? "bg-ochre" : "bg-border")}
-              />
-              <span className={cn("font-medium transition-colors", on ? "text-foreground" : "text-muted-foreground")}>
-                {layer.name}
-              </span>
-            </button>
-            <AnimatePresence initial={false}>
-              {on && (
-                <motion.p
-                  animate={{ height: "auto", opacity: 1 }}
-                  className="overflow-hidden pl-5 text-[15px] text-muted-foreground leading-relaxed"
-                  exit={{ height: 0, opacity: 0 }}
-                  initial={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <span className="block pb-4">{layer.text}</span>
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </li>
-        );
-      })}
-    </ul>
   );
 }

@@ -94,11 +94,11 @@ https://julienrabault.github.io/?src=linkedin&utm_source=linkedin&utm_medium=dm&
 ## Chat v2 (site React, `/v2/chat`)
 
 Le nouveau site appelle `POST /v2/chat` (code dans `chat.js`) et reçoit la réponse en flux SSE :
-`quota`, `read` (passage cité), `text`, puis `done` (trace et signature) ou `error` (`quota`, `budget`, `unavailable`).
+`quota`, `read` (passage cité), `text`, puis `done` (trace et signature) ou `error` (`quota`, `budget`, `challenge`, `unavailable`). Après un défi Turnstile réussi, un événement `pass` porte le laissez-passer.
 
 - La connaissance et le contrat (liens, widgets, filtre) sont importés depuis `site/src/content/` : modifier le site suffit, `wrangler deploy` les embarque.
 - Le prompt système est mis en cache (prompt caching) : seules la question et l'historique changent d'un appel à l'autre.
-- Quota : `CHAT_PER_VISITOR_PER_DAY` questions par visiteur et par jour, `CHAT_PER_DAY` pour tout le site. Le visiteur est un hash (jour, IP, `IP_SALT`), l'IP n'est pas stockée.
+- Quota : `CHAT_PER_VISITOR_PER_DAY` questions par visiteur et par jour, `CHAT_PER_DAY` pour tout le site. Le visiteur est un hash (jour, réseau, `IP_SALT`), l'IP n'est pas stockée.
 - Historique : seules les réponses signées par le worker (`HISTORY_SECRET`) sont renvoyées au modèle, une réponse forgée par le client est écartée avec sa question.
 - Sortie filtrée côté worker puis côté navigateur : pas d'URL, pas de HTML, citations et widgets sur liste blanche.
 
@@ -111,9 +111,34 @@ wrangler secret put IP_SALT          # chaîne aléatoire
 wrangler deploy
 ```
 
-Tests : `node --test cloudflare-worker/` depuis la racine du dépôt (Node 24).
+Tests : `node --test cloudflare-worker/chat.test.js cloudflare-worker/guard.test.js` depuis la racine du dépôt (Node 24).
 
-L'ancien endpoint `/chat` reste en place pour l'ancien site tant que le nouveau n'est pas en ligne.
+L'ancien endpoint `/chat` reste en place pour l'ancien site tant que le nouveau n'est pas en ligne. Il passe par les mêmes limites et le même quota du jour ; `LEGACY_CHAT_DISABLED = "true"` le coupe une fois le nouveau site en ligne.
+
+## Protections contre les robots et les abus
+
+Code dans `guard.js`, testé par `guard.test.js`. Par ordre d'entrée :
+
+1. **Origine** : hors `/admin`, seules les pages de `ALLOWED_ORIGIN` (et localhost) sont servies, suivi des visites compris.
+2. **Rafales** : `CHAT_LIMITER` (Rate Limiting de Cloudflare, 6 questions par minute et par réseau, ancien et nouveau chat confondus), et à défaut une limite en mémoire de `MAX_REQUESTS_PER_MINUTE` (même valeur). Une IPv6 compte pour son /64.
+3. **Taille** : corps refusé au-delà de 32 Kio (chat), 4 Kio (suivi, ancien chat) ; le chat v2 exige `application/json`.
+4. **Défi anti-robot (optionnel)** : avec le secret `TURNSTILE_SECRET`, chaque nouveau visiteur passe Cloudflare Turnstile (invisible sauf doute). Le worker vérifie le jeton (action `chat`, domaine du site) puis remet un laissez-passer signé, valable deux heures pour ce réseau.
+5. **Quota du jour** (D1) : par visiteur et pour tout le site. C'est lui qui borne la dépense.
+6. **Interrupteur** : `CHAT_DISABLED = "true"` coupe le chat sans redéployer le site (`wrangler deploy` suffit, ou la variable dans le tableau de bord Cloudflare).
+7. **Admin** (`ADMIN_TOKEN` long et aléatoire, par exemple `openssl rand -hex 32`) : jeton par en-tête `Authorization` uniquement, comparé en temps constant ; dix essais ratés par minute et par réseau, puis 429. Le tableau de bord refuse d'être encadré (CSP `frame-ancestors 'none'`).
+
+Toutes les réponses portent `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` et `Vary: Origin` quand il y a du CORS.
+Côté site, le build pose une CSP en balise meta (scripts du site seulement, connexions vers le worker, l'API GitHub et Turnstile).
+
+Activer Turnstile (facultatif, recommandé si des robots apparaissent dans le tableau de bord) :
+
+```powershell
+# Tableau de bord Cloudflare > Turnstile > Add widget : domaine julienrabault.github.io (et localhost pour tester), mode Managed.
+wrangler secret put TURNSTILE_SECRET           # la clé secrète du widget
+# puis, côté site : VITE_TURNSTILE_SITE_KEY=<clé de site> dans site/.env, et rebuild.
+```
+
+À faire aussi côté Anthropic : une limite de dépense mensuelle sur la clé (console Anthropic > Limits). C'est le filet si tout le reste cède.
 
 ## Accès discret au dashboard
 

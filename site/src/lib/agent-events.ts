@@ -6,7 +6,7 @@ export interface Trace {
   simulated: boolean;
 }
 
-export type AgentErrorCode = "quota" | "budget" | "unavailable";
+export type AgentErrorCode = "quota" | "budget" | "challenge" | "unavailable";
 
 /** Contrat d'événements entre le worker (ou l'agent simulé) et la page. */
 export type AgentEvent =
@@ -24,7 +24,7 @@ export interface HistoryTurn {
 }
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
-const ERROR_CODES: readonly string[] = ["quota", "budget", "unavailable"];
+const ERROR_CODES: readonly string[] = ["quota", "budget", "challenge", "unavailable"];
 
 /** Ne laisse passer qu'un événement bien formé : le flux vient du réseau. */
 export function parseAgentEvent(value: unknown): AgentEvent | null {

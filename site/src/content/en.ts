@@ -48,7 +48,8 @@ export const en: SiteContent = {
     footnote: "Answers are generated from the background. Check them against the sources.",
     errorUnavailable: "The agent isn't answering right now. The CV and email are still here.",
     errorBudget: "The agent has used up its budget for today. The CV and email are still here.",
-    timelineHint: "Click a period to open it in the background.",
+    errorChallenge: "The anti-bot check didn't go through. Reload the page to try again.",
+    timelineHint: "Click a row to open it in the background.",
   },
   suggestions: [
     "What is Julien working on right now?",

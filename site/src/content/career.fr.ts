@@ -6,14 +6,12 @@ export const careerFr: CareerContent = {
   summary:
     "Je conçois des harnais agentiques et je mets en production des agents LLM et des systèmes RAG chez des clients, après quatre ans de deep learning sur supercalculateur au CNRS (PyTorch, multi-GPU). Deux publications peer-reviewed.",
   askAgent: "Poser une question à l'agent",
-  lanes: { work: "Postes", school: "Études" },
-  today: "aujourd'hui",
-  spans: [
-    { id: "licence", label: "Licence", lane: "school", from: 2016.67, to: 2019.5, target: "formation" },
-    { id: "master", label: "Master IA", lane: "school", from: 2019.67, to: 2021.5, target: "formation" },
-    { id: "agileo", label: "Agileo", lane: "work", from: 2020.58, to: 2021.75, target: "agileo" },
-    { id: "cnrs", label: "CNRS", lane: "work", from: 2021.92, to: 2026.0, target: "cnrs" },
-    { id: "bl", label: "Berger-Levrault", lane: "work", from: 2026.0, target: "bl" },
+  timeline: [
+    { id: "bl", kind: "work", current: true, org: "Berger-Levrault", role: "AI Engineer, plateforme agentique Athena", dates: "depuis janv. 2026", target: "bl" },
+    { id: "cnrs", kind: "work", org: "CNRS (PNRIA)", role: "Machine Learning Engineer, plus de 10 projets de recherche", dates: "déc. 2021 à janv. 2026", target: "cnrs" },
+    { id: "agileo", kind: "work", org: "Agileo Automation", role: "Ingénieur logiciel, en alternance", dates: "août 2020 à sept. 2021", target: "agileo" },
+    { id: "master", kind: "school", org: "Université Paul Sabatier", role: "Master IA et reconnaissance des formes", dates: "2019 à 2021", target: "formation" },
+    { id: "licence", kind: "school", org: "Université Paul Sabatier", role: "Licence informatique", dates: "2016 à 2019", target: "formation" },
   ],
   labels: {
     experience: "Expérience",
@@ -30,7 +28,7 @@ export const careerFr: CareerContent = {
       place: "Toulouse, équipe R&D IA",
       dates: "Janv. 2026 à aujourd'hui",
       context:
-        "Athena est la plateforme agentique de Berger-Levrault, branchée sur les documents et les APIs métier de ses clients : collectivités, juridique, industrie, RH publique. 100k documents, un pilote de six mois avec 70 utilisateurs, une mise en production en cours. Les besoins viennent des business units et d'ateliers clients.",
+        "Athena est la plateforme agentique de Berger-Levrault, branchée sur les documents et les APIs métier de ses clients : collectivités, santé, juridique, industrie, maintenance, RH publique. Passée du POC au produit : 100k documents, un pilote de six mois avec 70 utilisateurs, une mise en production en cours. Les besoins viennent des business units et d'ateliers clients. Je travaille sur toute la chaîne, de l'architecture agentique au déploiement chez le client, souvent sur des métiers que je ne connaissais pas la veille.",
       groups: [
         {
           title: "Cœur de la plateforme",
@@ -43,7 +41,7 @@ export const careerFr: CareerContent = {
                 {
                   id: "inference-cost", value: "-40 à -50 %",
                   label: "de coûts d'inférence, avec un prompt caching partagé entre conversations, tenants et clients",
-                  remaining: [0.5, 0.6],
+                  estimate: true,
                 },
               ],
             },
@@ -53,26 +51,16 @@ export const careerFr: CareerContent = {
             },
             {
               id: "agent-evals",
+              status: "En place",
               problem: "Une plateforme agentique en production doit être mesurable et ne pas exécuter n'importe quoi.",
-              steps: [
-                "Des golden sets de questions et de réponses attendues",
-                "Un scoring automatique en LLM-as-judge, sous Langfuse v4",
-                "Modèles, prompts et architectures comparés sur le même banc, régressions et coûts suivis",
-                "Contenus récupérés cloisonnés, tools bornés (timeouts, restriction par profil d'agent)",
-              ],
               stack: ["Langfuse", "LLM-as-judge", "Golden sets", "Injection de prompt"],
               name: "Évaluation et monitoring",
               text: "Refonte du monitoring sous Langfuse v4 : traces, datasets, évaluations et scoring automatiques en LLM-as-judge. Des golden sets pour comparer modèles, prompts et architectures, avec le suivi des régressions et des coûts. Les contenus récupérés sont cloisonnés contre l'injection de prompt indirecte.",
             },
             {
               id: "mcp-builder",
+              status: "Déployé",
               problem: "Une centaine d'APIs internes, réparties entre une vingtaine de business units, à brancher sur les agents sans leur exposer une surface ingérable.",
-              steps: [
-                "Un LLM lit la spécification OpenAPI et choisit les endpoints utiles",
-                "Il audite leurs lacunes : descriptions manquantes, AI-readiness",
-                "Il génère des tools sur mesure, workflows ou code Python via FastMCP",
-                "Une personne de la business unit valide les routes et la connaissance métier",
-              ],
               stack: ["OpenAPI", "FastMCP", "MCP", "Python", "Human-in-the-loop"],
               metrics: [
                 { id: "mcp-apis", value: "~100", label: "APIs internes transformées en serveurs MCP, déployé" },
@@ -88,42 +76,28 @@ export const careerFr: CareerContent = {
           items: [
             {
               id: "content-extractor",
+              status: "Déployé",
               problem: "Le service d'extraction d'origine était simple, peu modulable, et chaque appel LLM coûtait cher sur de gros volumes de documents.",
-              steps: [
-                "Un service FastAPI créé de zéro, en architecture factory/registry",
-                "7 pipelines : OCR, images, PDF, DOCX, puis transcription audio",
-                "Traitement par lots asynchrone avec Celery et l'API batch de Mistral",
-                "Des chunkers configurables pour l'équipe de recherche",
-              ],
               stack: ["FastAPI", "Celery", "API batch Mistral", "OCR", "Python"],
               name: "Content-extractor",
               text: "Extraction multimodale (OCR, PDF, DOCX, audio) : un service FastAPI créé de zéro, 7 pipelines, traitement par lots asynchrone (Celery et l'API batch de Mistral), architecture factory/registry. Déployé.",
-              metrics: [{ id: "extraction-cost", value: "-50 %", label: "sur les coûts d'extraction", remaining: 0.5 }],
+              metrics: [{ id: "extraction-cost", value: "-50 %", label: "sur les coûts d'extraction" }],
             },
             {
               id: "templates-agent",
+              status: "En production",
               problem: "Des rapports métier longs, rédigés à la main sur des trames imposées.",
-              steps: [
-                "Des tools lisent les documents Word et en extraient les templates",
-                "Un second agent remplit le template champ par champ, en langage naturel",
-                "Aperçu PDF navigable et activation par client",
-              ],
               stack: ["Python", "FastAPI", "Angular", "TypeScript"],
               name: "Agent de templates",
-              text: "Extrait des templates de documents Word, qu'un second agent remplit en langage naturel. En production.",
+              text: "Extrait des templates de documents Word, qu'un second agent remplit champ par champ en langage naturel. Aperçu PDF navigable, activation par client, interface Angular. Du prototype à la V2 en production.",
             },
             {
               id: "hr-data",
+              status: "Démonstrateur",
               problem: "Construire les plans de formation du secteur public à partir des entretiens annuels, un métier que Julien découvrait.",
-              steps: [
-                "Extraction des besoins depuis les comptes rendus d'entretiens",
-                "Normalisation et dédoublonnage",
-                "Regroupement des besoins entre collaborateurs",
-                "Rapprochement avec le catalogue de formations",
-              ],
               stack: ["Python", "Structured outputs", "Matching", "Airflow"],
-              name: "Structuration de données métier",
-              text: "Pour la RH publique : des comptes rendus d'entretiens transformés en besoins normalisés, dédoublonnés et rapprochés d'un catalogue. Ingestion RAG enrichie sous Airflow : chunking, embeddings, questions indexées.",
+              name: "Plans de formation et ingestion RAG",
+              text: "Automatiser les plans de formation du secteur public, un métier que je découvrais : besoins extraits des entretiens annuels, normalisés, dédoublonnés, regroupés entre collaborateurs et rapprochés du catalogue de formations. Démonstrateur présenté aux parties prenantes, industrialisation en cours. En équipe, l'ingestion RAG sous Airflow : plus de 5 DAGs, à peu près un par client, enrichis par chunking, embeddings et questions indexées.",
             },
           ],
         },
@@ -143,45 +117,31 @@ export const careerFr: CareerContent = {
           items: [
             {
               id: "gens",
+              status: "Publié",
               problem: "Météo France représente l'incertitude par plusieurs membres de prévision calculés en parallèle, et ce calcul coûte cher.",
-              steps: [
-                "Un état de l'art, qui mène aux modèles de diffusion",
-                "Un DDPM sans contexte sur les données AROME, pour valider l'approche",
-                "Le modèle conditionné par le contexte, entraîné en multi-GPU sur Jean Zay",
-                "MetScore, une librairie de métriques pilotée par YAML, toujours en production",
-              ],
               stack: ["PyTorch", "DDPM", "DDIM", "Jean Zay", "DDP"],
               links: ["aies"],
               name: "GENS et MetScore, pour Météo France",
               text: "Entraînement multi-GPU et fine-tuning d'un modèle de diffusion (DDPM) en PyTorch. Conception de MetScore, une librairie de métriques toujours en production. Co-auteur de l'article, AIES 2025.",
-              metrics: [{ id: "gens-compute", value: "-20 %", label: "de calcul à qualité équivalente, sur le POC", remaining: 0.8 }],
+              metrics: [{ id: "gens-compute", value: "-20 %", label: "de calcul sur le POC, pour une qualité égale ou meilleure que StyleGAN" }],
             },
             {
               id: "deepfaune",
+              status: "Publié",
               problem: "Reconnaître automatiquement les espèces sur les images des pièges photographiques : 1,5 million d'images, 24 classes.",
-              steps: [
-                "Rééquilibrage des classes par augmentation et oversampling",
-                "Tracking testé avec DeepSORT, écarté car trop lent",
-                "Les modèles YOLO comparés pour le compromis vitesse sur CPU et qualité",
-                "Inférence optimisée : batching, GPU si possible, multi-CPU",
-              ],
               stack: ["YOLOv8", "PyTorch", "Multi-GPU", "Slurm"],
               links: ["deepfaune-paper"],
               name: "DeepFaune, CNRS et INEE",
               text: "Fine-tuning de YOLOv8 sur 1,5 million d'images, 24 classes, avec gestion du déséquilibre de classes. Publication peer-reviewed.",
               metrics: [
                 { id: "deepfaune-accuracy", value: "93 %", label: "de précision" },
-                { id: "deepfaune-speed", value: "3 fois", label: "plus rapide en inférence", remaining: 1 / 3 },
+                { id: "deepfaune-speed", value: "3 fois", label: "plus rapide en inférence" },
               ],
             },
             {
               id: "bigsf",
+              status: "Open source",
               problem: "Un code d'analyse d'images de filaments galactiques, écrit par plusieurs doctorants, difficile à faire évoluer.",
-              steps: [
-                "Une architecture pilotée par configuration YAML",
-                "Des classes de base pour les jeux de données et les modèles",
-                "Le code existant réimplémenté, avec tests et documentation",
-              ],
               stack: ["U-Net", "PyTorch", "MLflow"],
               name: "BIGSF, pour le CNES",
               text: "Tech lead sur la refonte d'une librairie U-Net d'analyse d'images galactiques, devenue une toolbox publique.",
@@ -189,11 +149,6 @@ export const careerFr: CareerContent = {
             {
               id: "autofill",
               problem: "Les signaux de caractérisation des nanomatériaux coûtent cher à mesurer et ne couvrent pas tous les matériaux.",
-              steps: [
-                "Des autoencodeurs (ResVAE) pour reconstruire les signaux",
-                "Un PairVAE pour passer d'une technique de mesure à l'autre",
-                "Des conseils à l'équipe sur les formats de données (HDF5)",
-              ],
               stack: ["PyTorch Lightning", "VAE", "HDF5", "MLflow"],
               metrics: [{ id: "autofill-mae", value: "0,98", label: "d'erreur absolue moyenne" }],
               name: "AUTOFILL, pour le CEA",
@@ -202,11 +157,6 @@ export const careerFr: CareerContent = {
             {
               id: "morphogan",
               problem: "Étudier comment les motifs des ailes de papillons varient au sein d'une espèce.",
-              steps: [
-                "Refonte d'un code StyleGAN2 complexe, dette technique réduite",
-                "Exploration de l'espace latent",
-                "Une pipeline automatisée et conteneurisée, sur Slurm",
-              ],
               stack: ["StyleGAN2", "PyTorch", "Slurm", "Docker"],
               name: "MORPHOGAN, Université de Lorraine",
               text: "Refonte d'un code StyleGAN2, avec une pipeline automatisée et conteneurisée.",
@@ -227,11 +177,6 @@ export const careerFr: CareerContent = {
             {
               id: "agileo-framework",
               problem: "Superviser et piloter des machines robotisées de fabrication de semi-conducteurs.",
-              steps: [
-                "Une architecture orientée objets, posée en UML avant de coder",
-                "Le framework en C# et son IHM",
-                "CI/CD sous Azure DevOps, équipe de 5 en Scrum",
-              ],
               stack: ["C#", "IHM", "Azure DevOps", "Scrum"],
               name: "Framework de supervision de machines de production",
               text: "Pour l'industrie des semi-conducteurs : C#, IHM, CI/CD, dans une équipe de 5 en Scrum.",
@@ -242,10 +187,8 @@ export const careerFr: CareerContent = {
     },
   ],
   harnessHint: "Cliquez une couche pour voir ce qu'elle fait.",
-  project: { problem: "Le problème", steps: "Ce qu'il a fait", results: "Résultats", stack: "Stack" },
+  project: { problem: "Le problème", results: "Résultats", stack: "Stack" },
   estimate: "estimé",
-  before: "avant",
-  after: "après",
   education: [
     { title: "Master intelligence artificielle et reconnaissance des formes", school: "Université Paul Sabatier, IRIT", dates: "2019 à 2021" },
     { title: "Licence informatique", school: "Université Paul Sabatier, Toulouse III", dates: "2016 à 2019" },

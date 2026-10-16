@@ -1,4 +1,4 @@
-// node --test cloudflare-worker/chat.test.js  (Node 24 : les .ts du site sont importés tels quels)
+// node --test cloudflare-worker/chat.test.js cloudflare-worker/guard.test.js  (Node 24 : les .ts du site sont importés tels quels)
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { LINK_IDS } from "../site/src/content/agent-contract.ts";
@@ -240,6 +240,51 @@ describe("handleChatV2", () => {
     await handleChatV2(request({ question: "Bonjour" }), local, ctx, "*", async () => {});
     await ctx.settle();
     assert.equal(usedToday(local.ANALYTICS_DB), 0);
+  });
+
+  it("refuse un corps trop gros ou qui n'est pas du JSON", async () => {
+    const huge = request({ question: "Bonjour", history: [{ role: "user", text: "x".repeat(40_000) }] });
+    assert.equal((await handleChatV2(huge, env, makeCtx(), "*", async () => {})).status, 413);
+    const plain = new Request("https://worker.test/v2/chat", { method: "POST", headers: { "Content-Type": "text/plain" }, body: "{}" });
+    assert.equal((await handleChatV2(plain, env, makeCtx(), "*", async () => {})).status, 415);
+  });
+
+  it("se coupe avec l'interrupteur, sans appeler le modèle", async () => {
+    globalThis.fetch = async () => assert.fail("le modèle ne doit pas être appelé");
+    const response = await handleChatV2(request({ question: "Bonjour" }), { ...env, CHAT_DISABLED: "true" }, makeCtx(), "*", async () => {});
+    assert.equal(response.status, 503);
+  });
+
+  it("avec Turnstile : défi exigé, puis laissez-passer réutilisable", async () => {
+    const local = { ...env, ANALYTICS_DB: fakeDb(), TURNSTILE_SECRET: "ts" };
+    const hosts = { allowedHosts: ["julienrabault.github.io"] };
+    let verified = 0;
+    globalThis.fetch = async (url) => {
+      if (String(url).includes("turnstile")) {
+        verified++;
+        return Response.json({ success: true, action: "chat", hostname: "julienrabault.github.io" });
+      }
+      return anthropicStream(["Bonjour [[bl]]"]);
+    };
+
+    const refused = await handleChatV2(request({ question: "Bonjour" }), local, makeCtx(), "*", async () => {}, hosts);
+    assert.equal(refused.status, 403);
+    assert.deepEqual(await refused.json(), { code: "challenge" });
+    assert.equal(usedToday(local.ANALYTICS_DB), 0, "un refus ne coûte pas de question");
+
+    const ctx = makeCtx();
+    const first = await handleChatV2(request({ question: "Bonjour", turnstile: "tok" }), local, ctx, "*", async () => {}, hosts);
+    const events = await readEvents(first);
+    await ctx.settle();
+    assert.equal(events[0].type, "pass");
+    assert.equal(verified, 1);
+
+    const again = makeCtx();
+    const second = await handleChatV2(request({ question: "Encore", pass: events[0].token }), local, again, "*", async () => {}, hosts);
+    const next = await readEvents(second);
+    await again.settle();
+    assert.equal(next[0].type, "quota", "le laissez-passer suffit, pas de nouveau défi");
+    assert.equal(verified, 1);
   });
 
   it("rend une erreur propre si la base du quota tombe", async () => {

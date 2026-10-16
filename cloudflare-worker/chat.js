@@ -3,6 +3,21 @@
 import { BLOCK_WIDGETS, CITATION, createStreamSanitizer, LINK_IDS, PROJECT_IDS, REPO_IDS } from "../site/src/content/agent-contract.ts";
 import { knowledgeEn } from "../site/src/content/knowledge.en.ts";
 import { knowledgeFr } from "../site/src/content/knowledge.fr.ts";
+import {
+  BODY_LIMITS,
+  BodyError,
+  challengeEnabled,
+  hmac,
+  isJsonRequest,
+  issuePass,
+  networkKey,
+  passValid,
+  readBoundedJson,
+  safeEqual,
+  sha256Hex,
+  switchedOff,
+  verifyTurnstile,
+} from "./guard.js";
 
 const KNOWLEDGE = { fr: knowledgeFr, en: knowledgeEn };
 const LANGUAGE = { fr: "French", en: "English" };
@@ -91,7 +106,7 @@ Formatting the page understands. Anything else is removed before the visitor see
 ${LINK_IDS.map((id) => `  ${id}: ${LINK_HELP[id]}`).join("\n")}
 - Widgets, each alone on its own line, at most two per answer, only when they genuinely help:
 ${BLOCK_WIDGETS.map((id) => `  {{${id}}}: ${WIDGET_HELP[id]}`).join("\n")}
-  {{project:ID}}: a project sheet (problem, steps, results, stack). Use it when the answer is about one specific project, after the paragraph that introduces it. IDs:
+  {{project:ID}}: a project card (status, problem, results, stack). Use it when the answer is about one specific project, after the paragraph that introduces it. IDs:
 ${PROJECT_IDS.map((id) => `    ${id}: ${PROJECT_HELP[id]}`).join("\n")}
   {{repo:ID}}: a GitHub card with live stars and last update. Use it when talking about his open source work or code he published. IDs:
 ${REPO_IDS.map((id) => `    ${id}: ${REPO_HELP[id]}`).join("\n")}
@@ -114,24 +129,11 @@ const asQuestion = (text) => `<question>\n${escapeXml(text)}\n</question>`;
 
 const encoder = new TextEncoder();
 
-function toBase64Url(buffer) {
-  let binary = "";
-  for (const byte of new Uint8Array(buffer)) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-async function hmacKey(secret) {
-  return crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-}
-
 /** Une signature vaut un jour : assez pour une conversation, trop peu pour rejouer un échange indéfiniment. */
 const SIGNATURE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const CLOCK_SKEW_MS = 5 * 60 * 1000;
 
-async function mac(secret, locale, issuedAt, question, text) {
-  const payload = `v2\n${locale}\n${issuedAt}\n${question}\n${text}`;
-  return toBase64Url(await crypto.subtle.sign("HMAC", await hmacKey(secret), encoder.encode(payload)));
-}
+const mac = (secret, locale, issuedAt, question, text) => hmac(secret, `v2\n${locale}\n${issuedAt}\n${question}\n${text}`);
 
 /**
  * Signe un échange du worker, question comprise : une réponse vraie ne peut pas être recollée sous une autre question.
@@ -148,13 +150,6 @@ async function signatureValid(secret, locale, question, text, sig, now) {
   const issuedAt = Number.parseInt(stamp, 36);
   if (!Number.isFinite(issuedAt) || now - issuedAt > SIGNATURE_MAX_AGE_MS || issuedAt - now > CLOCK_SKEW_MS) return false;
   return safeEqual(await mac(secret, locale, issuedAt, question, text), signature);
-}
-
-function safeEqual(a, b) {
-  if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
 }
 
 /**
@@ -184,13 +179,8 @@ export async function verifiedHistory(history, secret, locale, now = Date.now())
 
 // ─── Quota ───
 
-async function sha256Hex(value) {
-  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(value));
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 /**
- * Compte la question avant l'appel au modèle. Le visiteur est un hash du jour, de l'IP et d'un sel :
+ * Compte la question avant l'appel au modèle. Le visiteur est un hash du jour, du réseau (l'IPv4, ou le /64 d'une IPv6) et d'un sel :
  * on ne garde pas l'IP, et le hash change chaque jour.
  * Une question refusée n'est pas comptée : l'incrément n'a lieu que sous la limite.
  * Renvoie { ok, remaining, code, refund }. `refund` rend la question si le modèle n'a pas répondu.
@@ -273,20 +263,36 @@ function validateBody(body) {
 }
 
 /**
- * POST /v2/chat. `log` reçoit l'événement à journaliser (le worker principal l'écrit dans D1 après la réponse).
+ * Avec Turnstile configuré, une question doit porter un laissez-passer valide ou un jeton de défi frais.
+ * Renvoie { ok, pass } : `pass` est le nouveau laissez-passer à remettre au visiteur après un défi réussi.
  */
-export async function handleChatV2(request, env, ctx, corsOrigin, log) {
+async function checkChallenge(env, body, ip, network, allowedHosts) {
+  if (!challengeEnabled(env)) return { ok: true };
+  const secret = env.HISTORY_SECRET || env.TURNSTILE_SECRET;
+  if (await passValid(secret, network, body.pass)) return { ok: true };
+  if (!(await verifyTurnstile(env.TURNSTILE_SECRET, body.turnstile, ip, allowedHosts))) return { ok: false };
+  return { ok: true, pass: await issuePass(secret, network) };
+}
+
+/**
+ * POST /v2/chat. `log` reçoit l'événement à journaliser (le worker principal l'écrit dans D1 après la réponse).
+ * `allowedHosts` : les domaines dont un jeton Turnstile est accepté.
+ */
+export async function handleChatV2(request, env, ctx, corsOrigin, log, { allowedHosts = [] } = {}) {
   const json = (payload, status) =>
     new Response(JSON.stringify(payload), {
       status,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": corsOrigin },
     });
 
+  if (switchedOff(env.CHAT_DISABLED)) return json({ code: "unavailable" }, 503);
+  if (!isJsonRequest(request)) return json({ code: "invalid" }, 415);
+
   let body;
   try {
-    body = await request.json();
-  } catch {
-    return json({ code: "invalid" }, 400);
+    body = await readBoundedJson(request, BODY_LIMITS.chat);
+  } catch (error) {
+    return json({ code: "invalid" }, error instanceof BodyError ? error.status : 400);
   }
   const input = validateBody(body);
   if (!input) return json({ code: "invalid" }, 400);
@@ -294,22 +300,29 @@ export async function handleChatV2(request, env, ctx, corsOrigin, log) {
   // Le corps porte aussi la visite (visitorId, source…) : le journal en garde ce que buildEvent accepte.
   const record = (entry) => log({ ...entry, body });
 
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ip = request.headers.get("CF-Connecting-IP") || "";
+  const network = networkKey(ip);
   const day = new Date().toISOString().slice(0, 10);
   if (!env.ANTHROPIC_API_KEY) {
     ctx.waitUntil(record({ question, status: "missing_api_key", locale }));
     return json({ code: "unavailable" }, 502);
   }
+
+  // Refus non journalisés, comme ceux du quota : un robot qui insiste ne doit pas remplir la base.
+  const challenge = await checkChallenge(env, body, ip, network, allowedHosts);
+  if (!challenge.ok) return json({ code: "challenge" }, 403);
+
   let quota;
   try {
-    quota = await takeQuota(env, ip, day);
+    quota = await takeQuota(env, network, day);
   } catch (error) {
     console.error("Quota check failed", error);
     ctx.waitUntil(record({ question, status: "quota_error", locale }));
     return json({ code: "unavailable" }, 503);
   }
   // Refus non journalisés : un visiteur qui insiste ne doit pas remplir la base.
-  if (!quota.ok) return json({ code: quota.code }, 429);
+  // Un défi tout juste réussi n'est pas perdu pour autant : le laissez-passer part avec le refus.
+  if (!quota.ok) return json({ code: quota.code, pass: challenge.pass }, 429);
 
   const started = Date.now();
   const history = await verifiedHistory(input.history, env.HISTORY_SECRET, locale);
@@ -371,6 +384,7 @@ export async function handleChatV2(request, env, ctx, corsOrigin, log) {
     };
 
     try {
+      if (challenge.pass) await send({ type: "pass", token: challenge.pass });
       await send({ type: "quota", remaining: quota.remaining });
       for await (const event of sseObjects(upstream.body)) {
         if (event.type === "message_start") {

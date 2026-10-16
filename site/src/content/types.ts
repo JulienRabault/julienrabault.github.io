@@ -42,6 +42,7 @@ export interface UiStrings {
   themeToggle: string;
   errorUnavailable: string;
   errorBudget: string;
+  errorChallenge: string;
   timelineHint: string;
   footnote: string;
 }
@@ -75,13 +76,13 @@ export interface HarnessLayer {
   text: string;
 }
 
-/** Un résultat chiffré du CV. `remaining` dessine la barre avant / après (part qui reste, entre 0 et 1). */
+/** Un résultat chiffré du CV. */
 export interface Metric {
   id: string;
   value: string;
   label: string;
-  /** Une valeur, ou une fourchette [bas, haut] quand le chiffre est une estimation. */
-  remaining?: number | [number, number];
+  /** Le chiffre est une estimation : il est marqué comme tel partout où il apparaît. */
+  estimate?: boolean;
 }
 
 export interface CareerItem {
@@ -89,10 +90,11 @@ export interface CareerItem {
   id?: ProjectId;
   name: string;
   text: string;
+  /** Où en est le projet : déployé, publié, démonstrateur. */
+  status?: string;
   metrics?: Metric[];
-  /** Fiche projet : le problème posé, les étapes (dans l'ordre), la stack, les liens utiles. */
+  /** Fiche projet : le problème posé, la stack, les liens utiles. */
   problem?: string;
-  steps?: string[];
   stack?: string[];
   links?: LinkId[];
   /** Le harnais se montre avec le schéma interactif. */
@@ -114,15 +116,16 @@ export interface Chapter {
   groups: CareerGroup[];
 }
 
-/** Segment de la frise : années décimales (2021.92 = déc. 2021). */
-export interface Span {
+/** Une ligne du parcours. */
+export interface TimelineEntry {
   id: string;
-  label: string;
-  lane: "work" | "school";
-  from: number;
-  /** Absent : en cours. */
-  to?: number;
-  /** Chapitre ou section vers lequel le segment fait défiler. */
+  kind: "work" | "school";
+  /** Le poste en cours : ses dates sont en ocre. */
+  current?: boolean;
+  org: string;
+  role: string;
+  dates: string;
+  /** Chapitre ou section vers lequel la ligne fait défiler. */
   target: string;
 }
 
@@ -142,7 +145,6 @@ export interface LinkItem {
 
 export interface ProjectLabels {
   problem: string;
-  steps: string;
   results: string;
   stack: string;
 }
@@ -151,16 +153,12 @@ export interface CareerContent {
   title: string;
   summary: string;
   askAgent: string;
-  lanes: { work: string; school: string };
-  today: string;
-  spans: Span[];
+  timeline: TimelineEntry[];
   labels: { experience: string; education: string; publications: string; openSource: string; skills: string };
   chapters: Chapter[];
   harnessHint: string;
   project: ProjectLabels;
   estimate: string;
-  before: string;
-  after: string;
   education: Diploma[];
   publications: LinkItem[];
   openSource: LinkItem[];

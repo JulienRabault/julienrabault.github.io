@@ -1,5 +1,5 @@
 import { AgentOrb } from "@/components/agent-orb";
-import { CareerStrip } from "@/components/career/career-strip";
+import { CareerTimeline } from "@/components/career/career-timeline";
 import { ChapterView } from "@/components/career/chapter";
 import { GitHubCard } from "@/components/github-card";
 import { ContactMenu } from "@/components/site-header";
@@ -82,7 +82,7 @@ export function CareerPage({ content, onAsk }: CareerPageProps) {
           </motion.div>
 
           <motion.div className="mt-16" variants={rise}>
-            <CareerStrip career={career} onJump={jump} />
+            <CareerTimeline career={career} onJump={jump} />
           </motion.div>
         </motion.header>
 
@@ -94,22 +94,15 @@ export function CareerPage({ content, onAsk }: CareerPageProps) {
           </div>
         </Row>
 
-        <Row id="formation" label={career.labels.education}>
-          <ul className="space-y-5">
-            {career.education.map((d) => (
-              <li className="flex flex-col gap-x-6 gap-y-1 sm:flex-row sm:items-baseline sm:justify-between" key={d.title}>
-                <div>
-                  <p className="font-medium text-[16px]">{d.title}</p>
-                  <p className="mt-0.5 text-[15px] text-muted-foreground">{d.school}</p>
-                </div>
-                <p className="shrink-0 text-muted-foreground text-sm tabular-nums">{d.dates}</p>
-              </li>
+        <Row label={career.labels.skills}>
+          <dl className="space-y-5">
+            {career.skills.map((s) => (
+              <div key={s.label}>
+                <dt className="font-medium text-[16px]">{s.label}</dt>
+                <dd className="mt-1 max-w-[66ch] text-[15px] text-muted-foreground leading-relaxed">{s.text}</dd>
+              </div>
             ))}
-          </ul>
-        </Row>
-
-        <Row label={career.labels.publications}>
-          <LinkList items={career.publications} />
+          </dl>
         </Row>
 
         <Row label={career.labels.openSource}>
@@ -127,15 +120,21 @@ export function CareerPage({ content, onAsk }: CareerPageProps) {
           )}
         </Row>
 
-        <Row label={career.labels.skills}>
-          <dl className="space-y-5">
-            {career.skills.map((s) => (
-              <div key={s.label}>
-                <dt className="font-medium text-[16px]">{s.label}</dt>
-                <dd className="mt-1 max-w-[66ch] text-[15px] text-muted-foreground leading-relaxed">{s.text}</dd>
-              </div>
+        <Row label={career.labels.publications}>
+          <LinkList items={career.publications} />
+        </Row>
+
+        <Row id="formation" label={career.labels.education}>
+          <ul className="space-y-5">
+            {career.education.map((d) => (
+              <li key={d.title}>
+                <p className="font-medium text-[16px]">{d.title}</p>
+                <p className="mt-0.5 text-[15px] text-muted-foreground">
+                  {d.school}, <span className="tabular-nums">{d.dates}</span>
+                </p>
+              </li>
             ))}
-          </dl>
+          </ul>
         </Row>
 
         <section className="border-t py-16 sm:py-24">

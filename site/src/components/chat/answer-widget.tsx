@@ -1,5 +1,5 @@
 import { GithubIcon, LinkedinIcon } from "@/components/brand-icons";
-import { CareerStrip } from "@/components/career/career-strip";
+import { CareerTimeline } from "@/components/career/career-timeline";
 import { HarnessBlock } from "@/components/career/harness-block";
 import { LinkChip } from "@/components/chat/link-chip";
 import { ProjectCard } from "@/components/chat/project-card";
@@ -69,6 +69,7 @@ function WidgetBody({ request, content, live, onOpenCareer }: AnswerWidgetProps)
         <ProjectCard
           content={content}
           id={request.id}
+          onOpenCareer={onOpenCareer}
           renderLink={(link, key) => <LinkChip key={key} link={link} onOpenCareer={onOpenCareer} />}
         />
       );
@@ -79,11 +80,11 @@ function WidgetBody({ request, content, live, onOpenCareer }: AnswerWidgetProps)
     case "widget":
       switch (request.id) {
         case "harness":
-          return <HarnessBlock compact hint={career.harnessHint} layers={harness} live={live} />;
+          return <HarnessBlock hint={career.harnessHint} layers={harness} live={live} />;
         case "timeline":
           return (
             <Card>
-              <CareerStrip career={career} onJump={onOpenCareer} />
+              <CareerTimeline career={career} onJump={onOpenCareer} />
               <p className="mt-2 text-muted-foreground text-xs">{ui.timelineHint}</p>
             </Card>
           );
