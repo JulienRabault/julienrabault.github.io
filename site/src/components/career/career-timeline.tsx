@@ -10,7 +10,7 @@ interface CareerTimelineProps {
 /**
  * Le parcours en cinq lignes, du plus récent au plus ancien, à la manière d'un CV de designer :
  * les dates dans une colonne fixe, l'employeur et le poste à côté, tout aligné à gauche.
- * Le poste en cours a ses dates en ocre. Chaque ligne fait défiler jusqu'à son chapitre.
+ * Le poste en cours a ses dates en ocre. Chaque ligne mène à son chapitre.
  * En conteneur étroit (le chat), les dates passent sous le poste.
  */
 export function CareerTimeline({ career, onJump }: CareerTimelineProps) {

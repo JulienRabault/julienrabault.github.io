@@ -20,3 +20,27 @@ export function PixelMark({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** Plus ou moins en carrés de trame : la barre verticale s'efface quand la ligne est dépliée. */
+export function PixelToggle({ open, className }: { open: boolean; className?: string }) {
+  return (
+    <svg aria-hidden className={cn("size-2.5 shrink-0", className)} viewBox="0 0 5 5">
+      {[0, 1, 3, 4].map((x) => (
+        <rect fill="currentColor" height="1" key={`h${x}`} width="1" x={x} y={2} />
+      ))}
+      <rect fill="currentColor" height="1" width="1" x={2} y={2} />
+      {[0, 1, 3, 4].map((y) => (
+        <rect
+          className="transition-opacity duration-200"
+          fill="currentColor"
+          height="1"
+          key={`v${y}`}
+          opacity={open ? 0 : 1}
+          width="1"
+          x={2}
+          y={y}
+        />
+      ))}
+    </svg>
+  );
+}

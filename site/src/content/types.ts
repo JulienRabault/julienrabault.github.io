@@ -97,6 +97,8 @@ export interface CareerItem {
   problem?: string;
   stack?: string[];
   links?: LinkId[];
+  /** Ce qu'il a fait, point par point : affiché quand la ligne est dépliée. */
+  details?: string[];
   /** Le harnais se montre avec le schéma interactif. */
   widget?: "harness";
 }
@@ -113,7 +115,11 @@ export interface Chapter {
   place: string;
   dates: string;
   context?: string;
+  /** Un second paragraphe, plus discret : l'équipe, ou ce que le poste demandait. */
+  note?: string;
   groups: CareerGroup[];
+  /** Les projets cités sans être détaillés. */
+  footnote?: string;
 }
 
 /** Une ligne du parcours. */
@@ -144,9 +150,9 @@ export interface LinkItem {
 }
 
 export interface ProjectLabels {
-  problem: string;
-  results: string;
-  stack: string;
+  more: string;
+  less: string;
+  next: string;
 }
 
 export interface CareerContent {
@@ -154,7 +160,7 @@ export interface CareerContent {
   summary: string;
   askAgent: string;
   timeline: TimelineEntry[];
-  labels: { experience: string; education: string; publications: string; openSource: string; skills: string };
+  labels: { experience: string; education: string; publications: string; openSource: string; skills: string; nav: string };
   chapters: Chapter[];
   harnessHint: string;
   project: ProjectLabels;

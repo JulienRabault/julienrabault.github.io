@@ -5,11 +5,12 @@ import { CareerPage } from "@/components/career/career-page";
 import { SiteHeader } from "@/components/site-header";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { SiteContent } from "@/content/types";
+import { requestCareerJump } from "@/lib/career-jump";
 import { useAgentChat } from "@/lib/use-agent-chat";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useView } from "@/lib/use-view";
 import { AnimatePresence, LayoutGroup, motion, MotionConfig } from "motion/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 // Changer de vue est un fondu court sur place : rien ne glisse, l'en-tête ne bouge pas.
 const fade = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.16 } } as const;
@@ -21,24 +22,16 @@ export default function App({ content }: { content: SiteContent }) {
   const wide = useMediaQuery("(min-width: 640px)");
   const empty = chat.messages.length === 0;
 
-  const scrollTo = (target: string) =>
-    requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" }));
-
-  // Ouvre le parcours, puis fait défiler jusqu'au chapitre une fois la page montée (après le fondu de sortie du chat).
-  const pendingTarget = useRef<string | null>(null);
+  // Ouvre le parcours ; la cible (chapitre, projet ou section) attend que la page soit montée pour s'afficher.
   const openCareer = (target?: string) => {
-    pendingTarget.current = target ?? null;
+    if (target) requestCareerJump(target);
     setView("career");
   };
-  const afterSwitch = () => {
-    if (pendingTarget.current) scrollTo(pendingTarget.current);
-    pendingTarget.current = null;
-  };
 
-  // Depuis la bulle, on est déjà sur le parcours : on y défile, et sur mobile on referme le panneau qui le cache.
+  // Depuis la bulle, on est déjà sur le parcours : on y va, et sur mobile on referme le panneau qui le cache.
   const openCareerFromDock = (target?: string) => {
     if (!wide) setDockOpen(false);
-    if (target) scrollTo(target);
+    if (target) requestCareerJump(target);
   };
 
   const expandDock = useCallback(() => {
@@ -66,7 +59,7 @@ export default function App({ content }: { content: SiteContent }) {
               view={view}
             />
 
-            <AnimatePresence initial={false} mode="wait" onExitComplete={afterSwitch}>
+            <AnimatePresence initial={false} mode="wait">
               {view === "career" ? (
                 <motion.div className="flex flex-1 flex-col" key="career" {...fade}>
                   <CareerPage content={content} onAsk={() => setDockOpen(true)} />

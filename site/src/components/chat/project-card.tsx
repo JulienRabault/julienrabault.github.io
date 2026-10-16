@@ -1,4 +1,4 @@
-import { StatusPill } from "@/components/career/chapter";
+import { StatusPill } from "@/components/career/status-pill";
 import { Results } from "@/components/career/metric";
 import { PixelMark } from "@/components/pixels";
 import type { ProjectId } from "@/content/agent-contract";
@@ -38,7 +38,7 @@ export function ProjectCard({ id, content, onOpenCareer, renderLink }: ProjectCa
         <PixelMark />
         <button
           className="group min-w-0 truncate text-left decoration-ochre/60 underline-offset-4 hover:underline"
-          onClick={() => onOpenCareer(chapter.id)}
+          onClick={() => onOpenCareer(item.id ?? chapter.id)}
           type="button"
         >
           <span className="text-muted-foreground">{chapter.org} / </span>
