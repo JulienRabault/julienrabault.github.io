@@ -39,7 +39,8 @@ export async function tokenMatches(given, expected) {
 // ─── Corps de requête ───
 
 // Trois réponses signées de 6 000 caractères tiennent dans 32 Kio, accents compris.
-export const BODY_LIMITS = { chat: 32 * 1024, legacyChat: 4 * 1024, events: 4 * 1024 };
+// Six échanges d'historique, à 10 000 caractères au plus par réponse.
+export const BODY_LIMITS = { chat: 96 * 1024, legacyChat: 4 * 1024, events: 4 * 1024 };
 
 export class BodyError extends Error {
   constructor(status, code) {

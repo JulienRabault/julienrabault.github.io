@@ -7,8 +7,8 @@ import { useCallback, useRef, useState } from "react";
 
 export const DAILY_QUESTION_LIMIT = 20;
 const QUOTA_KEY = "chat-quota";
-/** Tours renvoyés au worker pour le contexte : trois échanges suffisent pour une relance. */
-const HISTORY_TURNS = 6;
+/** Tours renvoyés au worker pour le contexte : six échanges, pour qu'une relance courte garde son sujet. */
+const HISTORY_TURNS = 12;
 
 export interface UserMessage {
   id: string;
@@ -51,11 +51,13 @@ function writeUsed(used: number): void {
   }
 }
 
-function toHistory(messages: ChatMessage[]): HistoryTurn[] {
+export function toHistory(messages: ChatMessage[]): HistoryTurn[] {
   const turns: HistoryTurn[] = [];
   for (const m of messages) {
     if (m.role === "user") turns.push({ role: "user", text: m.text });
     else if (m.status === "done" && m.sig) turns.push({ role: "assistant", text: m.text, sig: m.sig });
+    // Une suggestion servie par le site : le worker retrouve lui-même la réponse, la relance garde son sujet.
+    else if (m.status === "done" && m.trace?.simulated) turns.push({ role: "assistant", text: "", cached: true });
     // Une réponse arrêtée ou en erreur n'a pas de signature : la question restée sans réponse part aussi.
     else turns.pop();
   }

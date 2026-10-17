@@ -21,6 +21,8 @@ export interface HistoryTurn {
   text: string;
   /** Signature du worker sur une réponse : sans elle, il ignore le tour. */
   sig?: string;
+  /** Réponse préparée d'une suggestion : le worker en reprend le texte lui-même, rien n'est envoyé. */
+  cached?: boolean;
 }
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;

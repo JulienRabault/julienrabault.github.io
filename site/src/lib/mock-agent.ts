@@ -9,6 +9,9 @@ const CACHED_WORD_DELAY_MS = 8;
 
 type Answer = Omit<CannedAnswer, "match">;
 
+/** Le worker passe les mêmes réponses préparées, sans le reste du contenu du site. */
+export type PreparedAnswers = Pick<SiteContent, "suggestions" | "answers">;
+
 const wait = (ms: number, signal: AbortSignal): Promise<void> =>
   new Promise((resolve, reject) => {
     const timer = setTimeout(resolve, ms);
@@ -18,7 +21,7 @@ const wait = (ms: number, signal: AbortSignal): Promise<void> =>
     });
   });
 
-function pickAnswer(content: SiteContent, question: string): Answer | undefined {
+function pickAnswer(content: PreparedAnswers, question: string): Answer | undefined {
   const q = question.toLowerCase();
   return content.answers.find((a) => a.match.some((m) => q.includes(m)));
 }
@@ -29,7 +32,7 @@ const normalize = (text: string) => text.toLowerCase().replace(/[\s  ?!.]+/g,
  * Les suggestions sont ce que la plupart des visiteurs cliquent : leur réponse est rédigée d'avance et servie
  * par le site, sans appel au modèle. Une question tapée à la main, même proche, part au worker.
  */
-export function cachedAnswer(content: SiteContent, question: string): Answer | undefined {
+export function cachedAnswer(content: PreparedAnswers, question: string): Answer | undefined {
   const asked = normalize(question);
   if (!content.suggestions.some((s) => normalize(s) === asked)) return undefined;
   return pickAnswer(content, question);
@@ -57,7 +60,7 @@ export async function* replayAnswer(
   yield {
     type: "done",
     trace: {
-      model: "Claude Haiku 5.5",
+      model: "Claude Sonnet 5.5",
       inputTokens: 0,
       outputTokens: Math.round(answer.text.length / 3.6),
       durationMs: Math.round(performance.now() - started),
