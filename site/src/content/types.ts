@@ -4,6 +4,7 @@ export interface Profile {
   name: string;
   initials: string;
   role: string;
+  /** Une idée par ligne (séparées par \n), avec **demi-gras** sur l'essentiel. */
   intro: string;
   availability: string;
   email: string;
@@ -30,6 +31,8 @@ export interface UiStrings {
   copy: string;
   copied: string;
   sourcesCount: (count: number) => string;
+  /** Libellé d'accessibilité d'une source qui mène au parcours. */
+  openSource: string;
   dockTitle: string;
   dockSubtitle: string;
   dockTeaser: string;
@@ -148,6 +151,22 @@ export interface LinkItem {
   repo?: RepoId;
 }
 
+/** Une publication, présentée comme une citation : titre, auteurs, revue. */
+export interface Publication {
+  name: string;
+  /** Auteurs dans l'ordre de l'article, Julien en **demi-gras**. */
+  authors?: string;
+  venue: string;
+  text: string;
+  url: string;
+}
+
+/** Une ligne par compétence : ce qu'on cherche d'un coup d'œil, puis le détail éventuel. */
+export interface SkillGroup {
+  label: string;
+  items: { name: string; detail?: string }[];
+}
+
 export interface ProjectLabels {
   more: string;
   less: string;
@@ -165,9 +184,9 @@ export interface CareerContent {
   project: ProjectLabels;
   estimate: string;
   education: Diploma[];
-  publications: LinkItem[];
+  publications: Publication[];
   openSource: LinkItem[];
-  skills: { label: string; text: string }[];
+  skills: SkillGroup[];
   closing: string;
 }
 

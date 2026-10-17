@@ -5,6 +5,7 @@ import type { SiteContent } from "@/content/types";
 import type { ChatStatus } from "@/lib/use-agent-chat";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { motion, type Variants } from "motion/react";
+import { Emphasis } from "@/components/emphasis";
 import { LegalDialog } from "@/components/legal-dialog";
 
 interface WelcomeProps {
@@ -31,7 +32,7 @@ export function Welcome({ content, status, remaining, onSend, onStop, onOpenCare
   const reduced = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   return (
-    <main className="relative flex flex-1 overflow-y-auto">
+    <main className="relative flex flex-1 flex-col overflow-y-auto">
       {/* La lumière de la sphère, posée sur le fond */}
       <div
         aria-hidden
@@ -40,7 +41,7 @@ export function Welcome({ content, status, remaining, onSend, onStop, onOpenCare
 
       <motion.div
         animate="show"
-        className="relative m-auto flex w-full max-w-2xl flex-col items-center px-4 pt-6 pb-14 text-center sm:px-6"
+        className="relative mx-auto my-auto flex w-full max-w-2xl flex-col items-center px-4 pt-6 pb-10 text-center sm:px-6"
         initial={reduced ? false : "hidden"}
         variants={sequence}
       >
@@ -58,8 +59,16 @@ export function Welcome({ content, status, remaining, onSend, onStop, onOpenCare
         >
           {profile.name}
         </motion.h1>
-        <motion.p className="mt-4 max-w-[52ch] text-balance text-[17px] text-muted-foreground leading-relaxed" variants={rise}>
-          {profile.intro} {profile.availability}
+        {/* Une idée par ligne : ce qu'il fait, d'où il vient. La disponibilité vient après, à part. */}
+        <motion.div className="mt-5 max-w-[60ch] space-y-1 text-[17px] text-muted-foreground leading-[1.6] sm:text-[18.5px]" variants={rise}>
+          {profile.intro.split("\n").map((line) => (
+            <p className="text-balance" key={line}>
+              <Emphasis text={line} />
+            </p>
+          ))}
+        </motion.div>
+        <motion.p className="mt-4 max-w-[60ch] text-balance text-[15px] text-muted-foreground" variants={rise}>
+          {profile.availability}
         </motion.p>
 
         <motion.div className="mt-12 w-full text-left" variants={rise}>
@@ -104,11 +113,12 @@ export function Welcome({ content, status, remaining, onSend, onStop, onOpenCare
             </a>
           </span>
         </motion.p>
-
-        <motion.div className="mt-10" variants={rise}>
-          <LegalDialog legal={content.legal} />
-        </motion.div>
       </motion.div>
+
+      {/* Collé au bas de la fenêtre, même sur un grand écran ; repoussé sous le contenu s'il manque de place. */}
+      <footer className="relative flex justify-center px-4 pt-2 pb-5">
+        <LegalDialog legal={content.legal} />
+      </footer>
     </main>
   );
 }

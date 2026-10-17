@@ -11,7 +11,7 @@ export const en: SiteContent = {
     initials: "JR",
     role: "AI engineer, Toulouse",
     intro:
-      "I design agent harnesses and ship LLM agents and RAG systems to production, after four years of deep learning on a national supercomputer at CNRS.",
+      "I design **agent harnesses** and ship LLM agents and RAG systems to production.\nBefore that, **four years of deep learning** on a national supercomputer at CNRS.",
     availability: "I'm looking for my next role in Toulouse, Paris, remote or in Canada.",
     email: "julienrabault@icloud.com",
     linkedin: "https://linkedin.com/in/julienrabault",
@@ -36,6 +36,7 @@ export const en: SiteContent = {
     copy: "Copy answer",
     copied: "Copied",
     sourcesCount: (n) => `${n} source${n > 1 ? "s" : ""}`,
+    openSource: "See it in the career page",
     dockTitle: "The site's agent",
     dockSubtitle: "It answers from the background",
     dockTeaser: "A question about a project? I answer from the background and cite my sources.",
@@ -101,8 +102,8 @@ export const en: SiteContent = {
     },
     {
       match: ["background", "career", "sum up", "summary", "resume"],
-      read: ["agileo", "cnrs", "bl"],
-      text: "Ten years in short: a BSc then an MSc in AI in Toulouse, a year of work-study in software engineering at Agileo [[agileo]], four years of deep learning at CNRS on 10+ research projects [[cnrs]], and since January 2026, LLM agents in production at Berger-Levrault [[bl]].\n\n{{timeline}}\n\nThe long version, with the numbers, is on {{link:career}}. The PDF: {{link:cv}}.",
+      read: ["education", "agileo", "cnrs", "publications", "bl", "cnrs-pnria"],
+      text: "Ten years between computer science and AI, in three stages [[education]].\n\n- **Studies and a first job.** A BSc in computer science, then an MSc in AI and pattern recognition at Université Paul Sabatier. During the MSc, a year of work-study at Agileo Automation, on a supervision framework for robotic machines, in C# and Scrum [[agileo]].\n- **Four years of deep learning at CNRS.** As an engineer in the PNRIA network, he led 10+ projects of 6 to 12 months with research teams, for Météo France, CNES, CEA and INEE, with multi-GPU training on the Jean Zay supercomputer [[cnrs]]. Two peer-reviewed papers came out of it, one in AIES in 2025 [[publications]].\n- **LLM agents in production since January 2026.** At Berger-Levrault, he designs the harness of Athena, the group's agent platform: 100k documents, a six-month pilot with 70 users, a production rollout under way [[bl]].\n\n{{timeline}}\n\nThe common thread: landing in a field he does not know, understanding it with the people who work in it, and covering the whole cycle, from data to deployment [[cnrs-pnria]].\n\nThe long version, with the numbers, is on {{link:career}}. The PDF: {{link:cv}}.",
     },
     {
       match: ["open source", "github", "repo", "code", "llmock", "langchain"],

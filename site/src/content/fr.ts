@@ -12,7 +12,7 @@ export const fr: SiteContent = frenchSpacing({
     initials: "JR",
     role: "Ingénieur IA, Toulouse",
     intro:
-      "Je conçois des harnais agentiques et je mets en production des agents LLM et des systèmes RAG, après quatre ans de deep learning sur supercalculateur au CNRS.",
+      "Je conçois des **harnais agentiques** et je mets en production des agents LLM et des systèmes RAG.\nAvant, **quatre ans de deep learning** sur supercalculateur au CNRS.",
     availability: "Je cherche mon prochain poste à Toulouse, à Paris, en remote ou au Canada.",
     email: "julienrabault@icloud.com",
     linkedin: "https://linkedin.com/in/julienrabault",
@@ -37,6 +37,7 @@ export const fr: SiteContent = frenchSpacing({
     copy: "Copier la réponse",
     copied: "Copié",
     sourcesCount: (n) => `${n} source${n > 1 ? "s" : ""}`,
+    openSource: "Voir dans le parcours",
     dockTitle: "L'agent du site",
     dockSubtitle: "Il répond à partir du parcours",
     dockTeaser: "Une question sur un projet ? Je réponds à partir du parcours, sources à l'appui.",
@@ -102,8 +103,8 @@ export const fr: SiteContent = frenchSpacing({
     },
     {
       match: ["parcours", "résume", "resume", "carrière", "carriere"],
-      read: ["agileo", "cnrs", "bl"],
-      text: "En dix ans : une licence puis un master en IA à Toulouse, un an d'alternance en génie logiciel chez Agileo [[agileo]], quatre ans de deep learning au CNRS sur plus de 10 projets de recherche [[cnrs]], et depuis janvier 2026 des agents LLM en production chez Berger-Levrault [[bl]].\n\n{{timeline}}\n\nLa version longue, avec les résultats chiffrés, est sur {{link:career}}. Le PDF : {{link:cv}}.",
+      read: ["education", "agileo", "cnrs", "publications", "bl", "cnrs-pnria"],
+      text: "Dix ans entre l'informatique et l'IA, en trois temps [[education]].\n\n- **Formation et premier poste.** Une licence informatique puis un master IA et reconnaissance des formes à l'Université Paul Sabatier. Pendant le master, un an d'alternance chez Agileo Automation, sur un framework de supervision de machines robotisées, en C# et en Scrum [[agileo]].\n- **Quatre ans de deep learning au CNRS.** Ingénieur du réseau PNRIA, il a mené plus de 10 projets de 6 à 12 mois avec des équipes de recherche, pour Météo France, le CNES, le CEA et l'INEE, avec de l'entraînement multi-GPU sur le supercalculateur Jean Zay [[cnrs]]. Deux articles peer-reviewed en sont sortis, dont un dans AIES en 2025 [[publications]].\n- **Des agents LLM en production depuis janvier 2026.** Chez Berger-Levrault, il conçoit le harnais d'Athena, la plateforme agentique du groupe : 100k documents, un pilote de six mois avec 70 utilisateurs, une mise en production en cours [[bl]].\n\n{{timeline}}\n\nLe fil rouge : arriver sur un métier qu'il ne connaît pas, le comprendre avec les gens du terrain et couvrir tout le cycle, des données au déploiement [[cnrs-pnria]].\n\nLa version longue, avec les résultats chiffrés, est sur {{link:career}}. Le PDF : {{link:cv}}.",
     },
     {
       match: ["open source", "github", "dépôt", "depot", "code", "llmock", "langchain"],

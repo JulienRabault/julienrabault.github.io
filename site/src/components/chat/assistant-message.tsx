@@ -13,7 +13,8 @@ import type { SiteContent } from "@/content/types";
 import type { AssistantMessage as AssistantMessageData } from "@/lib/use-agent-chat";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { CheckIcon, ChevronDownIcon, CircleAlertIcon, CopyIcon, FileTextIcon } from "lucide-react";
+import { SOURCE_TARGETS } from "@/content/source-targets";
+import { ArrowUpRightIcon, CheckIcon, ChevronDownIcon, CircleAlertIcon, CopyIcon, FileTextIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 interface AnswerFooterProps {
@@ -23,13 +24,15 @@ interface AnswerFooterProps {
   onCopy: () => void;
   /** Dernière réponse : les actions restent visibles. Les plus anciennes ne les montrent qu'au survol. */
   pinned: boolean;
+  onOpenCareer: (target?: string) => void;
 }
 
 /**
  * Sous la réponse, comme dans les assistants courants : une rangée d'icônes discrète, puis les sources repliées
- * derrière un seul bouton. Le détail d'une source s'ouvre au survol de son numéro dans le texte.
+ * derrière un seul bouton. Le détail d'une source s'ouvre au survol de son numéro dans le texte ; dans la liste,
+ * une source mène à son endroit du parcours.
  */
-function AnswerFooter({ content, numbering, copied, onCopy, pinned }: AnswerFooterProps) {
+function AnswerFooter({ content, numbering, copied, onCopy, pinned, onOpenCareer }: AnswerFooterProps) {
   const { ui, sources } = content;
   const [open, setOpen] = useState(false);
   const cited = [...numbering];
@@ -63,24 +66,47 @@ function AnswerFooter({ content, numbering, copied, onCopy, pinned }: AnswerFoot
         )}
       </div>
       <CollapsibleContent>
-        <ol className="mt-2 divide-y rounded-xl border">
-          {cited.map(([id, n]) => (
-            <li className="flex gap-3 px-3.5 py-3" key={id}>
-              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-ochre-soft font-semibold text-[11px] text-ochre tabular-nums">
-                {n}
-              </span>
-              <div className="min-w-0">
-                <p className="text-[14px]">
-                  <span className="font-medium">{sources[id].title}</span>
-                  <span className="text-muted-foreground">
-                    {" "}
-                    {sources[id].org}, {sources[id].period}
+        <ol className="mt-2 divide-y overflow-hidden rounded-xl border">
+          {cited.map(([id, n]) => {
+            const target = SOURCE_TARGETS[id];
+            const body = (
+              <>
+                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-ochre-soft font-semibold text-[11px] text-ochre tabular-nums">
+                  {n}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[14px]">
+                    <span className="font-medium">{sources[id].title}</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      {sources[id].org}
+                      {sources[id].period && `, ${sources[id].period}`}
+                    </span>
                   </span>
-                </p>
-                <p className="mt-0.5 line-clamp-2 text-[13px] text-muted-foreground leading-relaxed">{sources[id].text}</p>
-              </div>
-            </li>
-          ))}
+                  <span className="mt-0.5 line-clamp-2 text-[13px] text-muted-foreground leading-relaxed">
+                    {sources[id].text}
+                  </span>
+                </span>
+              </>
+            );
+            return (
+              <li key={id}>
+                {target ? (
+                  <button
+                    aria-label={`${ui.openSource} : ${sources[id].title}`}
+                    className="group/source flex w-full gap-3 px-3.5 py-3 text-left transition-colors hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none"
+                    onClick={() => onOpenCareer(target)}
+                    type="button"
+                  >
+                    {body}
+                    <ArrowUpRightIcon className="mt-1 size-3.5 shrink-0 text-muted-foreground transition-colors group-hover/source:text-ochre" />
+                  </button>
+                ) : (
+                  <div className="flex gap-3 px-3.5 py-3">{body}</div>
+                )}
+              </li>
+            );
+          })}
         </ol>
       </CollapsibleContent>
     </Collapsible>
@@ -123,6 +149,13 @@ export function AssistantMessage({ message, content, live, onOpenCareer }: Assis
   return (
     <Message className="group/answer" from="assistant">
       <MessageContent className="w-full gap-4 overflow-visible">
+        {/* Avant le premier mot, le worker n'a encore rien dit : on montre que l'agent lit. */}
+        {reading && message.read.length === 0 && (
+          <p aria-live="polite" className="flex h-9 items-center text-[14px] text-muted-foreground">
+            <Shimmer as="span">{ui.reading}</Shimmer>
+          </p>
+        )}
+
         {message.read.length > 0 && (
           <ChainOfThought className="space-y-0">
             <ChainOfThoughtHeader className="w-fit">
@@ -165,6 +198,7 @@ export function AssistantMessage({ message, content, live, onOpenCareer }: Assis
             content={content}
             numbering={numbering}
             onCopy={copy}
+            onOpenCareer={onOpenCareer}
             pinned={live}
           />
         )}

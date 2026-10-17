@@ -8,9 +8,12 @@ import type { SiteContent } from "@/content/types";
 import { requestCareerJump } from "@/lib/career-jump";
 import { useAgentChat } from "@/lib/use-agent-chat";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { useView } from "@/lib/use-view";
+import { ADMIN_HASH, useView } from "@/lib/use-view";
 import { AnimatePresence, LayoutGroup, motion, MotionConfig } from "motion/react";
-import { useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
+
+// Le tableau de bord et ses graphiques ne sont chargés que par celui qui l'ouvre, pas par les visiteurs.
+const AdminPage = lazy(() => import("@/components/admin/admin-page").then((module) => ({ default: module.AdminPage })));
 
 // Changer de vue est un fondu court sur place : rien ne glisse, l'en-tête ne bouge pas.
 const fade = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.16 } } as const;
@@ -38,6 +41,19 @@ export default function App({ content }: { content: SiteContent }) {
     setDockOpen(false);
     setView("chat");
   }, [setView]);
+
+  // Le tableau de bord de Julien : une page à part, sans l'en-tête ni l'agent du site.
+  if (view === "admin") {
+    return (
+      <TooltipProvider>
+        <div className="flex min-h-dvh flex-col">
+          <Suspense fallback={null}>
+            <AdminPage />
+          </Suspense>
+        </div>
+      </TooltipProvider>
+    );
+  }
 
   return (
     <MotionConfig reducedMotion="user">
@@ -91,6 +107,14 @@ export default function App({ content }: { content: SiteContent }) {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Accès discret au tableau de bord, comme sur l'ancien site : un point, protégé par le jeton derrière. */}
+            <a
+              aria-hidden
+              className="fixed bottom-1.5 left-1.5 z-10 size-1 rounded-full bg-muted-foreground/25"
+              href={ADMIN_HASH}
+              tabIndex={-1}
+            />
           </div>
         </LayoutGroup>
       </TooltipProvider>

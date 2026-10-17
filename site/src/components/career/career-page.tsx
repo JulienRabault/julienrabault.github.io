@@ -3,7 +3,7 @@ import { ExperienceExplorer, type ExplorerHandle } from "@/components/career/exp
 import { GitHubCard } from "@/components/github-card";
 import { ContactMenu } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
-import type { LinkItem, SiteContent } from "@/content/types";
+import type { LinkItem, Publication, SiteContent, SkillGroup } from "@/content/types";
 import { onCareerJump } from "@/lib/career-jump";
 import { cn } from "@/lib/utils";
 import { ArrowUpRightIcon, DownloadIcon } from "lucide-react";
@@ -53,6 +53,61 @@ function LinkList({ items }: { items: LinkItem[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Comme une référence d'article : le titre en italique entre guillemets, puis les auteurs et la revue. */
+function PublicationList({ items, quote }: { items: Publication[]; quote: [string, string] }) {
+  return (
+    <ul className="space-y-7">
+      {items.map((item) => (
+        <li key={item.url}>
+          <a
+            className="group inline-flex items-start gap-1.5 text-[15.5px] italic leading-snug decoration-ochre/60 underline-offset-4 hover:underline"
+            href={item.url}
+            rel="noopener"
+            target="_blank"
+          >
+            <span className="text-pretty">
+              {quote[0]}
+              {item.name}
+              {quote[1]}
+            </span>
+            <ArrowUpRightIcon className="mt-1 size-3.5 shrink-0 text-muted-foreground not-italic transition-colors group-hover:text-ochre" />
+          </a>
+          {item.authors && (
+            <p className="mt-2 text-[13.5px] text-muted-foreground">
+              <Emphasis text={item.authors} />
+            </p>
+          )}
+          <p className="mt-0.5 text-[13.5px] text-muted-foreground">{item.venue}</p>
+          <p className="mt-2 text-[14.5px] text-muted-foreground leading-relaxed">{item.text}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Trois colonnes, une compétence par ligne : le nom se lit d'un coup d'œil, le détail reste en retrait. */
+function SkillGroups({ groups }: { groups: SkillGroup[] }) {
+  return (
+    <div className="grid gap-x-10 gap-y-10 md:grid-cols-3">
+      {groups.map((group) => (
+        <div key={group.label}>
+          <h3 className="border-b pb-2.5 font-medium text-[15.5px]">{group.label}</h3>
+          <ul className="mt-1">
+            {group.items.map((item) => (
+              <li className="border-b border-dashed py-2.5 last:border-b-0" key={item.name}>
+                <span className="block text-[14.5px]">{item.name}</span>
+                {item.detail && (
+                  <span className="mt-0.5 block text-[13px] text-muted-foreground leading-relaxed">{item.detail}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -130,7 +185,7 @@ export function CareerPage({ content, onAsk }: CareerPageProps) {
           </Section>
 
           <Section id={SECTION_IDS.publications} title={career.labels.publications}>
-            <LinkList items={career.publications} />
+            <PublicationList items={career.publications} quote={content.locale === "fr" ? ["« ", " »"] : ["“", "”"]} />
           </Section>
 
           <Section id={SECTION_IDS.education} title={career.labels.education}>
@@ -147,14 +202,7 @@ export function CareerPage({ content, onAsk }: CareerPageProps) {
           </Section>
 
           <Section className="lg:col-span-2" id={SECTION_IDS.skills} title={career.labels.skills}>
-            <dl className="grid gap-x-10 gap-y-6 md:grid-cols-3">
-              {career.skills.map((s) => (
-                <div key={s.label}>
-                  <dt className="font-medium text-[15.5px]">{s.label}</dt>
-                  <dd className="mt-1.5 text-[14.5px] text-muted-foreground leading-relaxed">{s.text}</dd>
-                </div>
-              ))}
-            </dl>
+            <SkillGroups groups={career.skills} />
           </Section>
         </div>
 

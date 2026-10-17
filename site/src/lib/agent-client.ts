@@ -1,7 +1,7 @@
 import type { SiteContent } from "@/content/types";
 import { type AgentEvent, type HistoryTurn, parseAgentEvent } from "@/lib/agent-events";
-import { visitContext } from "@/lib/analytics";
-import { askMockAgent } from "@/lib/mock-agent";
+import { track, visitContext } from "@/lib/analytics";
+import { askMockAgent, cachedAnswer, replayAnswer } from "@/lib/mock-agent";
 import { ChallengeError, challengeEnabled, challengeToken, readPass, savePass } from "@/lib/turnstile";
 
 // Sans URL de worker (développement, prototype), l'agent simulé répond avec le même contrat d'événements.
@@ -58,6 +58,13 @@ export async function* askAgent(
   history: HistoryTurn[],
   signal: AbortSignal,
 ): AsyncGenerator<AgentEvent> {
+  const cached = cachedAnswer(content, question);
+  if (cached) {
+    track("chat_suggestion", { question });
+    yield* replayAnswer(cached, signal, { cached: true });
+    return;
+  }
+
   if (!CHAT_URL) {
     yield* askMockAgent(content, question, signal);
     return;

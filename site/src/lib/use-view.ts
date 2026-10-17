@@ -1,11 +1,13 @@
 import { track } from "@/lib/analytics";
 import { useCallback, useSyncExternalStore } from "react";
 
-export type View = "chat" | "career";
+export type View = "chat" | "career" | "admin";
 
 const CAREER_HASH = "#parcours";
+export const ADMIN_HASH = "#admin";
 
 function readView(): View {
+  if (window.location.hash === ADMIN_HASH) return "admin";
   return window.location.hash === CAREER_HASH ? "career" : "chat";
 }
 
@@ -18,7 +20,7 @@ function subscribe(onChange: () => void): () => void {
   };
 }
 
-/** La vue vit dans l'URL (#parcours) : le lien se partage et le bouton retour marche. La query (utm, src) est gardée. */
+/** La vue vit dans l'URL (#parcours, #admin) : le lien se partage et le bouton retour marche. La query (utm, src) est gardée. */
 export function useView(): [View, (next: View) => void] {
   const view = useSyncExternalStore(subscribe, readView, () => "chat" as View);
 

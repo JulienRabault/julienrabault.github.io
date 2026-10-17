@@ -1,0 +1,27 @@
+// Où mène chaque passage de la connaissance dans la page Parcours : un chapitre, un projet ou une section.
+// Les identifiants sont les mêmes dans les deux langues. Un passage absent d'ici ne mène nulle part.
+export const SOURCE_TARGETS: Record<string, string> = {
+  "bl": "bl",
+  "bl-harness": "bl",
+  "bl-tools": "bl",
+  "bl-eval": "agent-evals",
+  "bl-mcp": "mcp-builder",
+  "bl-extract": "content-extractor",
+  "bl-templates": "templates-agent",
+  "bl-hr-data": "hr-data",
+  "bl-team": "bl",
+  "cnrs": "cnrs",
+  "cnrs-pnria": "cnrs",
+  "cnrs-gens": "gens",
+  "cnrs-deepfaune": "deepfaune",
+  "cnrs-bigsf": "bigsf",
+  "cnrs-autofill": "autofill",
+  "cnrs-morphogan": "morphogan",
+  "cnrs-others": "cnrs",
+  "cnrs-course": "cnrs",
+  "agileo": "agileo",
+  "education": "formation",
+  "publications": "publications",
+  "open-source": "open-source",
+  "skills": "competences",
+};

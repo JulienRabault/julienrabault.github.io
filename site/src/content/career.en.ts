@@ -293,12 +293,15 @@ export const careerEn: CareerContent = {
   publications: [
     {
       name: "Enriching Operational High-Resolution Ensemble Forecasts with StyleGAN-2",
-      text: "AIES 2025, peer-reviewed. Co-author, from the GENS project with Météo France.",
+      authors: "C. Brochet, G. Moldovan, **J. Rabault**, C. Regan, L. Raynaud",
+      venue: "Artificial Intelligence for the Earth Systems (AIES), vol. 4, no. 1, 2025",
+      text: "Third author. From the GENS project with Météo France.",
       url: "https://journals.ametsoc.org/view/journals/aies/4/1/AIES-D-24-0058.1.xml",
     },
     {
-      name: "The DeepFaune initiative: automatic identification of European fauna",
-      text: "Peer-reviewed. The species recognition model of the DeepFaune project.",
+      name: "The DeepFaune initiative: a collaborative effort towards the automatic identification of European fauna in camera trap images",
+      venue: "Peer-reviewed paper",
+      text: "Co-author. The species recognition model of the DeepFaune project.",
       url: "https://scholar.google.fr/citations?view_op=view_citation&hl=fr&user=iUFJqVMAAAAJ&citation_for_view=iUFJqVMAAAAJ:u5HHmVD_uO8C",
     },
   ],
@@ -337,15 +340,33 @@ export const careerEn: CareerContent = {
   skills: [
     {
       label: "Agentic systems",
-      text: "Agent harnesses (agent loop, tool calling, middleware, memory, human-in-the-loop), LangChain, LangGraph, Deep Agents, RAG, MCP, evals (golden sets, LLM-as-judge, A/B testing), multimodal (OCR, vision, audio), fine-tuning",
+      items: [
+        { name: "Agent harnesses", detail: "agent loop, tool calling, middleware, memory, human-in-the-loop" },
+        { name: "LangChain, LangGraph, Deep Agents" },
+        { name: "RAG and MCP" },
+        { name: "Evaluation", detail: "golden sets, LLM-as-judge, A/B testing" },
+        { name: "Multimodal", detail: "OCR, vision, audio" },
+        { name: "Fine-tuning" },
+      ],
     },
     {
       label: "Languages and data",
-      text: "Python, PyTorch, FastAPI, SQL, Weaviate, PostgreSQL, MongoDB, Hugging Face, Mistral and OpenAI APIs",
+      items: [
+        { name: "Python, PyTorch, FastAPI" },
+        { name: "SQL, PostgreSQL, MongoDB" },
+        { name: "Weaviate" },
+        { name: "Hugging Face" },
+        { name: "Mistral and OpenAI APIs" },
+      ],
     },
     {
       label: "Infrastructure",
-      text: "Docker, GitLab CI, AWS, Celery, RabbitMQ, Airflow, Langfuse, Slurm, Linux",
+      items: [
+        { name: "Docker, GitLab CI, AWS" },
+        { name: "Celery, RabbitMQ, Airflow" },
+        { name: "Langfuse" },
+        { name: "Slurm, Linux" },
+      ],
     },
   ],
   closing: "A more specific question? The site's agent answers from this background and cites its sources.",

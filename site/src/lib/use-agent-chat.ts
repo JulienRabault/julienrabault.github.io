@@ -2,6 +2,7 @@ import type { SiteContent } from "@/content/types";
 import { askAgent } from "@/lib/agent-client";
 import type { AgentErrorCode, HistoryTurn, Trace } from "@/lib/agent-events";
 import { track } from "@/lib/analytics";
+import { cachedAnswer } from "@/lib/mock-agent";
 import { useCallback, useRef, useState } from "react";
 
 export const DAILY_QUESTION_LIMIT = 20;
@@ -81,7 +82,8 @@ export function useAgentChat(content: SiteContent) {
   const send = useCallback(
     async (question: string) => {
       const text = question.trim();
-      if (!text || status !== "ready" || remaining === 0) return;
+      const cached = cachedAnswer(content, text) !== undefined;
+      if (!text || status !== "ready" || (remaining === 0 && !cached)) return;
 
       if (messages.length === 0) track("chat_open");
       const history = toHistory(messages);
@@ -92,7 +94,8 @@ export function useAgentChat(content: SiteContent) {
         { id: assistantId, role: "assistant", text: "", read: [], status: "reading" },
       ]);
       setStatus("submitted");
-      setUsed(used + 1);
+      // Une suggestion est servie par le site : elle ne coûte rien et ne compte pas dans le quota.
+      if (!cached) setUsed(used + 1);
 
       const controller = new AbortController();
       abortRef.current = controller;

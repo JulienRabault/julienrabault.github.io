@@ -7,6 +7,7 @@ const TRACKING_VERSION = "v13";
 export type AnalyticsEventType =
   | "page_view"
   | "chat_open"
+  | "chat_suggestion"
   | "career_open"
   | "cv_download"
   | "contact_click"
@@ -168,6 +169,7 @@ export function classifyLink(href: string, label: string, download: boolean, pag
 
 function onLinkClick(event: MouseEvent): void {
   if (event.type === "auxclick" && event.button !== 1) return;
+  if (onAdminPage()) return;
   const link = (event.target as Element | null)?.closest?.("a");
   if (!link) return;
   const label = link.getAttribute("aria-label") || link.textContent || "";
@@ -176,16 +178,12 @@ function onLinkClick(event: MouseEvent): void {
   }
 }
 
-/** Accès discret au tableau de bord : /#admin ouvre /admin du worker (protégé par son jeton). */
-function openAdminFromHash(): void {
-  if (window.location.hash === "#admin" && API_URL) window.location.replace(`${API_URL}/admin`);
-}
+/** Le tableau de bord (#admin) est celui de Julien : ses passages ne comptent pas comme des visites. */
+const onAdminPage = () => window.location.hash === "#admin";
 
-/** Vue de page, clics sur les liens (y compris clic molette), accès admin. À appeler une fois au démarrage. */
+/** Vue de page et clics sur les liens (y compris clic molette). À appeler une fois au démarrage. */
 export function startAnalytics(): void {
-  openAdminFromHash();
-  window.addEventListener("hashchange", openAdminFromHash);
   document.addEventListener("click", onLinkClick, true);
   document.addEventListener("auxclick", onLinkClick, true);
-  track("page_view", { view: window.location.hash === "#parcours" ? "career" : "chat" });
+  if (!onAdminPage()) track("page_view", { view: window.location.hash === "#parcours" ? "career" : "chat" });
 }
