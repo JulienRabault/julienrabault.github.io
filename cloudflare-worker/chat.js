@@ -25,9 +25,9 @@ const LANGUAGE = { fr: "French", en: "English" };
 export const LIMITS = {
   questionChars: 500,
   historyTurns: 6,
-  // 900 tokens de sortie font environ 4 000 caractères en français, plus les marqueurs : de la marge.
+  // 1 200 tokens de sortie font environ 5 000 caractères en français, plus les marqueurs : de la marge.
   historyTurnChars: 6000,
-  maxTokens: 900,
+  maxTokens: 1200,
   perVisitorPerDay: 20,
   perDay: 400,
 };
@@ -91,7 +91,7 @@ export function buildSystemPrompt(locale) {
 
 Language: answer in the language of the question. If unclear, answer in ${LANGUAGE[locale]}.
 
-Voice: talk about Julien in the third person. Plain, precise and warm, never salesy: no marketing adjectives, no superlatives, no em dashes, no emoji, no headings. Lead with the direct answer. Two to four short paragraphs at most; one is often enough.
+Voice: talk about Julien in the third person. Plain, precise and warm, never salesy: no marketing adjectives, no superlatives, no em dashes, no emoji, no headings. Lead with the direct answer. Match the length to the question: one short paragraph for a precise question; for a broad one (a summary of his background, an overview of a job), three to five short paragraphs or a list, each with the concrete results that make it worth reading.
 
 Facts:
 - Every factual claim about Julien ends with the citation marker of the passage that supports it, written [[id]] with an id from <knowledge>. One or two markers per paragraph.
@@ -100,7 +100,7 @@ Facts:
 - Do not discuss his salary, which companies he prefers, or his plans and ambitions: point to {{link:email}}.
 
 Formatting the page understands. Anything else is removed before the visitor sees it:
-- **bold** for at most one key phrase per answer.
+- **bold** for at most one key phrase per paragraph: a result, a scale, a decision.
 - Bullet lists with "- " when listing three or more items.
 - Links: never write a URL or a markdown link. Write {{link:ID}} inside a sentence; it renders as its own label. IDs:
 ${LINK_IDS.map((id) => `  ${id}: ${LINK_HELP[id]}`).join("\n")}
@@ -339,6 +339,8 @@ export async function handleChatV2(request, env, ctx, corsOrigin, log, { allowed
         model: env.MODEL || DEFAULT_MODEL,
         max_tokens: Number(env.CHAT_MAX_TOKENS) || LIMITS.maxTokens,
         stream: true,
+        // Haiku 5.5 réfléchit par défaut, et cette réflexion invisible se paie sur max_tokens : la réponse était coupée.
+        thinking: { type: "disabled" },
         system: [{ type: "text", text: buildSystemPrompt(locale), cache_control: { type: "ephemeral" } }],
         messages: [...history, { role: "user", content: asQuestion(question) }],
       }),
@@ -371,6 +373,7 @@ export async function handleChatV2(request, env, ctx, corsOrigin, log, { allowed
     const usage = { input: 0, output: 0, cacheRead: 0 };
     let model = env.MODEL || DEFAULT_MODEL;
     let status = "ok";
+    let stopReason = null;
 
     const emit = async (delta) => {
       if (!delta) return;
@@ -396,12 +399,18 @@ export async function handleChatV2(request, env, ctx, corsOrigin, log, { allowed
           await emit(sanitizer.push(event.delta.text || ""));
         } else if (event.type === "message_delta") {
           usage.output = event.usage?.output_tokens || usage.output;
+          stopReason = event.delta?.stop_reason || stopReason;
         } else if (event.type === "error") {
           status = "upstream_stream_error";
           break;
         }
       }
       await emit(sanitizer.flush());
+      // Coupée par la limite : des points de suspension plutôt qu'une phrase qui s'arrête net, et un gras refermé.
+      if (stopReason === "max_tokens" && sanitizer.text()) {
+        const openBold = (sanitizer.text().match(/\*\*/g) || []).length % 2 === 1;
+        await emit(sanitizer.push(openBold ? "…**" : "…") + sanitizer.flush());
+      }
 
       if (status === "ok") {
         const text = sanitizer.text();
@@ -430,7 +439,7 @@ export async function handleChatV2(request, env, ctx, corsOrigin, log, { allowed
         answer: sanitizer.text(),
         status,
         locale,
-        metadata: { model, ...usage, durationMs: Date.now() - started, historyTurns: history.length / 2 },
+        metadata: { model, ...usage, stopReason, durationMs: Date.now() - started, historyTurns: history.length / 2 },
       });
     }
   };

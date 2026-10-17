@@ -178,6 +178,8 @@ const ACTION_EVENT_TYPES = ["cv_download", "contact_click", "project_open", "git
 const ALLOWED_ANALYTICS_EVENTS = new Set([
   "page_view",
   "chat_open",
+  // Suggestion servie par le site sans appel au modèle : elle ne passe pas par /v2/chat, on la compte ici.
+  "chat_suggestion",
   ...ACTION_EVENT_TYPES,
 ]);
 
@@ -191,20 +193,6 @@ function jsonResponse(payload, status = 200, corsOrigin = null) {
   }
 
   return new Response(JSON.stringify(payload), { status, headers });
-}
-
-function htmlResponse(html, status = 200) {
-  return new Response(html, {
-    status,
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "no-store",
-      // Le tableau de bord ne s'affiche dans aucun cadre et ne parle qu'à ce worker.
-      "Content-Security-Policy":
-        "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
-      "X-Frame-Options": "DENY",
-    },
-  });
 }
 
 /** En-têtes posés sur toute réponse du worker. L'origine CORS varie selon la requête : les caches doivent le savoir. */
@@ -248,8 +236,8 @@ function createPreflightResponse(corsOrigin) {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": corsOrigin,
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Access-Control-Max-Age": "86400",
     },
   });
@@ -278,8 +266,12 @@ function serializeMetadata(metadata) {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
     return null;
   }
+  // Une suggestion est une phrase courte : un texte plus long ne vient pas du site et n'a rien à faire au classement.
+  const safe = typeof metadata.question === "string"
+    ? { ...metadata, question: metadata.question.slice(0, 200) }
+    : metadata;
 
-  return JSON.stringify(metadata).slice(0, 2000);
+  return JSON.stringify(safe).slice(0, 2000);
 }
 
 function normalizeStoredSource(value) {
@@ -498,17 +490,17 @@ function getAdminTokenFromRequest(request) {
 const ADMIN_FAILURES_PER_MINUTE = 10;
 
 /** Renvoie une réponse de refus, ou null si le jeton est bon. Les essais ratés sont limités par réseau. */
-async function rejectAdmin(request, env) {
+async function rejectAdmin(request, env, corsOrigin) {
   if (!env.ADMIN_TOKEN) {
-    return jsonResponse({ error: "ADMIN_TOKEN is not configured" }, 503);
+    return jsonResponse({ error: "ADMIN_TOKEN is not configured" }, 503, corsOrigin);
   }
   const failures = `admin-fail:${getClientIP(request)}`;
   if (memoryCount(failures) >= ADMIN_FAILURES_PER_MINUTE) {
-    return jsonResponse({ error: "Too many attempts" }, 429);
+    return jsonResponse({ error: "Too many attempts" }, 429, corsOrigin);
   }
   if (!(await tokenMatches(getAdminTokenFromRequest(request), env.ADMIN_TOKEN))) {
     memoryLimited(failures, ADMIN_FAILURES_PER_MINUTE);
-    return jsonResponse({ error: "Unauthorized" }, 401);
+    return jsonResponse({ error: "Unauthorized" }, 401, corsOrigin);
   }
   return null;
 }
@@ -578,6 +570,7 @@ async function loadSummary(env, start, end, sourceFilters) {
       COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN session_id END) AS sessions,
       SUM(CASE WHEN event_type = 'chat_open' THEN 1 ELSE 0 END) AS chat_opens,
       SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
+      SUM(CASE WHEN event_type = 'chat_suggestion' THEN 1 ELSE 0 END) AS chat_suggestions,
       COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users,
       SUM(CASE WHEN event_type = 'cv_download' THEN 1 ELSE 0 END) AS cv_downloads,
       SUM(CASE WHEN event_type = 'contact_click' THEN 1 ELSE 0 END) AS contact_clicks,
@@ -592,12 +585,12 @@ async function loadSummary(env, start, end, sourceFilters) {
   return normalizeStatsRow(row);
 }
 
-async function handleAdminStats(request, env) {
-  const rejected = await rejectAdmin(request, env);
+async function handleAdminStats(request, env, corsOrigin) {
+  const rejected = await rejectAdmin(request, env, corsOrigin);
   if (rejected) return rejected;
 
   if (!env.ANALYTICS_DB) {
-    return jsonResponse({ error: "ANALYTICS_DB is not configured" }, 503);
+    return jsonResponse({ error: "ANALYTICS_DB is not configured" }, 503, corsOrigin);
   }
 
   const url = new URL(request.url);
@@ -622,6 +615,7 @@ async function handleAdminStats(request, env) {
       COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN visitor_id END) AS unique_visitors,
       SUM(CASE WHEN event_type = 'chat_open' THEN 1 ELSE 0 END) AS chat_opens,
       SUM(CASE WHEN event_type = 'chat_message' THEN 1 ELSE 0 END) AS chat_messages,
+      SUM(CASE WHEN event_type = 'chat_suggestion' THEN 1 ELSE 0 END) AS chat_suggestions,
       COUNT(DISTINCT CASE WHEN event_type = 'chat_message' THEN visitor_id END) AS chat_users
     FROM analytics_events
     WHERE created_at >= ? AND created_at < ?
@@ -810,6 +804,19 @@ async function handleAdminStats(request, env) {
     LIMIT 50
   `), [since, nowIso], sourceFilters).all();
 
+  const topSuggestions = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
+    SELECT
+      COALESCE(json_extract(metadata, '$.question'), '-') AS question,
+      COUNT(*) AS events,
+      COUNT(DISTINCT visitor_id) AS unique_visitors
+    FROM analytics_events
+    WHERE event_type = 'chat_suggestion' AND created_at >= ? AND created_at < ?
+    ${SOURCE_FILTER_CONDITION}
+    GROUP BY question
+    ORDER BY events DESC
+    LIMIT 10
+  `), [since, nowIso], sourceFilters).all();
+
   const recruiterActions = await bindSourceFilter(env.ANALYTICS_DB.prepare(`
     SELECT
       event_type,
@@ -880,21 +887,22 @@ async function handleAdminStats(request, env) {
     recruiterActions: recruiterActions.results || [],
     recentActions: recentActions.results || [],
     recentQuestions: recentQuestions.results || [],
+    topSuggestions: topSuggestions.results || [],
     chatHealth: chatHealth.results || [],
-  });
+  }, 200, corsOrigin);
 }
 
-async function handleAdminDeleteEvent(request, env) {
-  const rejected = await rejectAdmin(request, env);
+async function handleAdminDeleteEvent(request, env, corsOrigin) {
+  const rejected = await rejectAdmin(request, env, corsOrigin);
   if (rejected) return rejected;
 
   if (!env.ANALYTICS_DB) {
-    return jsonResponse({ error: "ANALYTICS_DB is not configured" }, 503);
+    return jsonResponse({ error: "ANALYTICS_DB is not configured" }, 503, corsOrigin);
   }
 
   const id = Number(new URL(request.url).searchParams.get("id"));
   if (!Number.isInteger(id) || id <= 0) {
-    return jsonResponse({ error: "Invalid event id" }, 400);
+    return jsonResponse({ error: "Invalid event id" }, 400, corsOrigin);
   }
 
   const result = await env.ANALYTICS_DB.prepare(`
@@ -905,1162 +913,9 @@ async function handleAdminDeleteEvent(request, env) {
   return jsonResponse({
     ok: true,
     deleted: result.meta?.changes || 0,
-  });
+  }, 200, corsOrigin);
 }
 
-function handleAdminDashboard() {
-  return htmlResponse(`<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JR Portfolio Analytics</title>
-  <meta name="robots" content="noindex" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #0f0d0c;
-      --panel: #171412;
-      --panel-2: #1f1b18;
-      --border: #2d2723;
-      --text: #f3f1ee;
-      --muted: #a39a90;
-      --accent: #df9a4e;
-      --blue: #78a6ff;
-      --green: #7bd88f;
-      --red: #ff6b6b;
-      --orange: #f0b36a;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      line-height: 1.45;
-    }
-
-    main {
-      width: min(1220px, calc(100vw - 32px));
-      margin: 0 auto;
-      padding: 28px 0 48px;
-    }
-
-    header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 22px;
-    }
-
-    h1, h2, h3, p { margin: 0; }
-    h1, h2 { font-family: "Bricolage Grotesque", "Hanken Grotesk", sans-serif; }
-    h1 { font-size: clamp(28px, 5vw, 48px); letter-spacing: -0.04em; line-height: 0.95; }
-    h2 { font-size: 17px; letter-spacing: -0.02em; margin-bottom: 12px; }
-    h3 { font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
-    .muted { color: var(--muted); font-size: 13px; }
-
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      justify-content: flex-end;
-    }
-
-    .header-actions {
-      align-items: center;
-    }
-
-    input, select, button {
-      height: 38px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--panel);
-      color: var(--text);
-      padding: 0 12px;
-      font: inherit;
-      font-size: 13px;
-    }
-
-    input { width: min(360px, 100%); }
-    button {
-      cursor: pointer;
-      font-weight: 800;
-      transition: border-color .15s ease, background .15s ease, transform .15s ease;
-    }
-    button.primary { background: var(--accent); border-color: var(--accent); color: #111; }
-    button.compact {
-      width: auto;
-      min-width: 104px;
-      padding: 0 16px;
-    }
-    button.danger {
-      height: 30px;
-      border-color: rgba(255,107,107,.35);
-      color: var(--red);
-      background: rgba(255,107,107,.08);
-      padding: 0 10px;
-      font-size: 12px;
-    }
-    button.secondary:hover, select:hover, input:focus { border-color: var(--accent); outline: none; }
-
-    .auth {
-      display: grid;
-      gap: 10px;
-      padding: 14px 16px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--panel);
-      margin-bottom: 14px;
-    }
-
-    details.generator {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--panel);
-      margin-bottom: 16px;
-      overflow: hidden;
-    }
-
-    details.generator > summary {
-      cursor: pointer;
-      list-style: none;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 14px 16px;
-      font-weight: 800;
-    }
-
-    details.generator > summary::-webkit-details-marker { display: none; }
-
-    .generator-title {
-      display: grid;
-      gap: 3px;
-    }
-
-    .collapse-indicator {
-      display: grid;
-      place-items: center;
-      width: 34px;
-      height: 34px;
-      flex: 0 0 auto;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      color: var(--accent);
-      font-size: 22px;
-      line-height: 1;
-      transition: transform .18s ease, border-color .18s ease, background .18s ease;
-    }
-
-    details.generator > summary:hover .collapse-indicator {
-      border-color: rgba(212,168,83,.55);
-      background: rgba(212,168,83,.08);
-    }
-
-    details.generator[open] .collapse-indicator {
-      transform: rotate(90deg);
-    }
-
-    .generator-body {
-      padding: 0 16px 16px;
-      border-top: 1px solid var(--border);
-    }
-
-    .generator-help {
-      display: grid;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 12px;
-      margin: 12px 0;
-    }
-
-    .generator-grid {
-      display: grid;
-      grid-template-columns: minmax(150px, 200px) minmax(160px, 240px) auto;
-      justify-content: start;
-      gap: 8px;
-      align-items: end;
-    }
-
-    .generator-grid.custom-open {
-      grid-template-columns: minmax(150px, 200px) minmax(160px, 220px) minmax(200px, 1fr) auto;
-      justify-content: stretch;
-    }
-
-    .source-custom.hidden { display: none; }
-
-    .generated {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .generated input {
-      width: 100%;
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      font-size: 12px;
-    }
-
-    .status {
-      min-height: 20px;
-      margin: 8px 0 16px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .error { color: var(--red); }
-    .ok { color: var(--green); }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .card, section {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--panel);
-    }
-
-    .card {
-      padding: 14px;
-      min-height: 112px;
-    }
-
-    .label {
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      margin-bottom: 10px;
-    }
-
-    .value {
-      font-size: 32px;
-      font-weight: 850;
-      letter-spacing: 0;
-      line-height: 1.05;
-    }
-
-    .delta {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 10px;
-      padding: 3px 7px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-    }
-    .delta.up { color: var(--green); border-color: rgba(123,216,143,.35); }
-    .delta.down { color: var(--red); border-color: rgba(255,107,107,.35); }
-
-    .filters-panel {
-      padding: 14px 16px;
-    }
-
-    .filter-title {
-      display: grid;
-      gap: 3px;
-    }
-
-    .filters-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(160px, 1fr)) auto;
-      gap: 10px;
-      align-items: end;
-    }
-
-    .filter-field {
-      display: grid;
-      gap: 6px;
-    }
-
-    .filter-field label {
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .filter-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-
-    .source-picker {
-      grid-column: 1 / -1;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      min-height: 38px;
-      align-items: center;
-    }
-
-    .source-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      min-height: 34px;
-      padding: 0 10px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: #141414;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: border-color .15s ease, background .15s ease, color .15s ease;
-    }
-
-    .source-chip input {
-      width: 14px;
-      height: 14px;
-      padding: 0;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    .source-chip:has(input:checked) {
-      border-color: rgba(212,168,83,.75);
-      background: rgba(212,168,83,.12);
-      color: var(--text);
-    }
-
-    .source-chip.disabled {
-      opacity: .45;
-      cursor: default;
-    }
-
-    .source-hint {
-      grid-column: 1 / -1;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: -2px;
-    }
-
-    section {
-      padding: 16px;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-
-    .panel-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .columns {
-      display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr);
-      gap: 16px;
-    }
-
-    .two {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .three {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .legend span { display: inline-flex; align-items: center; gap: 6px; }
-    .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-
-    .chart-wrap {
-      min-height: 280px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #121212;
-      padding: 8px;
-    }
-    svg { display: block; width: 100%; height: auto; }
-    .axis { stroke: #343434; stroke-width: 1; }
-    .series { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-    .tick { fill: var(--muted); font-size: 11px; }
-
-    .bar-list {
-      display: grid;
-      gap: 11px;
-    }
-    .bar-row {
-      display: grid;
-      grid-template-columns: minmax(110px, 1fr) 72px;
-      gap: 10px;
-      align-items: center;
-      font-size: 13px;
-    }
-    .bar-label {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .bar-track {
-      grid-column: 1 / -1;
-      height: 7px;
-      border-radius: 999px;
-      background: #2a2a2a;
-      overflow: hidden;
-      margin-top: -4px;
-    }
-    .bar-fill {
-      height: 100%;
-      border-radius: inherit;
-      background: var(--accent);
-      min-width: 2px;
-    }
-
-    .funnel {
-      display: grid;
-      gap: 12px;
-    }
-    .funnel-row {
-      display: grid;
-      grid-template-columns: 100px 1fr 64px;
-      gap: 10px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .funnel-track {
-      height: 18px;
-      border-radius: 999px;
-      background: #2a2a2a;
-      overflow: hidden;
-    }
-    .funnel-fill { height: 100%; background: var(--accent); border-radius: inherit; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    th, td {
-      padding: 10px 8px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      font-weight: 800;
-    }
-    tr:last-child td { border-bottom: 0; }
-    .question { color: var(--text); min-width: 180px; }
-    .answer { color: var(--muted); max-width: 560px; }
-    .empty { padding: 18px 0; color: var(--muted); font-size: 13px; }
-
-    @media (max-width: 980px) {
-      header { flex-direction: column; }
-      .toolbar { justify-content: flex-start; }
-      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .columns, .two, .three { grid-template-columns: 1fr; }
-      .generator-grid, .generator-grid.custom-open, .generated, .filters-grid { grid-template-columns: 1fr; }
-      .generator-grid { justify-content: stretch; }
-      .filter-actions { justify-content: flex-start; }
-    }
-    @media (max-width: 560px) {
-      main { width: min(100vw - 20px, 1220px); padding-top: 20px; }
-      .metrics { grid-template-columns: 1fr; }
-      .toolbar, .auth { align-items: stretch; }
-      input, select, button { width: 100%; }
-      .funnel-row { grid-template-columns: 82px 1fr 52px; }
-      th:nth-child(3), td:nth-child(3) { display: none; }
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <header>
-      <div>
-        <h1>JR Analytics</h1>
-        <p class="muted">Trafic, audience, engagement chatbot et questions posees.</p>
-      </div>
-      <div class="toolbar header-actions">
-        <button id="refresh" class="primary" type="button">Actualiser</button>
-        <button id="logout" class="secondary" type="button">Oublier token</button>
-      </div>
-    </header>
-
-    <div class="auth">
-      <label class="muted" for="token">Token admin</label>
-      <div class="toolbar" style="justify-content:flex-start">
-        <input id="token" type="password" autocomplete="current-password" placeholder="Bearer token" />
-        <button id="save" class="primary" type="button">Enregistrer</button>
-      </div>
-    </div>
-
-    <div id="status" class="status"></div>
-
-    <details class="generator">
-      <summary>
-        <span class="generator-title">
-          <span>Generateur de liens candidature</span>
-          <span class="muted">Un lien court par source : LinkedIn, CV, Indeed, perso...</span>
-        </span>
-        <span class="collapse-indicator" aria-hidden="true">&gt;</span>
-      </summary>
-      <div class="generator-body">
-        <div class="generator-help">
-          <span><strong>Simple :</strong> mets juste le canal ou la boite dans "Source". Exemple : linkedin, mistral, airbus.</span>
-          <span><strong>Resultat :</strong> le dashboard saura que cette visite vient de cette source.</span>
-        </div>
-        <div id="generatorGrid" class="generator-grid">
-          <select id="linkPage" aria-label="Page d'arrivée">
-            <option value="/">Chat (FR)</option>
-            <option value="/#parcours">Parcours (FR)</option>
-            <option value="/en/">Chat (EN)</option>
-            <option value="/en/#parcours">Parcours (EN)</option>
-          </select>
-          <select id="linkSource" aria-label="Source">
-            <option value="linkedin">LinkedIn</option>
-            <option value="cv">CV</option>
-            <option value="perso">Perso</option>
-            <option value="indeed">Indeed</option>
-            <option value="__custom">+ Ajouter une source</option>
-          </select>
-          <input id="linkSourceCustom" class="source-custom hidden" type="text" placeholder="Nouvelle source ex: mistral, airbus" />
-          <button id="generateLink" class="primary compact" type="button">Generer</button>
-        </div>
-        <input id="linkMedium" type="hidden" value="" />
-        <input id="linkCampaign" type="hidden" value="" />
-        <input id="linkContent" type="hidden" value="" />
-        <div class="generated">
-          <input id="generatedLink" type="text" readonly value="https://julienrabault.github.io/?src=linkedin" />
-          <button id="copyLink" class="secondary" type="button">Copier</button>
-        </div>
-      </div>
-    </details>
-
-    <div class="metrics">
-      <div class="card"><div class="label">Vues</div><div id="pageViews" class="value">0</div><div id="deltaPageViews" class="delta">0%</div></div>
-      <div class="card"><div class="label">Visiteurs</div><div id="uniqueVisitors" class="value">0</div><div id="deltaVisitors" class="delta">0%</div></div>
-      <div class="card"><div class="label">Sessions</div><div id="sessions" class="value">0</div><div id="deltaSessions" class="delta">0%</div></div>
-      <div class="card"><div class="label">Questions</div><div id="chatMessages" class="value">0</div><div id="deltaQuestions" class="delta">0%</div></div>
-      <div class="card"><div class="label">Taux chat</div><div id="chatRate" class="value">0%</div><div id="deltaChatRate" class="delta">0 pt</div></div>
-      <div class="card"><div class="label">Q / user chat</div><div id="questionsPerUser" class="value">0</div><div id="deltaQpu" class="delta">0</div></div>
-    </div>
-
-    <section class="filters-panel">
-      <div class="panel-head">
-        <div class="filter-title">
-          <h2>Filtres</h2>
-          <p class="muted">Vue actuelle du dashboard : periode, granularite et source.</p>
-        </div>
-        <button id="resetFilters" class="secondary compact" type="button">Reset</button>
-      </div>
-      <div class="filters-grid">
-        <div class="filter-field">
-          <label for="days">Periode</label>
-          <select id="days">
-            <option value="7">7 jours</option>
-            <option value="30" selected>30 jours</option>
-            <option value="90">90 jours</option>
-            <option value="365">365 jours</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label for="granularity">Courbe</label>
-          <select id="granularity">
-            <option value="daily" selected>Par jour</option>
-            <option value="weekly">Par semaine</option>
-          </select>
-        </div>
-        <div class="filter-field">
-          <label for="sourceMode">Source</label>
-          <select id="sourceMode">
-            <option value="all" selected>Toutes</option>
-            <option value="include">Inclure</option>
-            <option value="exclude">Exclure</option>
-          </select>
-        </div>
-        <div class="filter-actions">
-          <button id="applyFilters" class="primary compact" type="button">Appliquer</button>
-        </div>
-        <div id="sourcePicker" class="source-picker" aria-label="Sources disponibles"></div>
-        <p id="sourceFilterHint" class="source-hint">Choisis "Inclure" pour ne garder que certaines sources, ou "Exclure" pour retirer celles que tu ne veux pas voir.</p>
-      </div>
-    </section>
-
-    <section>
-      <div class="panel-head">
-        <h2>Tendance</h2>
-        <div class="legend">
-          <span><i class="dot" style="background:var(--accent)"></i>Vues</span>
-          <span><i class="dot" style="background:var(--blue)"></i>Visiteurs</span>
-          <span><i class="dot" style="background:var(--green)"></i>Questions</span>
-        </div>
-      </div>
-      <div id="trendChart" class="chart-wrap"></div>
-    </section>
-
-    <div class="two">
-      <section>
-        <h2>Funnel chatbot</h2>
-        <div id="funnel" class="funnel"></div>
-      </section>
-      <section>
-        <h2>Audience rapide</h2>
-        <div class="three">
-          <div><h3>Pays</h3><div id="countries" class="bar-list"></div></div>
-          <div><h3>Device</h3><div id="devices" class="bar-list"></div></div>
-          <div><h3>Browser</h3><div id="browsers" class="bar-list"></div></div>
-        </div>
-      </section>
-    </div>
-
-    <div class="two">
-      <section>
-        <h2>Pages</h2>
-        <div id="topPages"></div>
-      </section>
-      <section>
-        <h2>Sources trackees</h2>
-        <div id="topSources"></div>
-      </section>
-    </div>
-
-    <div class="two">
-      <section>
-        <h2>Actions recruteur</h2>
-        <div id="recruiterActions"></div>
-      </section>
-      <section>
-        <h2>Dernieres actions</h2>
-        <div id="recentActions"></div>
-      </section>
-    </div>
-
-    <section>
-      <h2>Langues</h2>
-      <div id="languages" class="bar-list"></div>
-    </section>
-
-    <section>
-      <h2>Chat</h2>
-      <p class="muted">ok : réponse complète. quota : limite par visiteur et par jour atteinte. budget : plafond du jour atteint. upstream : erreur du modèle.</p>
-      <div id="chatHealth"></div>
-    </section>
-
-    <section>
-      <h2>Questions recentes</h2>
-      <div id="recentQuestions"></div>
-    </section>
-  </main>
-
-  <script>
-    var tokenInput = document.getElementById('token');
-    var daysInput = document.getElementById('days');
-    var granularityInput = document.getElementById('granularity');
-    var sourceModeInput = document.getElementById('sourceMode');
-    var sourcePicker = document.getElementById('sourcePicker');
-    var sourceFilterHint = document.getElementById('sourceFilterHint');
-    var statusEl = document.getElementById('status');
-    var linkPageInput = document.getElementById('linkPage');
-    var linkSourceInput = document.getElementById('linkSource');
-    var linkSourceCustomInput = document.getElementById('linkSourceCustom');
-    var generatorGrid = document.getElementById('generatorGrid');
-    var linkMediumInput = document.getElementById('linkMedium');
-    var linkCampaignInput = document.getElementById('linkCampaign');
-    var linkContentInput = document.getElementById('linkContent');
-    var generatedLinkInput = document.getElementById('generatedLink');
-    var savedToken = localStorage.getItem('jr-admin-token') || '';
-    var latestData = null;
-    var autoRefreshDelayMs = 20000;
-    tokenInput.value = savedToken;
-
-    function number(value) {
-      return Number(value || 0);
-    }
-
-    function pct(part, total) {
-      return total > 0 ? Math.round(part / total * 100) : 0;
-    }
-
-    function formatNumber(value) {
-      return number(value).toLocaleString('fr-FR');
-    }
-
-    function setStatus(text, className) {
-      statusEl.textContent = text || '';
-      statusEl.className = 'status ' + (className || '');
-    }
-
-    function escapeHtml(value) {
-      return String(value == null ? '' : value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function periodDelta(current, previous, suffix) {
-      current = number(current);
-      previous = number(previous);
-      if (previous === 0 && current === 0) return { text: '0' + (suffix || '%'), className: '' };
-      if (previous === 0) return { text: '+new', className: 'up' };
-      var delta = Math.round((current - previous) / previous * 100);
-      return {
-        text: (delta > 0 ? '+' : '') + delta + (suffix || '%'),
-        className: delta > 0 ? 'up' : (delta < 0 ? 'down' : '')
-      };
-    }
-
-    function pointDelta(current, previous) {
-      var diff = Math.round((number(current) - number(previous)) * 10) / 10;
-      return {
-        text: (diff > 0 ? '+' : '') + diff + ' pt',
-        className: diff > 0 ? 'up' : (diff < 0 ? 'down' : '')
-      };
-    }
-
-    function setDelta(id, delta) {
-      var el = document.getElementById(id);
-      el.textContent = delta.text;
-      el.className = 'delta ' + delta.className;
-    }
-
-    function displayReferrer(value) {
-      if (!value || value === 'direct') return 'direct';
-      try { return new URL(value).hostname; } catch { return value; }
-    }
-
-    function eventLabel(value) {
-      return {
-        cv_download: 'CV telecharge',
-        contact_click: 'Contact',
-        project_open: 'Projet ouvert',
-        github_click: 'GitHub',
-        career_open: 'Parcours ouvert'
-      }[value] || value;
-    }
-
-    function parseMetadata(value) {
-      if (!value) return {};
-      try { return JSON.parse(value); } catch { return {}; }
-    }
-
-    function actionDetail(row) {
-      var metadata = parseMetadata(row.metadata);
-      return metadata.project || metadata.channel || metadata.label || metadata.file || metadata.href || '-';
-    }
-
-    function slug(value) {
-      return String(value || '')
-        .trim()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\\u0300-\\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-    }
-
-    function getSelectedSource() {
-      if (linkSourceInput.value === '__custom') {
-        return slug(linkSourceCustomInput.value) || 'custom';
-      }
-      return slug(linkSourceInput.value) || 'linkedin';
-    }
-
-    function syncSourceInput() {
-      var isCustom = linkSourceInput.value === '__custom';
-      linkSourceCustomInput.classList.toggle('hidden', !isCustom);
-      generatorGrid.classList.toggle('custom-open', isCustom);
-      if (isCustom) linkSourceCustomInput.focus();
-      generateTrackedLink();
-    }
-
-    function generateTrackedLink() {
-      var source = getSelectedSource();
-      var medium = slug(linkMediumInput.value);
-      var campaign = slug(linkCampaignInput.value);
-      var content = slug(linkContentInput.value);
-      var page = linkPageInput.value.split('#');
-      var url = new URL(page[0], 'https://julienrabault.github.io/');
-      if (page[1]) url.hash = page[1];
-      url.searchParams.set('src', source);
-      if (medium || campaign || content) url.searchParams.set('utm_source', source);
-      if (medium) url.searchParams.set('utm_medium', medium);
-      if (campaign) url.searchParams.set('utm_campaign', campaign);
-      if (content) url.searchParams.set('utm_content', content);
-      generatedLinkInput.value = url.toString();
-      return generatedLinkInput.value;
-    }
-
-    function renderTable(targetId, rows, columns, emptyText) {
-      var target = document.getElementById(targetId);
-      if (!rows || rows.length === 0) {
-        target.innerHTML = '<div class="empty">' + emptyText + '</div>';
-        return;
-      }
-
-      var html = '<table><thead><tr>';
-      columns.forEach(function (column) { html += '<th>' + escapeHtml(column.label) + '</th>'; });
-      html += '</tr></thead><tbody>';
-      rows.forEach(function (row) {
-        html += '<tr>';
-        columns.forEach(function (column) {
-          var value = typeof column.value === 'function' ? column.value(row) : row[column.key];
-          var content = typeof column.html === 'function' ? column.html(row) : escapeHtml(value);
-          html += '<td class="' + (column.className || '') + '">' + content + '</td>';
-        });
-        html += '</tr>';
-      });
-      html += '</tbody></table>';
-      target.innerHTML = html;
-    }
-
-    function renderBars(targetId, rows, labelKey, valueKey, emptyText) {
-      var target = document.getElementById(targetId);
-      rows = rows || [];
-      if (rows.length === 0) {
-        target.innerHTML = '<div class="empty">' + emptyText + '</div>';
-        return;
-      }
-      var max = Math.max.apply(null, rows.map(function (row) { return number(row[valueKey]); })) || 1;
-      target.innerHTML = rows.map(function (row) {
-        var value = number(row[valueKey]);
-        var width = Math.max(2, Math.round(value / max * 100));
-        return '<div class="bar-row"><div class="bar-label" title="' + escapeHtml(row[labelKey]) + '">' + escapeHtml(row[labelKey]) + '</div><strong>' + formatNumber(value) + '</strong><div class="bar-track"><div class="bar-fill" style="width:' + width + '%"></div></div></div>';
-      }).join('');
-    }
-
-    function renderFunnel(summary) {
-      var visitors = number(summary.unique_visitors);
-      var opens = number(summary.chat_opens);
-      var messages = number(summary.chat_messages);
-      var rows = [
-        { label: 'Visiteurs', value: visitors, base: visitors },
-        { label: 'Chat open', value: opens, base: visitors },
-        { label: 'Questions', value: messages, base: visitors }
-      ];
-      document.getElementById('funnel').innerHTML = rows.map(function (row) {
-        var width = row.base > 0 ? Math.max(2, Math.min(100, Math.round(row.value / row.base * 100))) : 0;
-        return '<div class="funnel-row"><strong>' + row.label + '</strong><div class="funnel-track"><div class="funnel-fill" style="width:' + width + '%"></div></div><span>' + formatNumber(row.value) + '</span></div>';
-      }).join('');
-    }
-
-    function getSelectedFilterSources() {
-      return Array.prototype.slice.call(sourcePicker.querySelectorAll('input[type="checkbox"]:checked'))
-        .map(function (input) { return input.value; });
-    }
-
-    function setSourceFilterState() {
-      var mode = sourceModeInput.value || 'all';
-      var isAll = mode === 'all';
-      Array.prototype.slice.call(sourcePicker.querySelectorAll('input[type="checkbox"]')).forEach(function (input) {
-        if (isAll) input.checked = false;
-        input.disabled = isAll;
-        input.closest('.source-chip').classList.toggle('disabled', isAll);
-      });
-      if (isAll) {
-        sourceFilterHint.textContent = 'Toutes les sources sont affichees.';
-      } else if (mode === 'include') {
-        sourceFilterHint.textContent = 'Coche les sources a garder dans le dashboard.';
-      } else {
-        sourceFilterHint.textContent = 'Coche les sources a retirer du dashboard.';
-      }
-    }
-
-    function syncSourceFilterOptions(sources, selectedMode, selectedSources) {
-      var selected = new Set(selectedSources || getSelectedFilterSources());
-      sourceModeInput.value = selectedMode || sourceModeInput.value || 'all';
-      if (!sources || sources.length === 0) {
-        sourcePicker.innerHTML = '<span class="empty">Aucune source trackee pour cette periode.</span>';
-        setSourceFilterState();
-        return;
-      }
-
-      sourcePicker.innerHTML = sources.map(function (row) {
-        var source = row.source || 'inconnu';
-        var checked = selected.has(source) ? ' checked' : '';
-        var count = formatNumber(row.page_views || 0);
-        return '<label class="source-chip" title="' + escapeHtml(count + ' vue(s)') + '"><input type="checkbox" value="' + escapeHtml(source) + '"' + checked + ' />' + escapeHtml(source) + '<span class="muted">' + count + '</span></label>';
-      }).join('');
-      setSourceFilterState();
-    }
-
-    function renderChart(data) {
-      var rows = granularityInput.value === 'weekly' ? (data.weekly || []) : (data.daily || []);
-      var target = document.getElementById('trendChart');
-      if (rows.length === 0) {
-        target.innerHTML = '<div class="empty">Pas encore assez de donnees pour afficher une courbe.</div>';
-        return;
-      }
-
-      var metrics = [
-        { key: 'page_views', color: 'var(--accent)' },
-        { key: 'unique_visitors', color: 'var(--blue)' },
-        { key: 'chat_messages', color: 'var(--green)' }
-      ];
-      var max = 1;
-      rows.forEach(function (row) {
-        metrics.forEach(function (metric) { max = Math.max(max, number(row[metric.key])); });
-      });
-
-      function points(key) {
-        return rows.map(function (row, i) {
-          var x = rows.length === 1 ? 400 : 42 + i * (716 / (rows.length - 1));
-          var y = 214 - (number(row[key]) / max) * 168;
-          return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
-        });
-      }
-
-      function path(key) {
-        var pts = points(key);
-        if (pts.length === 1) return '';
-        return pts.map(function (pt, i) { return (i === 0 ? 'M' : 'L') + pt[0] + ' ' + pt[1]; }).join(' ');
-      }
-
-      function circles(key, color) {
-        return points(key).map(function (pt) {
-          return '<circle cx="' + pt[0] + '" cy="' + pt[1] + '" r="3.5" fill="' + color + '"></circle>';
-        }).join('');
-      }
-
-      var first = rows[0];
-      var last = rows[rows.length - 1];
-      var firstLabel = granularityInput.value === 'weekly' ? first.week : first.day;
-      var lastLabel = granularityInput.value === 'weekly' ? last.week : last.day;
-      var svg = '<svg viewBox="0 0 800 260" role="img" aria-label="Tendance du trafic">';
-      [46, 88, 130, 172, 214].forEach(function (y) {
-        svg += '<line class="axis" x1="42" y1="' + y + '" x2="758" y2="' + y + '"></line>';
-      });
-      svg += '<text class="tick" x="42" y="238">' + escapeHtml(firstLabel) + '</text>';
-      svg += '<text class="tick" x="690" y="238">' + escapeHtml(lastLabel) + '</text>';
-      svg += '<text class="tick" x="42" y="34">' + formatNumber(max) + '</text>';
-      metrics.forEach(function (metric) {
-        if (rows.length > 1) svg += '<path class="series" d="' + path(metric.key) + '" stroke="' + metric.color + '"></path>';
-        svg += circles(metric.key, metric.color);
-      });
-      svg += '</svg>';
-      target.innerHTML = svg;
-    }
-
-    function render(data) {
-      latestData = data;
-      syncSourceFilterOptions(data.availableSources || [], data.sourceMode || 'all', data.sourceFilters || []);
-      var summary = data.summary || {};
-      var previous = data.previousSummary || {};
-      var pageViews = number(summary.page_views);
-      var visitors = number(summary.unique_visitors);
-      var chatUsers = number(summary.chat_users);
-      var prevChatRate = pct(number(previous.chat_users), number(previous.unique_visitors));
-      var chatRate = pct(chatUsers, visitors);
-      var qpu = chatUsers > 0 ? Math.round(number(summary.chat_messages) / chatUsers * 10) / 10 : 0;
-      var prevQpu = number(previous.chat_users) > 0 ? Math.round(number(previous.chat_messages) / number(previous.chat_users) * 10) / 10 : 0;
-
-      document.getElementById('pageViews').textContent = formatNumber(pageViews);
-      document.getElementById('uniqueVisitors').textContent = formatNumber(visitors);
-      document.getElementById('sessions').textContent = formatNumber(summary.sessions);
-      document.getElementById('chatMessages').textContent = formatNumber(summary.chat_messages);
-      document.getElementById('chatRate').textContent = chatRate + '%';
-      document.getElementById('questionsPerUser').textContent = String(qpu);
-
-      setDelta('deltaPageViews', periodDelta(summary.page_views, previous.page_views));
-      setDelta('deltaVisitors', periodDelta(summary.unique_visitors, previous.unique_visitors));
-      setDelta('deltaSessions', periodDelta(summary.sessions, previous.sessions));
-      setDelta('deltaQuestions', periodDelta(summary.chat_messages, previous.chat_messages));
-      setDelta('deltaChatRate', pointDelta(chatRate, prevChatRate));
-      setDelta('deltaQpu', { text: (qpu - prevQpu > 0 ? '+' : '') + Math.round((qpu - prevQpu) * 10) / 10, className: qpu > prevQpu ? 'up' : (qpu < prevQpu ? 'down' : '') });
-
-      renderChart(data);
-      renderFunnel(summary);
-
-      renderBars('countries', data.topCountries || [], 'country', 'page_views', 'Aucun pays.');
-      renderBars('devices', data.devices || [], 'device', 'page_views', 'Aucun device.');
-      renderBars('browsers', data.browsers || [], 'browser', 'page_views', 'Aucun navigateur.');
-      renderBars('languages', data.languages || [], 'language', 'page_views', 'Aucune langue.');
-
-      renderTable('topPages', data.topPages || [], [
-        { label: 'Page', key: 'page_path' },
-        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
-        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } }
-      ], 'Aucune page vue sur cette periode.');
-
-      renderTable('topSources', data.topSources || [], [
-        { label: 'Source', key: 'source' },
-        { label: 'Vues', value: function (row) { return formatNumber(row.page_views); } },
-        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } },
-        { label: 'Questions', value: function (row) { return formatNumber(row.chat_messages); } }
-      ], 'Aucune source trackee. Genere des liens avec src=...');
-
-      renderTable('recruiterActions', data.recruiterActions || [], [
-        { label: 'Event', value: function (row) { return eventLabel(row.event_type); } },
-        { label: 'Total', value: function (row) { return formatNumber(row.events); } },
-        { label: 'Visiteurs', value: function (row) { return formatNumber(row.unique_visitors); } }
-      ], 'Aucune action recruteur sur cette periode.');
-
-      renderTable('recentActions', data.recentActions || [], [
-        { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
-        { label: 'Event', value: function (row) { return eventLabel(row.event_type); } },
-        { label: 'Detail', value: actionDetail, className: 'answer' },
-        { label: 'Source', value: function (row) { return row.source || 'inconnu'; } }
-      ], 'Aucune action recente.');
-
-      renderTable('chatHealth', data.chatHealth || [], [
-        { label: 'Statut', key: 'status' },
-        { label: 'Questions', value: function (row) { return formatNumber(row.questions); } },
-        { label: 'Durée moy.', value: function (row) { return row.avg_ms == null ? '-' : (number(row.avg_ms) / 1000).toFixed(1) + ' s'; } },
-        { label: 'Tokens sortie', value: function (row) { return row.avg_output == null ? '-' : formatNumber(row.avg_output); } },
-        { label: 'Lu en cache', value: function (row) { return row.cache_pct == null ? '-' : row.cache_pct + ' %'; } }
-      ], 'Aucune question sur cette periode.');
-
-      renderTable('recentQuestions', data.recentQuestions || [], [
-        { label: 'Date', value: function (row) { return new Date(row.created_at).toLocaleString('fr-FR'); } },
-        { label: 'Source', value: function (row) { return row.source || 'inconnu'; } },
-        { label: 'Question', key: 'question', className: 'question' },
-        { label: 'Reponse', key: 'answer', className: 'answer' },
-        { label: 'Statut', key: 'status' },
-        { label: '', html: function (row) { return '<button class="danger delete-question" type="button" data-id="' + escapeHtml(row.id) + '">Supprimer</button>'; } }
-      ], 'Aucune question sur cette periode.');
-    }
-
-    async function deleteQuestion(id) {
-      var token = tokenInput.value.trim();
-      if (!token || !id) return;
-      if (!confirm('Supprimer cette question du dashboard ?')) return;
-
-      try {
-        var response = await fetch('/admin/events?id=' + encodeURIComponent(id), {
-          method: 'DELETE',
-          headers: { Authorization: 'Bearer ' + token }
-        });
-        var data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Erreur HTTP ' + response.status);
-        setStatus('Question supprimee.', 'ok');
-        await loadStats();
-      } catch (err) {
-        setStatus(err.message || 'Impossible de supprimer la question.', 'error');
-      }
-    }
-
-    async function loadStats(options) {
-      var silent = options && options.silent === true;
-      var token = tokenInput.value.trim();
-      if (!token) {
-        setStatus('Entre le token admin pour charger les stats.', 'error');
-        return;
-      }
-
-      localStorage.setItem('jr-admin-token', token);
-      if (!silent) setStatus('Chargement...', '');
-
-      try {
-        var params = new URLSearchParams({ days: daysInput.value });
-        params.set('sourceMode', sourceModeInput.value || 'all');
-        getSelectedFilterSources().forEach(function (source) {
-          params.append('sources', source);
-        });
-        var response = await fetch('/admin/stats?' + params.toString(), {
-          headers: { Authorization: 'Bearer ' + token }
-        });
-        var data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Erreur HTTP ' + response.status);
-        render(data);
-        setStatus('Derniere mise a jour : ' + new Date(data.generatedAt).toLocaleString('fr-FR'), 'ok');
-      } catch (err) {
-        setStatus(err.message || 'Impossible de charger les stats.', 'error');
-      }
-    }
-
-    document.getElementById('save').addEventListener('click', loadStats);
-    document.getElementById('refresh').addEventListener('click', loadStats);
-    document.getElementById('applyFilters').addEventListener('click', loadStats);
-    document.getElementById('resetFilters').addEventListener('click', function () {
-      daysInput.value = '30';
-      granularityInput.value = 'daily';
-      sourceModeInput.value = 'all';
-      Array.prototype.slice.call(sourcePicker.querySelectorAll('input[type="checkbox"]')).forEach(function (input) {
-        input.checked = false;
-      });
-      setSourceFilterState();
-      loadStats();
-    });
-    document.getElementById('generateLink').addEventListener('click', generateTrackedLink);
-    document.getElementById('copyLink').addEventListener('click', async function () {
-      var link = generateTrackedLink();
-      try {
-        await navigator.clipboard.writeText(link);
-        setStatus('Lien copie.', 'ok');
-      } catch {
-        generatedLinkInput.select();
-        setStatus('Lien genere, copie manuelle possible.', '');
-      }
-    });
-    linkSourceInput.addEventListener('change', syncSourceInput);
-    linkPageInput.addEventListener('change', generateTrackedLink);
-    [linkSourceCustomInput, linkMediumInput, linkCampaignInput, linkContentInput].forEach(function (input) {
-      input.addEventListener('input', generateTrackedLink);
-      input.addEventListener('change', generateTrackedLink);
-    });
-    daysInput.addEventListener('change', loadStats);
-    sourceModeInput.addEventListener('change', function () {
-      setSourceFilterState();
-      loadStats();
-    });
-    sourcePicker.addEventListener('change', function (event) {
-      if (event.target.matches('input[type="checkbox"]')) loadStats();
-    });
-    granularityInput.addEventListener('change', function () { if (latestData) renderChart(latestData); });
-    document.getElementById('recentQuestions').addEventListener('click', function (event) {
-      var button = event.target.closest('.delete-question');
-      if (button) deleteQuestion(button.getAttribute('data-id'));
-    });
-    tokenInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') loadStats(); });
-    document.getElementById('logout').addEventListener('click', function () {
-      localStorage.removeItem('jr-admin-token');
-      tokenInput.value = '';
-      setStatus('Token supprime de ce navigateur.', '');
-    });
-
-    syncSourceInput();
-    setInterval(function () {
-      if (document.visibilityState === 'visible' && tokenInput.value.trim()) {
-        loadStats({ silent: true });
-      }
-    }, autoRefreshDelayMs);
-    if (savedToken) loadStats();
-    else setStatus('Entre le token admin pour charger les stats.', '');
-  </script>
-</body>
-</html>`);
-}
-
-// Main handler
 function logChatV2(request, env, entry) {
   return insertAnalyticsEvent(env, buildEvent(request, entry.body || {}, {
     event_type: "chat_message",
@@ -2092,17 +947,19 @@ async function route(request, env, ctx) {
     return createPreflightResponse(corsOrigin);
   }
 
-  // Le tableau de bord et son API se protègent par jeton, sans CORS : seule la page /admin du worker les appelle.
+  // L'API du tableau de bord se protège par jeton. Elle répond au panneau du site (#admin), et seulement à lui :
+  // une autre origine reçoit l'origine du site dans Access-Control-Allow-Origin, que son navigateur refuse.
   if (url.pathname === "/admin/stats" && request.method === "GET") {
-    return handleAdminStats(request, env);
+    return handleAdminStats(request, env, corsOrigin);
   }
 
   if (url.pathname === "/admin/events" && request.method === "DELETE") {
-    return handleAdminDeleteEvent(request, env);
+    return handleAdminDeleteEvent(request, env, corsOrigin);
   }
 
+  // L'ancienne adresse du tableau de bord, gardée dans les favoris : le panneau vit désormais dans le site.
   if (url.pathname === "/admin" && request.method === "GET") {
-    return handleAdminDashboard();
+    return Response.redirect(env.ADMIN_URL || `${getAllowedOrigins(env)[0]}/#admin`, 302);
   }
 
   // Le reste ne répond qu'aux pages du site. Un robot peut forger l'en-tête, pas un navigateur sur un autre site.

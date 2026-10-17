@@ -45,12 +45,12 @@ function sse(events) {
   return new Response(new TextEncoder().encode(body), { status: 200, headers: { "Content-Type": "text/event-stream" } });
 }
 
-const anthropicStream = (chunks) =>
+const anthropicStream = (chunks, stopReason = "end_turn") =>
   sse([
     { type: "message_start", message: { model: "claude-haiku-5-5", usage: { input_tokens: 12, cache_read_input_tokens: 3000 } } },
     { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } },
     ...chunks.map((text) => ({ type: "content_block_delta", index: 0, delta: { type: "text_delta", text } })),
-    { type: "message_delta", usage: { output_tokens: 42 } },
+    { type: "message_delta", delta: { stop_reason: stopReason }, usage: { output_tokens: 42 } },
     { type: "message_stop" },
   ]);
 
@@ -194,6 +194,7 @@ describe("handleChatV2", () => {
     await ctx.settle();
 
     assert.equal(sent.system[0].cache_control.type, "ephemeral");
+    assert.deepEqual(sent.thinking, { type: "disabled" }, "la réflexion cachée mangerait le budget de sortie");
     const wrapped = sent.messages.at(-1).content;
     assert.equal(wrapped.match(/<\/?question/gi).length, 2, "la balise ne peut pas être fermée par le visiteur");
     assert.ok(wrapped.includes("&lt;/question &gt;"));
@@ -214,6 +215,32 @@ describe("handleChatV2", () => {
     assert.equal(logs[0].status, "ok");
     assert.equal(logs[0].answer, text);
     assert.equal(logs[0].body.visitorId, "v1");
+  });
+
+  it("signale une réponse coupée par la limite de jetons au lieu de s'arrêter net", async () => {
+    globalThis.fetch = async () => anthropicStream(["Pendant son master, il a été"], "max_tokens");
+    const logs = [];
+    const ctx = makeCtx();
+    const response = await handleChatV2(request({ question: "Résume son parcours", locale: "fr" }), env, ctx, "*", async (e) => logs.push(e));
+    const events = await readEvents(response);
+    await ctx.settle();
+
+    const text = events.filter((e) => e.type === "text").map((e) => e.delta).join("");
+    assert.equal(text, "Pendant son master, il a été…");
+    assert.equal(events.at(-1).type, "done");
+    assert.equal(logs[0].answer, text);
+    assert.equal(logs[0].metadata.stopReason, "max_tokens");
+  });
+
+  it("referme un gras resté ouvert quand la réponse est coupée", async () => {
+    globalThis.fetch = async () => anthropicStream(["Il a mis en production **un banc d'évaluation"], "max_tokens");
+    const ctx = makeCtx();
+    const response = await handleChatV2(request({ question: "Résume son parcours", locale: "fr" }), env, ctx, "*", async () => {});
+    const events = await readEvents(response);
+    await ctx.settle();
+
+    const text = events.filter((e) => e.type === "text").map((e) => e.delta).join("");
+    assert.equal(text, "Il a mis en production **un banc d'évaluation…**");
   });
 
   it("refuse une question vide ou trop longue", async () => {

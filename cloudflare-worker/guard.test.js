@@ -159,9 +159,23 @@ describe("routeur du worker", () => {
     assert.equal(other.status, 503, "bon jeton, mais pas de base en test");
   });
 
-  it("interdit d'encadrer le tableau de bord", async () => {
+  it("renvoie l'ancienne adresse du tableau de bord vers le panneau du site", async () => {
     const response = await call("/admin");
-    assert.equal(response.headers.get("X-Frame-Options"), "DENY");
-    assert.match(response.headers.get("Content-Security-Policy"), /frame-ancestors 'none'/);
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get("Location"), `${SITE}/#admin`);
+  });
+
+  it("laisse le panneau du site appeler l'API admin, jeton dans l'en-tête", async () => {
+    const preflight = await call("/admin/stats", { method: "OPTIONS", headers: { Origin: SITE } });
+    assert.equal(preflight.headers.get("Access-Control-Allow-Origin"), SITE);
+    assert.match(preflight.headers.get("Access-Control-Allow-Headers"), /Authorization/);
+    assert.match(preflight.headers.get("Access-Control-Allow-Methods"), /DELETE/);
+
+    const refused = await call("/admin/stats", { headers: { Origin: SITE, "CF-Connecting-IP": "192.0.2.62", Authorization: "Bearer wrong" } });
+    assert.equal(refused.status, 401);
+    assert.equal(refused.headers.get("Access-Control-Allow-Origin"), SITE, "le panneau doit pouvoir lire le refus");
+
+    const foreign = await call("/admin/stats", { headers: { Origin: "https://evil.example", "CF-Connecting-IP": "192.0.2.63" } });
+    assert.notEqual(foreign.headers.get("Access-Control-Allow-Origin"), "https://evil.example");
   });
 });
