@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { ArrowUpRightIcon, DownloadIcon } from "lucide-react";
 import { motion, type Variants } from "motion/react";
 import { type ReactNode, useEffect, useRef } from "react";
+import { Emphasis } from "@/components/emphasis";
+import { LegalDialog } from "@/components/legal-dialog";
 
 interface CareerPageProps {
   content: SiteContent;
@@ -96,7 +98,7 @@ export function CareerPage({ content, onAsk }: CareerPageProps) {
             {career.title}
           </motion.h1>
           <motion.p className="mt-6 max-w-[62ch] text-[17px] text-muted-foreground leading-relaxed" variants={rise}>
-            {career.summary}
+            <Emphasis text={career.summary} />
           </motion.p>
           <motion.p className="mt-3 max-w-[62ch] text-[17px] leading-relaxed" variants={rise}>
             {profile.availability}
@@ -168,6 +170,10 @@ export function CareerPage({ content, onAsk }: CareerPageProps) {
             </Button>
           </div>
         </section>
+
+        <footer className="border-t py-6">
+          <LegalDialog legal={content.legal} />
+        </footer>
       </div>
     </main>
   );

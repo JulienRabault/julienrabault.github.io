@@ -5,6 +5,7 @@ import type { SiteContent } from "@/content/types";
 import type { ChatStatus } from "@/lib/use-agent-chat";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { motion, type Variants } from "motion/react";
+import { LegalDialog } from "@/components/legal-dialog";
 
 interface WelcomeProps {
   content: SiteContent;
@@ -103,6 +104,10 @@ export function Welcome({ content, status, remaining, onSend, onStop, onOpenCare
             </a>
           </span>
         </motion.p>
+
+        <motion.div className="mt-10" variants={rise}>
+          <LegalDialog legal={content.legal} />
+        </motion.div>
       </motion.div>
     </main>
   );

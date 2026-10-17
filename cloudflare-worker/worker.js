@@ -1,4 +1,5 @@
 import { handleChatV2, takeQuota } from "./chat.js";
+import { purgeExpired } from "./retention.js";
 import {
   BODY_LIMITS,
   BodyError,
@@ -2136,5 +2137,9 @@ async function route(request, env, ctx) {
 export default {
   async fetch(request, env, ctx) {
     return withSecurityHeaders(await route(request, env, ctx));
+  },
+  // Chaque nuit : les données qui ont dépassé leur durée de conservation sont effacées (voir retention.js).
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(purgeExpired(env.ANALYTICS_DB).catch((error) => console.error("Retention purge failed", error)));
   },
 };

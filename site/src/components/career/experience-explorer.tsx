@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Emphasis } from "@/components/emphasis";
 
 const itemKey = (item: CareerItem) => item.id ?? item.name;
 const itemsOf = (chapter: Chapter) => chapter.groups.flatMap((g) => g.items);
@@ -58,8 +59,8 @@ function ChapterHead({ chapter }: { chapter: Chapter }) {
         <span className="text-muted-foreground">, {chapter.place}, </span>
         <span className="text-muted-foreground tabular-nums">{chapter.dates}</span>
       </p>
-      {chapter.context && <p className="mt-4 text-[15.5px] leading-relaxed">{chapter.context}</p>}
-      {chapter.note && <p className="mt-2.5 text-[14.5px] text-muted-foreground leading-relaxed">{chapter.note}</p>}
+      {chapter.context && <p className="mt-4 text-[15.5px] leading-relaxed"><Emphasis text={chapter.context} /></p>}
+      {chapter.note && <p className="mt-2.5 text-[14.5px] text-muted-foreground leading-relaxed"><Emphasis text={chapter.note} /></p>}
     </header>
   );
 }

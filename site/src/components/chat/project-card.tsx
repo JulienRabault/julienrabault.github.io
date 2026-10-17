@@ -5,6 +5,7 @@ import type { ProjectId } from "@/content/agent-contract";
 import type { CareerItem, Chapter, ChatLink, SiteContent } from "@/content/types";
 import { ArrowUpRightIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { Emphasis } from "@/components/emphasis";
 
 export function findProject(content: SiteContent, id: ProjectId): { item: CareerItem; chapter: Chapter } | null {
   for (const chapter of content.career.chapters) {
@@ -52,7 +53,7 @@ export function ProjectCard({ id, content, onOpenCareer, renderLink }: ProjectCa
         )}
       </div>
 
-      <p className="mt-2 text-muted-foreground text-sm leading-relaxed">{item.problem ?? item.text}</p>
+      <p className="mt-2 text-muted-foreground text-sm leading-relaxed"><Emphasis text={item.problem ?? item.text} /></p>
 
       {item.metrics && item.metrics.length > 0 && (
         <Results className="mt-3" estimateLabel={content.career.estimate} metrics={item.metrics} />

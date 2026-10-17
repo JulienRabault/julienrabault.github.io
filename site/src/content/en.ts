@@ -1,6 +1,7 @@
 import { careerEn, harnessEn } from "./career.en";
 import { knowledgeEn } from "./knowledge.en";
 import type { SiteContent } from "./types";
+import { legalEn } from "./legal.en";
 
 // Facts taken from generate_cv_en.py (source of truth). Do not add any figure that is not in the CV.
 export const en: SiteContent = {
@@ -64,6 +65,7 @@ export const en: SiteContent = {
     "What did he publish at CNRS?",
     "What is his stack?",
   ],
+  legal: legalEn,
   sources: knowledgeEn,
   links: {
     "cv": { label: "the PDF CV", href: `${import.meta.env.BASE_URL}CV_JULIEN_RABAULT_EN.pdf`, download: true },

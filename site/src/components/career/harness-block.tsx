@@ -3,6 +3,7 @@ import type { HarnessLayer } from "@/content/types";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+import { Emphasis } from "@/components/emphasis";
 
 interface CompactLayersProps {
   layers: HarnessLayer[];
@@ -44,7 +45,7 @@ function CompactLayers({ layers, active, onSelect }: CompactLayersProps) {
             key={layer.id}
             transition={{ duration: 0.2 }}
           >
-            {layer.text}
+            <Emphasis text={layer.text} />
           </motion.p>
         </AnimatePresence>
       </div>

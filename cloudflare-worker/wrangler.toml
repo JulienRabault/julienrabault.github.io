@@ -28,3 +28,7 @@ simple = { limit = 6, period = 60 }
 binding = "ANALYTICS_DB"
 database_name = "jr_portfolio_analytics"
 database_id = "b733b7be-3909-4053-a50e-af751460e359"
+
+# Purge nocturne des données expirées (retention.js) : 13 mois pour les visites et le chat, deux jours au plus pour les quotas.
+[triggers]
+crons = ["0 3 * * *"]

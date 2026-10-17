@@ -2,6 +2,7 @@ import { careerFr, harnessFr } from "./career.fr";
 import { knowledgeFr } from "./knowledge.fr";
 import type { SiteContent } from "./types";
 import { frenchSpacing } from "./typography";
+import { legalFr } from "./legal.fr";
 
 // Faits repris de generate_cv.py (source de référence). Ne pas ajouter de chiffre absent du CV.
 export const fr: SiteContent = frenchSpacing({
@@ -65,6 +66,7 @@ export const fr: SiteContent = frenchSpacing({
     "Qu'a-t-il publié au CNRS ?",
     "Quelle est sa stack ?",
   ],
+  legal: legalFr,
   sources: knowledgeFr,
   links: {
     "cv": { label: "le CV en PDF", href: `${import.meta.env.BASE_URL}CV_JULIEN_RABAULT.pdf`, download: true },

@@ -54,6 +54,25 @@ function storedId(storage: () => Storage, key: string, prefix: string): string {
 
 const clean = (value: string | null): string => (value ?? "").trim().slice(0, 160);
 
+const VISITOR_KEY = "jr-visitor-id";
+const VISITOR_SINCE_KEY = "jr-visitor-since";
+/** 13 mois : la durée de vie que la CNIL admet pour un identifiant de mesure d'audience. */
+export const VISITOR_MAX_AGE_MS = 395 * 86_400_000;
+
+/** L'identifiant de visite, renouvelé au bout de 13 mois (et une fois pour ceux créés avant cette règle). */
+export function visitorId(storage: () => Storage, now = Date.now()): string {
+  try {
+    const since = Number(storage().getItem(VISITOR_SINCE_KEY));
+    if (!since || now - since > VISITOR_MAX_AGE_MS) {
+      storage().removeItem(VISITOR_KEY);
+      storage().setItem(VISITOR_SINCE_KEY, String(now));
+    }
+  } catch {
+    // Stockage indisponible : storedId en tire un identifiant jetable.
+  }
+  return storedId(storage, VISITOR_KEY, "v");
+}
+
 /** Source du lien suivi (?src= ou utm_*), gardée pour la session : elle survit au passage chat / parcours. */
 function readAttribution(): Attribution {
   const params = new URLSearchParams(window.location.search);
@@ -81,7 +100,7 @@ let cached: { visitorId: string; sessionId: string; attribution: Attribution } |
 /** Contexte de la visite, joint aux événements et aux questions du chat. */
 export function visitContext(): Visit {
   cached ??= {
-    visitorId: storedId(() => localStorage, "jr-visitor-id", "v"),
+    visitorId: visitorId(() => localStorage),
     sessionId: storedId(() => sessionStorage, "jr-session-id", "s"),
     attribution: readAttribution(),
   };

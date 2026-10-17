@@ -171,6 +171,14 @@ export interface CareerContent {
   closing: string;
 }
 
+/** Mentions légales et confidentialité : ce que le site collecte, dit en clair. */
+export interface LegalContent {
+  link: string;
+  title: string;
+  updated: string;
+  sections: { title: string; paragraphs: string[] }[];
+}
+
 export interface SiteContent {
   locale: Locale;
   profile: Profile;
@@ -178,6 +186,7 @@ export interface SiteContent {
   suggestions: string[];
   /** Questions qui défilent dans la zone de saisie de l'accueil, en plus des suggestions. */
   examples: string[];
+  legal: LegalContent;
   sources: Record<string, Source>;
   links: Record<LinkId, ChatLink>;
   answers: CannedAnswer[];

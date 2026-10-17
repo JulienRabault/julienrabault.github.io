@@ -6,6 +6,7 @@ import type { CareerContent, CareerItem, HarnessLayer, SiteContent } from "@/con
 import { ArrowUpRightIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useId, useRef, useState } from "react";
+import { Emphasis } from "@/components/emphasis";
 
 interface ProjectProps {
   item: CareerItem;
@@ -21,14 +22,14 @@ export function ProjectBody({ item, career, harness, links }: ProjectProps) {
   return (
     <>
       <div className="space-y-4">
-        {item.problem && <p className="text-[15.5px] leading-relaxed">{item.problem}</p>}
+        {item.problem && <p className="text-[15.5px] leading-relaxed"><Emphasis text={item.problem} /></p>}
         {item.details && (
           <ul className="space-y-2.5">
             {item.details.map((detail) => (
               <li className="flex gap-3 text-[15px] leading-relaxed" key={detail}>
                 {/* Une puce carrée : la trame de la sphère, réduite à un pixel. */}
                 <span aria-hidden className="mt-[0.62em] size-[5px] shrink-0 bg-ochre/80" />
-                <span>{detail}</span>
+                <span><Emphasis text={detail} /></span>
               </li>
             ))}
           </ul>
@@ -75,7 +76,7 @@ export function ProjectSummary({ item, career, large = false }: { item: CareerIt
         {item.status && <StatusPill status={item.status} />}
       </h4>
       <p className={large ? "mt-2 text-[17px] leading-relaxed" : "mt-1.5 text-[15.5px] text-muted-foreground leading-relaxed"}>
-        {item.text}
+        <Emphasis text={item.text} />
       </p>
       {item.metrics && <Results className="mt-3" estimateLabel={career.estimate} metrics={item.metrics} />}
     </>
