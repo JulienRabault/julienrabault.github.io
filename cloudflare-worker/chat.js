@@ -37,17 +37,13 @@ export const LIMITS = {
   perDay: 400,
 };
 
-const DEFAULT_MODEL = "claude-sonnet-5-5";
+const DEFAULT_MODEL = "claude-haiku-5-5";
 
 /**
- * Haiku 5.5 accepte qu'on coupe la réflexion, qui sinon mange max_tokens. Sonnet 5.5 refuse `disabled` (400) :
- * réflexion adaptative, en effort bas, assez pour relier une relance à l'échange précédent sans ralentir la réponse.
+ * Réflexion adaptative en effort bas : assez pour relier une relance courte à l'échange précédent,
+ * sans ralentir la réponse ni manger max_tokens. Vaut pour Haiku 5.5 comme pour Sonnet 5.5, qui refuse `disabled` (400).
  */
-export function reasoningOptions(model) {
-  return model.includes("haiku")
-    ? { thinking: { type: "disabled" } }
-    : { thinking: { type: "adaptive" }, output_config: { effort: "low" } };
-}
+export const REASONING = { thinking: { type: "adaptive" }, output_config: { effort: "low" } };
 
 const LINK_HELP = {
   "cv": "the PDF CV",
@@ -375,7 +371,7 @@ export async function handleChatV2(request, env, ctx, corsOrigin, log, { allowed
         model: env.MODEL || DEFAULT_MODEL,
         max_tokens: Number(env.CHAT_MAX_TOKENS) || LIMITS.maxTokens,
         stream: true,
-        ...reasoningOptions(env.MODEL || DEFAULT_MODEL),
+        ...REASONING,
         system: [{ type: "text", text: buildSystemPrompt(locale), cache_control: { type: "ephemeral" } }],
         // Second point de cache sur la question : la relance suivante relit tout l'échange au prix d'une lecture de cache.
         messages: [...history, { role: "user", content: [{ type: "text", text: asQuestion(question), cache_control: { type: "ephemeral" } }] }],

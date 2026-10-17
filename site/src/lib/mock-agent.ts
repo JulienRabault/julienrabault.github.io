@@ -60,7 +60,7 @@ export async function* replayAnswer(
   yield {
     type: "done",
     trace: {
-      model: "Claude Sonnet 5.5",
+      model: "Claude Haiku 5.5",
       inputTokens: 0,
       outputTokens: Math.round(answer.text.length / 3.6),
       durationMs: Math.round(performance.now() - started),

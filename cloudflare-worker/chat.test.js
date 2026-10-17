@@ -4,7 +4,7 @@ import { afterEach, describe, it } from "node:test";
 import { LINK_IDS } from "../site/src/content/agent-contract.ts";
 import { answersFr, suggestionsFr } from "../site/src/content/answers.fr.ts";
 import { knowledgeFr } from "../site/src/content/knowledge.fr.ts";
-import { buildSystemPrompt, handleChatV2, LIMITS, reasoningOptions, signAnswer, sseObjects, takeQuota, verifiedHistory } from "./chat.js";
+import { buildSystemPrompt, handleChatV2, LIMITS, signAnswer, sseObjects, takeQuota, verifiedHistory } from "./chat.js";
 import { BODY_LIMITS } from "./guard.js";
 
 /** D1 réduit aux requêtes du quota : total du jour, incrément sous la limite, remboursement. */
@@ -97,12 +97,6 @@ describe("buildSystemPrompt", () => {
   });
 });
 
-describe("reasoningOptions", () => {
-  it("coupe la réflexion de Haiku, garde une réflexion brève sur Sonnet qui refuse `disabled`", () => {
-    assert.deepEqual(reasoningOptions("claude-haiku-5-5"), { thinking: { type: "disabled" } });
-    assert.deepEqual(reasoningOptions("claude-sonnet-5-5"), { thinking: { type: "adaptive" }, output_config: { effort: "low" } });
-  });
-});
 
 describe("historique signé", () => {
   const secret = "s3cret";
@@ -236,7 +230,8 @@ describe("handleChatV2", () => {
     await ctx.settle();
 
     assert.equal(sent.system[0].cache_control.type, "ephemeral");
-    assert.deepEqual(sent.thinking, { type: "adaptive" }, "Sonnet 5.5 refuse `disabled`");
+    assert.equal(sent.model, "claude-haiku-5-5");
+    assert.deepEqual(sent.thinking, { type: "adaptive" }, "une réflexion courte relie la relance à l'échange précédent");
     assert.deepEqual(sent.output_config, { effort: "low" });
     const [last] = sent.messages.at(-1).content;
     assert.equal(last.cache_control.type, "ephemeral", "la relance suivante relit l'échange depuis le cache");
